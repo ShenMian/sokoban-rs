@@ -1,0 +1,25 @@
+[package]
+name = "sokoban-rs"
+version = "0.1.0"
+edition = "2021"
+
+authors = ["ShenMian <sms_school@outlook.com>"]
+license = "MIT OR Apache-2.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[features]
+default = ["dep:bevy", "dep:bevy_editor_pls"]
+
+[dependencies]
+bitflags = "2.4"
+nalgebra = "0.32"
+
+bevy = { version = "0.12", optional = true }
+bevy_editor_pls = { version = "0.6", optional = true }
+rusqlite = { version = "0.30", features = ["bundled"] }
+arboard = "3.3"
+siphasher = "1.0"
+
+[profile.dev.package."*"]
+opt-level = 3
