@@ -2,7 +2,7 @@
 
 A sokoban with a solver.
 
-<p align="center"><img src="./docs/screenshot.png" width=70%></p>
+<p align="center"><img src="./docs/screenshot.gif" width=70%></p>
 
 ## Features
 
