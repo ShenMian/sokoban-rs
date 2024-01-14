@@ -191,6 +191,10 @@ impl Action {
                 Self::ZoomIn,
             ),
             (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::West)),
+                Self::InstantMove,
+            ),
+            (
                 UserInput::Single(InputKind::GamepadButton(GamepadButtonType::North)),
                 Self::AutomaticSolution,
             ),

@@ -20,7 +20,7 @@ A sokoban with a solver.
 | Click `Left` on player reachable area | Move the character to this position      |
 | Click `Left` on a crate               | Show the reachable area of the crate     |
 | Click `Left` on crate reachable area  | Push the selected crate to this position |
-| Hold `Right` and drag                 | Drag the board                           |
+| Hold `Right` and drag                 | Adjust viewport                          |
 | Click `Button 4`                      | Undo last push                           |
 | Click `Button 5`                      | Redo last push                           |
 | Scroll `Middle`                       | Zoom in/out                              |
@@ -45,7 +45,6 @@ A sokoban with a solver.
 | Key             | Action                            |
 |-----------------|-----------------------------------|
 | `H`/`J`/`K`/`L` | Move the character                |
-| `[`/`]`         | Switch to the previous/next level |
 | `U`             | Undo last push                    |
 | `Ctrl` + `R`    | Redo last push                    |
 
@@ -58,7 +57,8 @@ A sokoban with a solver.
 | `B`/`Circle`      | Undo last push                    |
 | `A`/`Cross`       | Redo last push                    |
 | `LT`/`RT`         | Zoom in/out                       |
-| Right stick       | Move viewport                     |
+| Right stick       | Adjust viewport                   |
+| `X`/`Square`      | Trigger instant move[^1]          |
 | `Y`/`Triangle`    | Automatic solution                |
 
 [^1]: Turn off character and crates movement animations.
