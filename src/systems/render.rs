@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::winit::WinitWindows;
 
 use crate::components::*;
+use crate::direction::Direction;
 use crate::events::*;
 use crate::level::PushState;
 use crate::resources::*;
@@ -111,19 +112,29 @@ pub fn update_hud(
 }
 
 pub fn animate_player_movement(
-    mut player: Query<&mut GridPosition, With<Player>>,
+    mut player: Query<(&mut GridPosition, &mut TextureAtlasSprite), With<Player>>,
     mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
     settings: Res<Settings>,
 ) {
+    let (player_grid_position, sprite) = &mut player.single_mut();
+    let player_grid_position = &mut ***player_grid_position;
     if !settings.instant_move {
         player_movement.timer.tick(time.delta());
         if !player_movement.timer.just_finished() {
             return;
         }
-        let player_grid_position = &mut player.single_mut().0;
         if let Some(direction) = player_movement.directions.pop_back() {
+            /*
+            **sprite = TextureAtlasSprite::new(match direction {
+                Direction::Up => 4 + 0,
+                Direction::Right => 4 + 1,
+                Direction::Down => 4 + 2,
+                Direction::Left => 4 + 3,
+            });
+            */
+
             player_grid_position.x += direction.to_vector().x;
             player_grid_position.y += direction.to_vector().y;
 
@@ -139,7 +150,6 @@ pub fn animate_player_movement(
             }
         }
     } else {
-        let player_grid_position = &mut player.single_mut().0;
         while let Some(direction) = player_movement.directions.pop_back() {
             player_grid_position.x += direction.to_vector().x;
             player_grid_position.y += direction.to_vector().y;

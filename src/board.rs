@@ -100,6 +100,14 @@ impl Board {
         return self.level.crate_positions == self.level.target_positions;
     }
 
+    pub fn player_facing_direction(&self) -> Direction {
+        self.movements
+            .iter()
+            .map(|movement| movement.direction)
+            .last()
+            .unwrap_or(Direction::Down)
+    }
+
     fn move_player(&mut self, to: Vector2<i32>) {
         self.level
             .get_unchecked_mut(&self.level.player_position.clone())

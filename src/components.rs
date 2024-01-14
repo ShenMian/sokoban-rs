@@ -32,5 +32,5 @@ pub struct Crate;
 #[derive(Component)]
 pub struct ReachableMark;
 
-#[derive(Component, Deref)]
+#[derive(Component, Deref, DerefMut)]
 pub struct GridPosition(pub Vector2<i32>);

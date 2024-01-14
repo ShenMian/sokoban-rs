@@ -143,7 +143,6 @@ pub fn mouse_input(
         let grid_position =
             Vector2::new(grid_position.x, board.level.dimensions.y - grid_position.y);
 
-        // TODO: 将选择箱子作为一个 State
         unselect_crate_events.send(UnselectCrate);
         match &*crate_reachable {
             CrateReachable::None => {
@@ -345,8 +344,9 @@ pub fn gamepad_input(
     mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
     mut unselect_crate_events: EventWriter<UnselectCrate>,
 ) {
-    let database = database.lock().unwrap();
     let board = &mut board.single_mut().board;
+    let database = database.lock().unwrap();
+    let (mut camera_transform, mut main_camera) = camera.single_mut();
 
     let mut any_pressed = false;
 
@@ -390,7 +390,6 @@ pub fn gamepad_input(
             any_pressed = true;
         }
 
-        let (mut camera_transform, mut main_camera) = camera.single_mut();
         if buttons.just_pressed(GamepadButton::new(
             gamepad,
             GamepadButtonType::RightTrigger2,
