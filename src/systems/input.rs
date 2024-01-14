@@ -1,5 +1,6 @@
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
+use leafwing_input_manager::{prelude::*, user_input::InputKind};
 use nalgebra::Vector2;
 
 use crate::components::*;
@@ -13,6 +14,190 @@ use crate::solver::{
 };
 use crate::systems::level::*;
 
+#[derive(Actionlike, Reflect, Clone, Hash, PartialEq, Eq)]
+pub enum Action {
+    MoveUp,
+    MoveDown,
+    MoveLeft,
+    MoveRight,
+
+    Undo,
+    Redo,
+
+    PreviousLevel,
+    NextLevel,
+
+    ZoomOut,
+    ZoomIn,
+
+    InstantMove,
+    AutomaticSolution,
+
+    ImportLevelsFromClipboard,
+    ExportLevelToClipboard,
+}
+
+impl Action {
+    pub fn input_map() -> InputMap<Action> {
+        InputMap::new([
+            // Mouse
+            (
+                UserInput::Single(InputKind::Mouse(MouseButton::Other(1))),
+                Self::Undo,
+            ),
+            (
+                UserInput::Single(InputKind::Mouse(MouseButton::Other(2))),
+                Self::Redo,
+            ),
+            // Keyboard
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::W)),
+                Self::MoveUp,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::S)),
+                Self::MoveDown,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::A)),
+                Self::MoveLeft,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::D)),
+                Self::MoveRight,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::Up)),
+                Self::MoveUp,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::Down)),
+                Self::MoveDown,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::Left)),
+                Self::MoveLeft,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::Right)),
+                Self::MoveRight,
+            ),
+            (
+                UserInput::Chord(vec![
+                    InputKind::Keyboard(KeyCode::ControlLeft),
+                    InputKind::Keyboard(KeyCode::Z),
+                ]),
+                Self::Undo,
+            ),
+            (
+                UserInput::Chord(vec![
+                    InputKind::Keyboard(KeyCode::ControlLeft),
+                    InputKind::Keyboard(KeyCode::ShiftLeft),
+                    InputKind::Keyboard(KeyCode::Z),
+                ]),
+                Self::Redo,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::BracketLeft)),
+                Self::PreviousLevel,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::BracketRight)),
+                Self::NextLevel,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::Minus)),
+                Self::ZoomOut,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::Equals)),
+                Self::ZoomIn,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::I)),
+                Self::InstantMove,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::P)),
+                Self::AutomaticSolution,
+            ),
+            // Keyboard (Vim)
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::K)),
+                Self::MoveUp,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::J)),
+                Self::MoveDown,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::H)),
+                Self::MoveLeft,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::L)),
+                Self::MoveRight,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::U)),
+                Self::Undo,
+            ),
+            (
+                UserInput::Chord(vec![
+                    InputKind::Keyboard(KeyCode::ControlLeft),
+                    InputKind::Keyboard(KeyCode::R),
+                ]),
+                Self::Redo,
+            ),
+            // Gamepad
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadUp)),
+                Self::MoveUp,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadDown)),
+                Self::MoveDown,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadLeft)),
+                Self::MoveLeft,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadRight)),
+                Self::MoveRight,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::East)),
+                Self::Undo,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::South)),
+                Self::Redo,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger)),
+                Self::PreviousLevel,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::RightTrigger)),
+                Self::NextLevel,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger2)),
+                Self::ZoomOut,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::RightTrigger2)),
+                Self::ZoomIn,
+            ),
+            (
+                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::North)),
+                Self::AutomaticSolution,
+            ),
+        ])
+    }
+}
+
 pub fn player_move_to(
     target: &Vector2<i32>,
     board: &mut crate::board::Board,
@@ -24,7 +209,6 @@ pub fn player_move_to(
             .get_unchecked(&position)
             .intersects(Tile::Wall | Tile::Crate)
     }) {
-        // player_movement.directions.clear();
         let directions = path
             .windows(2)
             .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
@@ -102,6 +286,99 @@ fn solve_level(board: &mut crate::board::Board, player_movement: &mut ResMut<Pla
     }
 }
 
+pub fn action_input(
+    action_state: Res<ActionState<Action>>,
+    mut level_id: ResMut<LevelId>,
+    database: Res<Database>,
+    mut player_movement: ResMut<PlayerMovement>,
+    mut settings: ResMut<Settings>,
+
+    mut board: Query<&mut Board>,
+    mut camera: Query<&mut MainCamera>,
+
+    mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
+    mut unselect_crate_events: EventWriter<UnselectCrate>,
+) {
+    let database = database.lock().unwrap();
+    let board = &mut board.single_mut().board;
+    let mut any_pressed = false;
+
+    if action_state.just_pressed(Action::MoveUp) {
+        player_move_or_push(Direction::Up, board, &mut player_movement);
+        any_pressed = true;
+    }
+    if action_state.just_pressed(Action::MoveDown) {
+        player_move_or_push(Direction::Down, board, &mut player_movement);
+        any_pressed = true;
+    }
+    if action_state.just_pressed(Action::MoveLeft) {
+        player_move_or_push(Direction::Left, board, &mut player_movement);
+        any_pressed = true;
+    }
+    if action_state.just_pressed(Action::MoveRight) {
+        player_move_or_push(Direction::Right, board, &mut player_movement);
+        any_pressed = true;
+    }
+
+    if action_state.just_pressed(Action::Undo) {
+        board.undo_push();
+        player_movement.directions.clear();
+        update_grid_position_events.send(UpdateGridPositionEvent);
+        any_pressed = true;
+    }
+    if action_state.just_pressed(Action::Redo) {
+        board.redo_push();
+        player_movement.directions.clear();
+        update_grid_position_events.send(UpdateGridPositionEvent);
+        any_pressed = true;
+    }
+
+    if action_state.just_pressed(Action::PreviousLevel) {
+        player_movement.directions.clear();
+        switch_to_previous_level(&mut level_id, &database);
+        any_pressed = true;
+    }
+    if action_state.just_pressed(Action::NextLevel) {
+        player_movement.directions.clear();
+        switch_to_next_level(&mut level_id, &database);
+        any_pressed = true;
+    }
+
+    let mut main_camera = camera.single_mut();
+    if action_state.just_pressed(Action::ZoomOut) {
+        main_camera.target_scale *= 1.25;
+        any_pressed = true;
+    }
+    if action_state.just_pressed(Action::ZoomIn) {
+        main_camera.target_scale /= 1.25;
+        any_pressed = true;
+    }
+
+    if action_state.just_pressed(Action::InstantMove) {
+        settings.instant_move = !settings.instant_move;
+        any_pressed = true;
+    }
+    if action_state.just_pressed(Action::AutomaticSolution) {
+        solve_level(board, &mut player_movement);
+        any_pressed = true;
+    }
+
+    if action_state.just_pressed(Action::ImportLevelsFromClipboard) {
+        player_movement.directions.clear();
+        import_from_clipboard(&mut level_id, &database);
+        any_pressed = true;
+    }
+    if action_state.just_pressed(Action::ExportLevelToClipboard) {
+        player_movement.directions.clear();
+        export_to_clipboard(&board);
+        any_pressed = true;
+    }
+
+    if any_pressed {
+        unselect_crate_events.send(UnselectCrate);
+    }
+}
+
 pub fn mouse_input(
     mouse_buttons: Res<Input<MouseButton>>,
     mut mouse_wheel_events: EventReader<MouseWheel>,
@@ -113,26 +390,9 @@ pub fn mouse_input(
     mut crate_reachable: ResMut<CrateReachable>,
     mut select_crate_events: EventWriter<SelectCrate>,
     mut unselect_crate_events: EventWriter<UnselectCrate>,
-    mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
 ) {
     let Board { board, tile_size } = &mut *board.single_mut();
     let (camera, camera_transform, mut main_camera) = camera.single_mut();
-
-    if mouse_buttons.just_pressed(MouseButton::Other(1)) {
-        board.undo_push();
-        player_movement.directions.clear();
-        update_grid_position_events.send(UpdateGridPositionEvent);
-        unselect_crate_events.send(UnselectCrate);
-        return;
-    }
-
-    if mouse_buttons.just_pressed(MouseButton::Other(2)) {
-        board.redo_push();
-        player_movement.directions.clear();
-        update_grid_position_events.send(UpdateGridPositionEvent);
-        unselect_crate_events.send(UnselectCrate);
-        return;
-    }
 
     if mouse_buttons.just_pressed(MouseButton::Left) {
         let cursor_position = windows.single().cursor_position().unwrap();
@@ -214,10 +474,12 @@ pub fn mouse_input(
     }
 }
 
-pub fn mouse_drag(
+pub fn adjust_viewport(
     mouse_buttons: Res<Input<MouseButton>>,
+    gamepads: Res<Gamepads>,
+    axes: Res<Axis<GamepadAxis>>,
     mut motion_events: EventReader<MouseMotion>,
-    mut camera: Query<(&mut Transform, &mut MainCamera)>,
+    mut camera: Query<(&mut Transform, &MainCamera)>,
 ) {
     let (mut camera_transform, main_camera) = camera.single_mut();
     if mouse_buttons.pressed(MouseButton::Right) {
@@ -228,180 +490,8 @@ pub fn mouse_drag(
     } else {
         motion_events.clear();
     }
-}
-
-pub fn keyboard_input(
-    keyboard: Res<Input<KeyCode>>,
-    mut board: Query<&mut Board>,
-    mut level_id: ResMut<LevelId>,
-    database: Res<Database>,
-    mut camera: Query<&mut MainCamera>,
-    mut player_movement: ResMut<PlayerMovement>,
-    mut settings: ResMut<Settings>,
-
-    mut unselect_crate_events: EventWriter<UnselectCrate>,
-    mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
-) {
-    let board = &mut board.single_mut().board;
-
-    let mut any_pressed = false;
-
-    if keyboard.any_just_pressed([KeyCode::W, KeyCode::Up, KeyCode::K]) {
-        player_move_or_push(Direction::Up, board, &mut player_movement);
-        any_pressed = true;
-    }
-    if keyboard.any_just_pressed([KeyCode::S, KeyCode::Down, KeyCode::J]) {
-        player_move_or_push(Direction::Down, board, &mut player_movement);
-        any_pressed = true;
-    }
-    if keyboard.any_just_pressed([KeyCode::A, KeyCode::Left, KeyCode::H]) {
-        player_move_or_push(Direction::Left, board, &mut player_movement);
-        any_pressed = true;
-    }
-    if keyboard.any_just_pressed([KeyCode::D, KeyCode::Right, KeyCode::L]) {
-        player_move_or_push(Direction::Right, board, &mut player_movement);
-        any_pressed = true;
-    }
-
-    if (keyboard.pressed(KeyCode::ControlLeft)
-        && keyboard.just_pressed(KeyCode::Z)
-        && !keyboard.pressed(KeyCode::ShiftLeft))
-        || keyboard.just_pressed(KeyCode::U)
-    {
-        board.undo_push();
-        player_movement.directions.clear();
-        update_grid_position_events.send(UpdateGridPositionEvent);
-        any_pressed = true;
-    }
-
-    if (keyboard.pressed(KeyCode::ControlLeft)
-        && keyboard.pressed(KeyCode::ShiftLeft)
-        && keyboard.just_pressed(KeyCode::Z))
-        || (keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::R))
-    {
-        board.redo_push();
-        player_movement.directions.clear();
-        update_grid_position_events.send(UpdateGridPositionEvent);
-        any_pressed = true;
-    }
-
-    if player_movement.directions.is_empty() {
-        let database = database.lock().unwrap();
-        if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::V) {
-            import_from_clipboard(&mut level_id, &database);
-            any_pressed = true;
-        }
-        if keyboard.pressed(KeyCode::ControlLeft) && keyboard.just_pressed(KeyCode::C) {
-            export_to_clipboard(&board);
-            any_pressed = true;
-        }
-
-        if keyboard.just_pressed(KeyCode::BracketRight) {
-            switch_to_next_level(&mut level_id, &database);
-            any_pressed = true;
-        }
-        if keyboard.just_pressed(KeyCode::BracketLeft) {
-            switch_to_previous_level(&mut level_id, &database);
-            any_pressed = true;
-        }
-    }
-
-    let mut main_camera = camera.single_mut();
-    if keyboard.just_pressed(KeyCode::Equals) {
-        main_camera.target_scale /= 1.25;
-        any_pressed = true;
-    }
-    if keyboard.just_pressed(KeyCode::Minus) {
-        main_camera.target_scale *= 1.25;
-        any_pressed = true;
-    }
-
-    if keyboard.just_pressed(KeyCode::P) {
-        solve_level(board, &mut player_movement);
-        any_pressed = true;
-    }
-
-    if keyboard.just_pressed(KeyCode::I) {
-        settings.instant_move = !settings.instant_move;
-        any_pressed = true;
-    }
-
-    if any_pressed {
-        unselect_crate_events.send(UnselectCrate);
-    }
-}
-
-pub fn gamepad_input(
-    gamepads: Res<Gamepads>,
-    axes: Res<Axis<GamepadAxis>>,
-    buttons: Res<Input<GamepadButton>>,
-    mut board: Query<&mut Board>,
-    mut level_id: ResMut<LevelId>,
-    database: Res<Database>,
-    mut camera: Query<(&mut Transform, &mut MainCamera)>,
-
-    mut player_movement: ResMut<PlayerMovement>,
-    mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
-    mut unselect_crate_events: EventWriter<UnselectCrate>,
-) {
-    let board = &mut board.single_mut().board;
-    let database = database.lock().unwrap();
-    let (mut camera_transform, mut main_camera) = camera.single_mut();
-
-    let mut any_pressed = false;
 
     for gamepad in gamepads.iter() {
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::DPadUp)) {
-            player_move_or_push(Direction::Up, board, &mut player_movement);
-            any_pressed = true;
-        }
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::DPadDown)) {
-            player_move_or_push(Direction::Down, board, &mut player_movement);
-            any_pressed = true;
-        }
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::DPadLeft)) {
-            player_move_or_push(Direction::Left, board, &mut player_movement);
-            any_pressed = true;
-        }
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::DPadRight)) {
-            player_move_or_push(Direction::Right, board, &mut player_movement);
-            any_pressed = true;
-        }
-
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::East)) {
-            board.undo_push();
-            player_movement.directions.clear();
-            update_grid_position_events.send(UpdateGridPositionEvent);
-            any_pressed = true;
-        }
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::South)) {
-            board.redo_push();
-            player_movement.directions.clear();
-            update_grid_position_events.send(UpdateGridPositionEvent);
-            any_pressed = true;
-        }
-
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::RightTrigger)) {
-            switch_to_next_level(&mut level_id, &database);
-            any_pressed = true;
-        }
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::LeftTrigger)) {
-            switch_to_previous_level(&mut level_id, &database);
-            any_pressed = true;
-        }
-
-        if buttons.just_pressed(GamepadButton::new(
-            gamepad,
-            GamepadButtonType::RightTrigger2,
-        )) {
-            main_camera.target_scale /= 1.25;
-            any_pressed = true;
-        }
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::LeftTrigger2)) {
-            main_camera.target_scale *= 1.25;
-            any_pressed = true;
-        }
-
         if let (Some(x), Some(y)) = (
             axes.get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickX)),
             axes.get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickY)),
@@ -412,15 +502,6 @@ pub fn gamepad_input(
             camera_transform.translation.y +=
                 right_stick_position.y * main_camera.target_scale * 1.6;
         }
-
-        if buttons.just_pressed(GamepadButton::new(gamepad, GamepadButtonType::North)) {
-            solve_level(board, &mut player_movement);
-            any_pressed = true;
-        }
-    }
-
-    if any_pressed {
-        unselect_crate_events.send(UnselectCrate);
     }
 }
 

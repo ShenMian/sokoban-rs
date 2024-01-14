@@ -27,6 +27,7 @@ mod test;
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
+use leafwing_input_manager::prelude::*;
 
 #[allow(unused_imports)]
 use bevy_editor_pls::prelude::*;
@@ -38,6 +39,7 @@ fn main() {
             DefaultPlugins,
             FrameTimeDiagnosticsPlugin,
             PerformanceMatrixPlugin,
+            InputManagerPlugin::<Action>::default(),
             // EditorPlugin::default(),
         ))
         .add_systems(PreStartup, (setup_camera, setup_database))
@@ -53,10 +55,9 @@ fn main() {
                 select_crate,
                 unselect_crate,
                 (
-                    keyboard_input,
-                    gamepad_input,
+                    action_input,
+                    adjust_viewport,
                     mouse_input,
-                    mouse_drag,
                     check_level_solved,
                     spawn_board,
                 )
@@ -77,6 +78,8 @@ fn main() {
         .add_event::<UnselectCrate>()
         .add_event::<UpdateGridPositionEvent>()
         .insert_resource(Settings::default())
+        .init_resource::<ActionState<Action>>()
+        .insert_resource(Action::input_map())
         .insert_resource(PlayerMovement::default())
         .insert_resource(CrateReachable::default())
         .run();
