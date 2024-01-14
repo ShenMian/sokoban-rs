@@ -4,8 +4,7 @@
 mod tests {
     use crate::board::Board;
     use crate::level::Level;
-    use crate::solver::solver::Solver;
-    use crate::solver::state::Strategy;
+    use crate::solver::solver::{Solver, Strategy};
     use std::fs;
     use std::path::Path;
 

@@ -8,10 +8,7 @@ use crate::direction::Direction;
 use crate::events::*;
 use crate::level::{Level, PushState, Tile};
 use crate::resources::*;
-use crate::solver::{
-    solver::{find_path, SolveError, Solver},
-    state::Strategy,
-};
+use crate::solver::solver::{find_path, SolveError, Solver, Strategy};
 use crate::systems::level::*;
 
 #[derive(Actionlike, Reflect, Clone, Hash, PartialEq, Eq)]

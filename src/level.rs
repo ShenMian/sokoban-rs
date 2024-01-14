@@ -214,6 +214,7 @@ impl Level {
         Self::load_from_memory(fs::read_to_string(file_path).unwrap())
     }
 
+    #[allow(dead_code)]
     pub fn get(&self, position: &Vector2<i32>) -> Option<Tile> {
         if self.in_bounds(position) {
             Some(self.data[(position.y * self.dimensions.x + position.x) as usize])
@@ -222,6 +223,7 @@ impl Level {
         }
     }
 
+    #[allow(dead_code)]
     pub fn get_mut(&mut self, position: &Vector2<i32>) -> Option<&mut Tile> {
         if self.in_bounds(position) {
             Some(&mut self.data[(position.y * self.dimensions.x + position.x) as usize])
@@ -325,9 +327,6 @@ impl Level {
             let hash = hasher.finish();
 
             min_hash = std::cmp::min(min_hash, hash);
-
-            // dbg!(hash);
-            // print!("{}", self.export_map());
         }
 
         for i in 1..=8 {

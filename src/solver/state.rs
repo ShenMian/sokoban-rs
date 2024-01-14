@@ -10,21 +10,6 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
-pub enum Strategy {
-    /// Find any solution
-    Fast,
-
-    /// Find move optimal solutions with best pushes
-    // FIXME: 结果非最优解, 甚至可能比其他策略差. 可能是由于遇到答案就直接返回忽略剩余状态导致的
-    OptimalMovePush,
-
-    /// Find push optimal solutions with best moves
-    OptimalPushMove,
-
-    Mixed,
-}
-
 #[derive(Clone, Eq)]
 pub struct State {
     pub player_position: Vector2<i32>,
