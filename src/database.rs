@@ -74,31 +74,21 @@ impl Database {
     pub fn import_level(&self, level: &Level) {
         let title = level.metadata.get("title");
         let author = level.metadata.get("author");
-
-        let mut hasher = SipHasher24::new();
-        let mut normalized_level = level.clone();
-        normalized_level.normalize();
-        normalized_level.hash(&mut hasher);
-        let hash = hasher.finish();
+        let hash = Database::normalized_hash(level);
 
         let _ = self.connection.execute(
             "INSERT INTO tb_level(title, author, map, width, height, hash, date) VALUES (?, ?, ?, ?, ?, ?, DATE('now'))",
-            (&title, &author, &level.export_map(), level.dimensions.x, level.dimensions.y, hash),
+            (&title, &author, &level.export_map(), level.dimensions.x, level.dimensions.y, hash.to_string()),
         );
     }
 
     pub fn get_level_id(&self, level: &Level) -> Option<u64> {
-        let mut hasher = SipHasher24::new();
-        let mut normalized_level = level.clone();
-        normalized_level.normalize();
-        normalized_level.hash(&mut hasher);
-        let hash = hasher.finish();
-
-        match self
-            .connection
-            .query_row("SELECT id FROM tb_level WHERE hash = ?", [hash], |row| {
-                row.get(0)
-            }) {
+        let hash = Database::normalized_hash(level);
+        match self.connection.query_row(
+            "SELECT id FROM tb_level WHERE hash = ?",
+            [hash.to_string()],
+            |row| row.get(0),
+        ) {
             Ok(level_id) => level_id,
             Err(_) => None,
         }
@@ -213,5 +203,15 @@ impl Database {
         self.connection
             .query_row("SELECT MIN(id) FROM tb_level", [], |row| row.get(0))
             .unwrap()
+    }
+
+    fn normalized_hash(level: &Level) -> String {
+        let mut hasher = SipHasher24::new();
+        let mut normalized_level = level.clone();
+        normalized_level.normalize();
+        normalized_level.hash(&mut hasher);
+        let hash = hasher.finish();
+        // 必须先将 hash 转为字符串, 否则 rusqlite 可能报错
+        hash.to_string()
     }
 }
