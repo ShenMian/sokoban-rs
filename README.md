@@ -58,7 +58,7 @@ A sokoban with a solver.
 | `B`/`Circle`      | Undo last push                    |
 | `A`/`Cross`       | Redo last push                    |
 | `LT`/`RT`         | Zoom in/out                       |
-| Left stick        | Move viewport                     |
+| Right stick       | Move viewport                     |
 | `Y`/`Triangle`    | Automatic solution                |
 
 [^1]: Turn off character and crates movement animations.
