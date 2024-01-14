@@ -425,16 +425,21 @@ pub fn gamepad_input(
     }
 }
 
-pub fn file_drag_and_drop(mut events: EventReader<FileDragAndDrop>) {
+pub fn file_drag_and_drop(
+    mut events: EventReader<FileDragAndDrop>,
+    mut level_id: ResMut<LevelId>,
+    database: Res<Database>,
+) {
     for event in events.read() {
-        if let FileDragAndDrop::DroppedFile {
-            window: _,
-            path_buf,
-        } = event
-        {
+        if let FileDragAndDrop::DroppedFile { path_buf, .. } = event {
+            let database = database.lock().unwrap();
             info!("Load levels from file {:?}", path_buf);
             match Level::load_from_file(path_buf) {
-                Ok(levels) => info!("Done, {} levels loaded", levels.len()),
+                Ok(levels) => {
+                    info!("Done, {} levels loaded", levels.len());
+                    database.import_levels(&levels);
+                    **level_id = database.get_level_id(&levels[0]).unwrap();
+                }
                 Err(msg) => warn!("Failed to load levels from file: {}", msg),
             }
         }
