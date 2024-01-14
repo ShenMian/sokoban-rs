@@ -444,19 +444,18 @@ impl Level {
         reachable
     }
 
-    pub fn crate_pushable_path(
+    pub fn crate_pushable_paths_with_crate_positions(
         &self,
         crate_position: &Vector2<i32>,
+        initial_crate_positions: &HashSet<Vector2<i32>>,
     ) -> HashMap<PushState, Vec<Vector2<i32>>> {
-        debug_assert!(self.crate_positions.contains(crate_position));
-
-        let mut path = HashMap::<PushState, Vec<Vector2<i32>>>::new();
+        let mut paths = HashMap::<PushState, Vec<Vector2<i32>>>::new();
         let mut visited = HashSet::new();
         let mut queue = VecDeque::new();
 
         let player_reachable_area = self.reachable_area(&self.player_position, |position| {
             self.get_unchecked(position).intersects(Tile::Wall)
-                || self.crate_positions.contains(position)
+                || initial_crate_positions.contains(position)
         });
         for &push_direction in [
             Direction::Up,
@@ -476,12 +475,12 @@ impl Level {
                 push_direction,
                 crate_position: *crate_position,
             };
-            path.insert(new_state.clone(), vec![*crate_position]);
+            paths.insert(new_state.clone(), vec![*crate_position]);
             queue.push_front(new_state);
         }
 
         while let Some(state) = queue.pop_back() {
-            let mut crate_positions = self.crate_positions.clone();
+            let mut crate_positions = initial_crate_positions.clone();
             crate_positions.remove(crate_position);
             crate_positions.insert(state.crate_position);
 
@@ -525,16 +524,24 @@ impl Level {
                     continue;
                 }
 
-                let mut new_path = path[&state].clone();
+                let mut new_path = paths[&state].clone();
                 new_path.push(new_crate_position);
-                path.insert(new_state.clone(), new_path);
+                paths.insert(new_state.clone(), new_path);
 
                 queue.push_front(new_state);
             }
         }
 
-        path.retain(|state, _| state.crate_position != *crate_position);
-        path
+        paths.retain(|state, _| state.crate_position != *crate_position);
+        paths
+    }
+
+    pub fn crate_pushable_paths(
+        &self,
+        crate_position: &Vector2<i32>,
+    ) -> HashMap<PushState, Vec<Vector2<i32>>> {
+        debug_assert!(self.crate_positions.contains(crate_position));
+        self.crate_pushable_paths_with_crate_positions(crate_position, &self.crate_positions)
     }
 
     fn set_player_position(&mut self, position: &Vector2<i32>) {

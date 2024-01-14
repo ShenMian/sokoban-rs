@@ -195,7 +195,7 @@ impl State {
     fn calculate_lower_bound(&self, solver: &Solver) -> usize {
         self.crate_positions
             .iter()
-            .map(|crate_pos| solver.lower_bounds()[&crate_pos])
+            .map(|crate_position| solver.lower_bounds()[&crate_position])
             .sum()
     }
 
@@ -209,6 +209,7 @@ impl State {
             .level
             .get_unchecked(position)
             .intersects(Tile::Wall | Tile::Deadlock)
+            || !solver.lower_bounds().contains_key(position)
             || self.crate_positions.contains(position)
     }
 

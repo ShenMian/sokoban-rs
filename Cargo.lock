@@ -3802,6 +3802,7 @@ dependencies = [
  "bevy_editor_pls",
  "bitflags 2.4.1",
  "image",
+ "itertools",
  "leafwing-input-manager",
  "nalgebra",
  "rusqlite",

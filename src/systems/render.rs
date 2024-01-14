@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use bevy::winit::WinitWindows;
+use itertools::Itertools;
 
 use crate::components::*;
 use crate::direction::Direction;
@@ -229,14 +230,10 @@ pub fn select_crate(
     let crate_position = &event.0;
     let Board { board, tile_size } = board.single();
 
-    let path = board.level.crate_pushable_path(crate_position);
+    let paths = board.level.crate_pushable_paths(crate_position);
 
     // spawn crate reachable marks
-    for &PushState {
-        push_direction: _,
-        crate_position,
-    } in path.keys()
-    {
+    for crate_position in paths.keys().map(|state| state.crate_position).unique() {
         commands.spawn((
             SpriteBundle {
                 sprite: Sprite {
@@ -255,12 +252,12 @@ pub fn select_crate(
         ));
     }
 
-    if path.is_empty() {
+    if paths.is_empty() {
         *crate_reachable = CrateReachable::None;
     } else {
         *crate_reachable = CrateReachable::Some {
             selected_crate: *crate_position,
-            path,
+            paths,
         };
     }
 }

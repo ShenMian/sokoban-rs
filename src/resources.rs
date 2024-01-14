@@ -32,7 +32,7 @@ pub enum CrateReachable {
     None,
     Some {
         selected_crate: Vector2<i32>,
-        path: HashMap<PushState, Vec<Vector2<i32>>>,
+        paths: HashMap<PushState, Vec<Vector2<i32>>>,
     },
 }
 

@@ -247,10 +247,6 @@ fn solve_level(board: &mut crate::board::Board, player_movement: &mut ResMut<Pla
                 }
                 assert!(verify_board.is_solved());
 
-                let lurd = solution
-                    .iter()
-                    .map(|x| Into::<char>::into(x.clone()))
-                    .collect::<String>();
                 info!(
                     "Solved ({:?}): {} sec, ",
                     strategy,
@@ -258,10 +254,10 @@ fn solve_level(board: &mut crate::board::Board, player_movement: &mut ResMut<Pla
                 );
                 info!(
                     "    Moves: {}, pushes: {}",
-                    solution.len(),
-                    lurd.chars().filter(|x| x.is_uppercase()).count()
+                    solution.move_count(),
+                    solution.push_count()
                 );
-                info!("    Solution: {}", lurd);
+                info!("    Solution: {}", solution.lurd());
 
                 for movement in &*solution {
                     player_move_or_push(movement.direction, board, player_movement);
@@ -414,7 +410,7 @@ pub fn mouse_input(
             }
             CrateReachable::Some {
                 selected_crate,
-                path,
+                paths,
             } => {
                 let mut crate_paths = Vec::new();
                 for &push_direction in [
@@ -425,7 +421,7 @@ pub fn mouse_input(
                 ]
                 .iter()
                 {
-                    if path.contains_key(&PushState {
+                    if paths.contains_key(&PushState {
                         push_direction,
                         crate_position: grid_position,
                     }) {
@@ -433,7 +429,7 @@ pub fn mouse_input(
                             *crate_reachable = CrateReachable::None;
                             return;
                         }
-                        let crate_path = path[&PushState {
+                        let crate_path = paths[&PushState {
                             push_direction,
                             crate_position: grid_position,
                         }]

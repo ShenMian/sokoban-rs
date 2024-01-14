@@ -107,11 +107,49 @@ impl Solver {
             .get_or_init(|| self.calculate_lower_bounds())
     }
 
+    fn minimum_push_count_to_nearest_target(&self, position: &Vector2<i32>) -> Option<usize> {
+        if self.level.target_positions.contains(position) {
+            return Some(0);
+        }
+
+        let paths = self
+            .level
+            .crate_pushable_paths_with_crate_positions(position, &HashSet::new());
+
+        paths
+            .iter()
+            .filter(|path| self.level.target_positions.contains(&path.0.crate_position))
+            .map(|path| path.1.len() - 1)
+            .min()
+    }
+
+    fn shortest_path_length_to_nearest_target(&self, position: &Vector2<i32>) -> usize {
+        let nearest_target_position = self
+            .level
+            .target_positions
+            .iter()
+            .min_by_key(|crate_pos| manhattan_distance(crate_pos, &position))
+            .unwrap();
+        let movements = find_path(&position, &nearest_target_position, |position| {
+            self.level.get_unchecked(&position).intersects(Tile::Wall)
+        })
+        .unwrap();
+        movements.len() - 1
+    }
+
+    fn manhattan_distance_to_nearest_target(&self, position: &Vector2<i32>) -> usize {
+        self.level
+            .target_positions
+            .iter()
+            .map(|crate_pos| manhattan_distance(crate_pos, &position))
+            .min()
+            .unwrap() as usize
+    }
+
     fn calculate_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
         for x in 1..self.level.dimensions.x - 1 {
             for y in 1..self.level.dimensions.y - 1 {
-                // 到最近目标点的最短路径长度
                 let position = Vector2::new(x, y);
                 if !self.level.get_unchecked(&position).intersects(Tile::Floor)
                     || self
@@ -121,33 +159,17 @@ impl Solver {
                 {
                     continue;
                 }
-                let closest_target_position = self
-                    .level
-                    .target_positions
-                    .iter()
-                    .min_by_key(|crate_pos| manhattan_distance(crate_pos, &position))
-                    .unwrap();
-                let movements = find_path(&position, &closest_target_position, |position| {
-                    self.level.get_unchecked(&position).intersects(Tile::Wall)
-                })
-                .unwrap();
-                lower_bounds.insert(position, movements.len() - 1);
-
-                // 到最近目标点的曼哈顿距离
-                // let position = Vector2::new(x, y);
-                // if !self.level.at(&position).intersects(Tile::Floor)
-                //     || self.dead_positions.contains(&position)
-                // {
-                //     continue;
-                // }
-                // let closest_target_distance = self
-                //     .level
-                //     .target_positions
-                //     .iter()
-                //     .map(|crate_pos| manhattan_distance(crate_pos, &position))
-                //     .min()
-                //     .unwrap();
-                // self.lower_bounds.insert(position, closest_target_distance);
+                if let Some(lower_bound) = self.minimum_push_count_to_nearest_target(&position) {
+                    lower_bounds.insert(position, lower_bound);
+                }
+                // lower_bounds.insert(
+                //     position,
+                //     self.shortest_path_length_to_nearest_target(&position),
+                // );
+                // lower_bounds.insert(
+                //     position,
+                //     self.manhattan_distance_to_nearest_target(&position),
+                // );
             }
         }
         lower_bounds
