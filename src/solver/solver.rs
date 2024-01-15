@@ -1,4 +1,5 @@
 use nalgebra::Vector2;
+use serde::{Deserialize, Serialize};
 
 use crate::direction::Direction;
 use crate::level::{Level, Tile};
@@ -13,7 +14,7 @@ use std::time;
 
 use std::io::Write;
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Strategy {
     /// Find any solution
     Fast,
@@ -28,7 +29,7 @@ pub enum Strategy {
     Mixed,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum LowerBoundMethod {
     PushCount,
     MoveCount,

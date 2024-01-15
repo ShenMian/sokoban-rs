@@ -3,3 +3,4 @@
 /.fleet
 /.idea
 database.db
+settings.toml

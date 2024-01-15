@@ -202,7 +202,7 @@ impl Action {
 pub fn player_move_to(
     target: &Vector2<i32>,
     board: &mut crate::board::Board,
-    player_movement: &mut ResMut<PlayerMovement>,
+    player_movement: &mut PlayerMovement,
 ) {
     if let Some(path) = find_path(&board.level.player_position, target, |position| {
         board
@@ -222,7 +222,7 @@ pub fn player_move_to(
 fn player_move_or_push(
     direction: Direction,
     board: &mut crate::board::Board,
-    player_movement: &mut ResMut<PlayerMovement>,
+    player_movement: &mut PlayerMovement,
 ) {
     if board.move_or_push(direction) {
         player_movement.directions.push_front(direction);
@@ -244,9 +244,13 @@ fn print_solver_lowerbounds(solver: &Solver) {
     }
 }
 
-fn solve_level(board: &mut crate::board::Board, player_movement: &mut ResMut<PlayerMovement>) {
+fn solve_level(
+    board: &mut crate::board::Board,
+    player_movement: &mut PlayerMovement,
+    settings: &Settings,
+) {
     let mut solver = Solver::new(board.level.clone());
-    solver.initial(Strategy::Fast, LowerBoundMethod::PushCount);
+    solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
     // print_solver_lowerbounds(&solver);
 
     let timeout = std::time::Duration::from_secs(15);
@@ -364,7 +368,7 @@ pub fn action_input(
         any_pressed = true;
     }
     if action_state.just_pressed(Action::AutomaticSolution) {
-        solve_level(board, &mut player_movement);
+        solve_level(board, &mut player_movement, &*settings);
         any_pressed = true;
     }
 

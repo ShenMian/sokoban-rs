@@ -1,6 +1,15 @@
 // #![feature(test)]
 
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
+use bevy::prelude::*;
+use leafwing_input_manager::prelude::*;
+
+use std::collections::VecDeque;
+use std::fs;
+use std::path::Path;
+
 mod level;
+
 use level::*;
 
 mod systems;
@@ -26,15 +35,24 @@ mod movement;
 mod solver;
 mod test;
 
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
-use bevy::prelude::*;
-use leafwing_input_manager::prelude::*;
-
 #[allow(unused_imports)]
 use bevy_editor_pls::prelude::*;
 
 #[bevy_main]
 fn main() {
+    const SETTINGS_FILE_PATH: &'static str = "settings.toml";
+    if !Path::new(SETTINGS_FILE_PATH).is_file() {
+        let default_settings_toml = toml::to_string(&Settings::default()).unwrap();
+        fs::write(SETTINGS_FILE_PATH, default_settings_toml);
+    }
+    let settings_toml = fs::read_to_string(SETTINGS_FILE_PATH).unwrap();
+    let settings: Settings = toml::from_str(settings_toml.as_str()).unwrap();
+
+    let player_movement = PlayerMovement {
+        directions: VecDeque::new(),
+        timer: Timer::from_seconds(settings.player_move_speed, TimerMode::Repeating),
+    };
+
     App::new()
         .add_plugins((
             DefaultPlugins,
@@ -87,10 +105,10 @@ fn main() {
         .add_event::<SelectCrate>()
         .add_event::<UnselectCrate>()
         .add_event::<UpdateGridPositionEvent>()
-        .insert_resource(Settings::default())
         .init_resource::<ActionState<Action>>()
         .insert_resource(Action::input_map())
-        .insert_resource(PlayerMovement::default())
+        .insert_resource(settings)
+        .insert_resource(player_movement)
         .insert_resource(CrateReachable::default())
         .run();
 }
