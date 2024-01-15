@@ -284,7 +284,7 @@ fn solve_level(board: &mut crate::board::Board, player_movement: &mut ResMut<Pla
         }
         Err(SolveError::Timeout) => {
             info!(
-                "Solver(: Failed to find a solution within the given time limit ({} sec)",
+                "Solver: Failed to find a solution within the given time limit ({} sec)",
                 timer.elapsed().as_millis() as f32 / 1000.0
             );
         }
@@ -400,7 +400,11 @@ pub fn mouse_input(
     let (camera, camera_transform, mut main_camera) = camera.single_mut();
 
     if mouse_buttons.just_pressed(MouseButton::Left) {
-        let cursor_position = windows.single().cursor_position().unwrap();
+        let cursor_position = windows.single().cursor_position();
+        if cursor_position.is_none() {
+            return;
+        }
+        let cursor_position = cursor_position.unwrap();
         let position = camera
             .viewport_to_world_2d(camera_transform, cursor_position)
             .unwrap();
