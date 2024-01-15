@@ -12,7 +12,7 @@ use crate::resources::*;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use std::sync::Mutex;
+use std::sync::{Mutex, MutexGuard};
 
 pub fn setup_database(mut commands: Commands) {
     let database = database::Database::from_file(Path::new("database.db"));
@@ -144,10 +144,7 @@ pub fn check_level_solved(
     }
 }
 
-pub fn import_from_clipboard(
-    level_id: &mut LevelId,
-    database: &std::sync::MutexGuard<database::Database>,
-) {
+pub fn import_from_clipboard(level_id: &mut LevelId, database: &MutexGuard<database::Database>) {
     let mut clipboard = Clipboard::new().unwrap();
     match Level::load_from_memory(clipboard.get_text().unwrap()) {
         Ok(levels) => {
@@ -166,19 +163,13 @@ pub fn export_to_clipboard(board: &crate::board::Board) {
         .unwrap();
 }
 
-pub fn switch_to_next_level(
-    level_id: &mut LevelId,
-    database: &std::sync::MutexGuard<database::Database>,
-) {
+pub fn switch_to_next_level(level_id: &mut LevelId, database: &MutexGuard<database::Database>) {
     if **level_id < database.max_level_id().unwrap() {
         **level_id += 1;
     }
 }
 
-pub fn switch_to_previous_level(
-    level_id: &mut LevelId,
-    database: &std::sync::MutexGuard<database::Database>,
-) {
+pub fn switch_to_previous_level(level_id: &mut LevelId, database: &MutexGuard<database::Database>) {
     if **level_id > database.min_level_id().unwrap() {
         **level_id -= 1;
     }
