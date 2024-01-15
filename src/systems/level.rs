@@ -44,7 +44,7 @@ pub fn setup_level(mut commands: Commands, database: Res<Database>) {
 pub fn spawn_board(
     mut commands: Commands,
     database: Res<Database>,
-    mut camera: Query<&mut Transform, With<MainCamera>>,
+    mut camera: Query<(&mut Transform, &mut MainCamera)>,
     board: Query<Entity, With<Board>>,
     level_id: Res<LevelId>,
     asset_server: Res<AssetServer>,
@@ -72,9 +72,10 @@ pub fn spawn_board(
     let board_size = tile_size.x * level.dimensions.map(|x| x as f32);
 
     // move the camera to the center of the board
-    let mut transform = camera.single_mut();
-    transform.translation.x = board_size.x / 2.0;
-    transform.translation.y = board_size.y / 2.0;
+    let (mut transform, mut main_camera) = camera.single_mut();
+    transform.translation.x = (board_size.x - tile_size.x) / 2.0;
+    transform.translation.y = (board_size.y + tile_size.y) / 2.0;
+    main_camera.target_scale = 0.2 * (std::cmp::max(level.dimensions.x, level.dimensions.y) as f32);
 
     // despawn the previous `Board`
     commands.entity(board.single()).despawn_recursive();
