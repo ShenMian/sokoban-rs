@@ -86,8 +86,8 @@ pub fn spawn_board(
         .with_children(|parent| {
             for y in 0..level.dimensions.y {
                 for x in 0..level.dimensions.x {
-                    let grid_position = Vector2::<i32>::new(x, y);
-                    if level.get_unchecked(&grid_position) == Tile::Void {
+                    let position = Vector2::<i32>::new(x, y);
+                    if level.get_unchecked(&position) == Tile::Void {
                         continue;
                     }
                     let tiles = HashMap::from([
@@ -98,7 +98,7 @@ pub fn spawn_board(
                         (Tile::Player, 6),
                     ]);
                     for (tile, sprite_index) in tiles.into_iter() {
-                        if level.get_unchecked(&grid_position).intersects(tile) {
+                        if level.get_unchecked(&position).intersects(tile) {
                             let mut entity = parent.spawn((
                                 SpriteSheetBundle {
                                     texture_atlas: texture_atlas_handle.clone(),
@@ -106,7 +106,7 @@ pub fn spawn_board(
                                     transform: Transform::from_xyz(0.0, 0.0, sprite_index as f32),
                                     ..default()
                                 },
-                                GridPosition(grid_position),
+                                GridPosition(position),
                             ));
                             if tile == Tile::Player {
                                 entity.insert(Player);

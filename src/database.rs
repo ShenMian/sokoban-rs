@@ -14,6 +14,7 @@ pub struct Database {
 }
 
 impl Database {
+    #[allow(dead_code)]
     pub fn from_memory() -> Self {
         Self {
             connection: Connection::open_in_memory().expect("failed to open database"),
