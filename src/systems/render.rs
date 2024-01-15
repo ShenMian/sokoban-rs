@@ -3,9 +3,7 @@ use bevy::winit::WinitWindows;
 use itertools::Itertools;
 
 use crate::components::*;
-use crate::direction::Direction;
 use crate::events::*;
-use crate::level::PushState;
 use crate::resources::*;
 
 use std::collections::HashSet;
@@ -32,84 +30,6 @@ pub fn setup_window(mut window: Query<&mut Window>, winit_windows: NonSend<Winit
 
 pub fn setup_camera(mut commands: Commands) {
     commands.spawn((Camera2dBundle::default(), MainCamera::default()));
-}
-
-pub fn setup_version_info(mut commands: Commands) {
-    const ALPHA: f32 = 0.8;
-    commands.spawn(
-        TextBundle::from_sections([TextSection::new(
-            "version: ".to_string() + env!("CARGO_PKG_VERSION"),
-            TextStyle {
-                font_size: 14.0,
-                color: Color::GRAY.with_a(ALPHA),
-                ..default()
-            },
-        )])
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            bottom: Val::Px(5.0),
-            right: Val::Px(5.0),
-            ..default()
-        }),
-    );
-}
-
-pub fn setup_hud(mut commands: Commands) {
-    const ALPHA: f32 = 0.8;
-    let text_section = move |color, value: &str| {
-        TextSection::new(
-            value,
-            TextStyle {
-                font_size: 18.0,
-                color,
-                ..default()
-            },
-        )
-    };
-    commands.spawn((
-        HUD,
-        TextBundle::from_sections([
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Level : "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "\nMoves : "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "\nPushes: "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "\nBest moves : "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "\nBest pushes: "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-        ])
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            top: Val::Px(5.0),
-            right: Val::Px(5.0),
-            ..default()
-        }),
-    ));
-}
-
-pub fn update_hud(
-    mut hud: Query<&mut Text, With<HUD>>,
-    board: Query<&Board>,
-    level_id: Res<LevelId>,
-    database: Res<Database>,
-) {
-    let mut hud = hud.single_mut();
-    let board = &board.single().board;
-
-    if level_id.is_changed() {
-        hud.sections[1].value = format!("#{}", **level_id);
-
-        let database = database.lock().unwrap();
-        hud.sections[7].value =
-            format!("{}", database.get_best_move_count(**level_id).unwrap_or(0));
-        hud.sections[9].value =
-            format!("{}", database.get_best_push_count(**level_id).unwrap_or(0));
-    }
-
-    hud.sections[3].value = format!("{}", board.movements.move_count());
-    hud.sections[5].value = format!("{}", board.movements.push_count());
 }
 
 pub fn animate_player_movement(

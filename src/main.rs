@@ -7,6 +7,7 @@ mod systems;
 use systems::input::*;
 use systems::level::*;
 use systems::render::*;
+use systems::ui::*;
 
 mod plugins;
 use plugins::performance_matrix::*;
@@ -45,12 +46,21 @@ fn main() {
         .add_systems(PreStartup, (setup_camera, setup_database))
         .add_systems(
             Startup,
-            (setup_window, setup_version_info, setup_hud, setup_level),
+            (
+                setup_window,
+                setup_version_info,
+                setup_button,
+                setup_hud,
+                setup_level,
+            ),
         )
         .add_systems(PostStartup, spawn_board)
         .add_systems(
             Update,
             (
+                button_visual_effect,
+                update_button_state,
+                button_pressed,
                 update_grid_position_from_board,
                 select_crate,
                 unselect_crate,
