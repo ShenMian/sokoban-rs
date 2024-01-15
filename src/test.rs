@@ -4,7 +4,7 @@
 mod tests {
     use crate::board::Board;
     use crate::level::Level;
-    use crate::solver::solver::{Solver, Strategy};
+    use crate::solver::solver::*;
     use std::fs;
     use std::path::Path;
 
@@ -26,8 +26,8 @@ mod tests {
         ]
         .map(|x| levels[x].clone())
         {
-            let mut solver = Solver::from(level.clone());
-            solver.initial(Strategy::Fast);
+            let mut solver = Solver::new(level.clone());
+            solver.initial(Strategy::Fast, LowerBoundMethod::PushCount);
             let solution = solver.solve(std::time::Duration::from_secs(30));
             if solution.is_err() {
                 println!("{}", level.export_map());

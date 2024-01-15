@@ -8,7 +8,7 @@ use crate::direction::Direction;
 use crate::events::*;
 use crate::level::{Level, PushState, Tile};
 use crate::resources::*;
-use crate::solver::solver::{find_path, SolveError, Solver, Strategy};
+use crate::solver::solver::*;
 use crate::systems::level::*;
 
 #[derive(Actionlike, Reflect, Clone, Hash, PartialEq, Eq)]
@@ -229,56 +229,64 @@ fn player_move_or_push(
     }
 }
 
+#[allow(dead_code)]
+fn print_solver_lowerbounds(solver: &Solver) {
+    for y in 0..solver.level.dimensions.y {
+        for x in 0..solver.level.dimensions.x {
+            let position = Vector2::new(x, y);
+            if let Some(lower_bound) = solver.lower_bounds().get(&position) {
+                print!("{:^2} ", lower_bound);
+            } else {
+                print!("{:^2} ", "##");
+            }
+        }
+        println!();
+    }
+}
+
 fn solve_level(board: &mut crate::board::Board, player_movement: &mut ResMut<PlayerMovement>) {
+    let mut solver = Solver::new(board.level.clone());
+    solver.initial(Strategy::Fast, LowerBoundMethod::PushCount);
+    // print_solver_lowerbounds(&solver);
+
     let timeout = std::time::Duration::from_secs(15);
-    info!("Start solving (timeout: {:?})", timeout);
-    let solver = Solver::from(board.level.clone());
+    info!("Solver: Start (timeout: {:?})", timeout);
 
-    // Strategy::Fast, Strategy::Mixed
-    for strategy in [Strategy::Fast] {
-        let mut solver = solver.clone();
-        let timer = std::time::Instant::now();
-        solver.initial(strategy);
-        match solver.solve(timeout) {
-            Ok(solution) => {
-                let mut verify_board = board.clone();
-                for movement in &*solution {
-                    verify_board.move_or_push(movement.direction);
-                }
-                assert!(verify_board.is_solved());
+    let timer = std::time::Instant::now();
+    match solver.solve(timeout) {
+        Ok(solution) => {
+            let mut verify_board = board.clone();
+            for movement in &*solution {
+                verify_board.move_or_push(movement.direction);
+            }
+            assert!(verify_board.is_solved());
 
-                info!(
-                    "Solved ({:?}): {} sec, ",
-                    strategy,
-                    timer.elapsed().as_millis() as f32 / 1000.0
-                );
-                info!(
-                    "    Moves: {}, pushes: {}",
-                    solution.move_count(),
-                    solution.push_count()
-                );
-                info!("    Solution: {}", solution.lurd());
+            info!(
+                "Solver: Solved ({} sec)",
+                timer.elapsed().as_millis() as f32 / 1000.0
+            );
+            info!(
+                "    Moves: {}, pushes: {}",
+                solution.move_count(),
+                solution.push_count()
+            );
+            info!("    Solution: {}", solution.lurd());
 
-                for movement in &*solution {
-                    player_move_or_push(movement.direction, board, player_movement);
-                }
+            for movement in &*solution {
+                player_move_or_push(movement.direction, board, player_movement);
             }
-            Err(SolveError::NoSolution) => {
-                info!(
-                    "No solution ({:?}): {} sec",
-                    strategy,
-                    timer.elapsed().as_millis() as f32 / 1000.0
-                );
-                break;
-            }
-            Err(SolveError::Timeout) => {
-                info!(
-                    "Failed to find a solution within the given time limit ({:?}): {} sec",
-                    strategy,
-                    timer.elapsed().as_millis() as f32 / 1000.0
-                );
-                break;
-            }
+        }
+        Err(SolveError::NoSolution) => {
+            info!(
+                "Solver: No solution ({} sec)",
+                timer.elapsed().as_millis() as f32 / 1000.0
+            );
+        }
+        Err(SolveError::Timeout) => {
+            info!(
+                "Solver(: Failed to find a solution within the given time limit ({} sec)",
+                timer.elapsed().as_millis() as f32 / 1000.0
+            );
         }
     }
 }

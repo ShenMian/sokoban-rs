@@ -354,7 +354,7 @@ impl Level {
         unreachable!();
     }
 
-    // TODO: 有遗漏: box_world.xsb #11
+    // TODO: 有遗漏: box_world.xsb #12
     fn calculate_dead_positions(&mut self) {
         for x in 1..self.dimensions.x - 1 {
             for y in 1..self.dimensions.y - 1 {

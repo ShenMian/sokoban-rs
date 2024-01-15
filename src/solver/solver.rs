@@ -28,28 +28,20 @@ pub enum Strategy {
     Mixed,
 }
 
-#[derive(Clone)]
-pub struct Solver {
-    pub level: Level,
-    lower_bounds: OnceCell<HashMap<Vector2<i32>, usize>>,
-    strategy: Strategy,
-    visited: HashSet<State>,
-    heap: BinaryHeap<State>,
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum LowerBoundMethod {
+    PushCount,
+    MoveCount,
+    ManhattanDistance,
 }
 
-impl From<Level> for Solver {
-    fn from(mut level: Level) -> Self {
-        level.clear(Tile::Player | Tile::Crate);
-        let mut instance = Self {
-            level,
-            strategy: Strategy::Fast,
-            lower_bounds: OnceCell::new(),
-            visited: HashSet::new(),
-            heap: BinaryHeap::new(),
-        };
-        instance.calculate_tunnel_positions();
-        instance
-    }
+pub struct Solver {
+    pub level: Level,
+    strategy: Strategy,
+    lower_bound_method: LowerBoundMethod,
+    lower_bounds: OnceCell<HashMap<Vector2<i32>, usize>>,
+    visited: HashSet<State>,
+    heap: BinaryHeap<State>,
 }
 
 #[derive(Debug, PartialEq, Eq, Clone)]
@@ -60,10 +52,24 @@ pub enum SolveError {
 
 type Result<T> = std::result::Result<T, SolveError>;
 
-// FIXME: solver 可能给出错误答案: box_world.xsb #6, #70
 impl Solver {
-    pub fn initial(&mut self, strategy: Strategy) {
+    pub fn new(mut level: Level) -> Self {
+        level.clear(Tile::Player | Tile::Crate);
+        let mut instance = Self {
+            level,
+            strategy: Strategy::Fast,
+            lower_bound_method: LowerBoundMethod::PushCount,
+            lower_bounds: OnceCell::new(),
+            visited: HashSet::new(),
+            heap: BinaryHeap::new(),
+        };
+        instance.calculate_tunnel_positions();
+        instance
+    }
+
+    pub fn initial(&mut self, strategy: Strategy, lower_bound_method: LowerBoundMethod) {
         self.strategy = strategy;
+        self.lower_bound_method = lower_bound_method;
         self.heap.push(State::new(
             self.level.player_position,
             self.level.crate_positions.clone(),
@@ -73,6 +79,7 @@ impl Solver {
     }
 
     pub fn solve(&mut self, timeout: time::Duration) -> Result<Movements> {
+        debug_assert!(!self.heap.is_empty());
         let timer = std::time::Instant::now();
         while let Some(state) = self.heap.pop() {
             self.visited.insert(state.normalized(&self));
@@ -123,7 +130,7 @@ impl Solver {
             .min()
     }
 
-    fn shortest_path_length_to_nearest_target(&self, position: &Vector2<i32>) -> usize {
+    fn minimum_move_count_to_nearest_target(&self, position: &Vector2<i32>) -> Option<usize> {
         let nearest_target_position = self
             .level
             .target_positions
@@ -134,16 +141,18 @@ impl Solver {
             self.level.get_unchecked(&position).intersects(Tile::Wall)
         })
         .unwrap();
-        movements.len() - 1
+        Some(movements.len() - 1)
     }
 
-    fn manhattan_distance_to_nearest_target(&self, position: &Vector2<i32>) -> usize {
-        self.level
-            .target_positions
-            .iter()
-            .map(|crate_pos| manhattan_distance(crate_pos, &position))
-            .min()
-            .unwrap() as usize
+    fn manhattan_distance_to_nearest_target(&self, position: &Vector2<i32>) -> Option<usize> {
+        Some(
+            self.level
+                .target_positions
+                .iter()
+                .map(|crate_pos| manhattan_distance(crate_pos, &position))
+                .min()
+                .unwrap() as usize,
+        )
     }
 
     fn calculate_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
@@ -159,17 +168,20 @@ impl Solver {
                 {
                     continue;
                 }
-                if let Some(lower_bound) = self.minimum_push_count_to_nearest_target(&position) {
+                let lower_bound = match self.lower_bound_method {
+                    LowerBoundMethod::PushCount => {
+                        self.minimum_push_count_to_nearest_target(&position)
+                    }
+                    LowerBoundMethod::MoveCount => {
+                        self.minimum_move_count_to_nearest_target(&position)
+                    }
+                    LowerBoundMethod::ManhattanDistance => {
+                        self.manhattan_distance_to_nearest_target(&position)
+                    }
+                };
+                if let Some(lower_bound) = lower_bound {
                     lower_bounds.insert(position, lower_bound);
                 }
-                // lower_bounds.insert(
-                //     position,
-                //     self.shortest_path_length_to_nearest_target(&position),
-                // );
-                // lower_bounds.insert(
-                //     position,
-                //     self.manhattan_distance_to_nearest_target(&position),
-                // );
             }
         }
         lower_bounds
