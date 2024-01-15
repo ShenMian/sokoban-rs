@@ -41,6 +41,8 @@ impl Database {
                 date     DATE NOT NULL
             )
         ";
+        const CREATE_LEVEL_INDICES: &str =
+            "CREATE UNIQUE INDEX IF NOT EXISTS ux_level_hash ON tb_level(hash)";
         const CREATE_SOLUTION_TABLE: &str = "
             CREATE TABLE IF NOT EXISTS tb_solution (
                 level_id           INTEGER PRIMARY KEY,
@@ -58,6 +60,7 @@ impl Database {
         ";
 
         self.connection.execute(CREATE_LEVEL_TABLE, ()).unwrap();
+        self.connection.execute(CREATE_LEVEL_INDICES, ()).unwrap();
         self.connection.execute(CREATE_SOLUTION_TABLE, ()).unwrap();
         self.connection.execute(CREATE_SESSION_TABLE, ()).unwrap();
     }
