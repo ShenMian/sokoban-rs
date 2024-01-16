@@ -183,12 +183,10 @@ pub fn unselect_crate(
     mut unselect_crate_events: EventReader<UnselectCrateEvent>,
     mut commands: Commands,
     reachable: Query<Entity, With<ReachableMark>>,
-    mut crate_reachable: ResMut<CrateSelectState>,
 ) {
     unselect_crate_events.clear();
 
     reachable.for_each(|entity| commands.entity(entity).despawn());
-    *crate_reachable = CrateSelectState::None;
 }
 
 pub fn update_grid_position_from_board(

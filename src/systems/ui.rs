@@ -72,11 +72,11 @@ pub enum MainButton {
     NextLevel,
 }
 
-pub fn button_pressed(
-    interaction_query: Query<(&Interaction, &MainButton), (Changed<Interaction>, With<Button>)>,
+pub fn button_input_to_action(
+    buttons: Query<(&Interaction, &MainButton), (Changed<Interaction>, With<Button>)>,
     mut action_state: ResMut<ActionState<Action>>,
 ) {
-    for (interaction, button) in &interaction_query {
+    for (interaction, button) in &buttons {
         if *interaction != Interaction::Pressed {
             continue;
         }
