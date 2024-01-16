@@ -79,28 +79,20 @@ fn main() {
     )
     .add_systems(PostStartup, spawn_board);
 
-    app.add_systems(Update, (button_visual_effect, update_button_state));
-
     app.add_systems(
         Update,
         (
+            button_visual_effect,
+            update_button_state,
+            adjust_viewport,
             (
                 button_input_to_action,
-                handle_action,
+                mouse_input_to_action,
                 handle_automatic_solution_action,
-                adjust_viewport,
-                mouse_input,
-                check_level_solved,
-                spawn_board.run_if(resource_changed_or_removed::<LevelId>()),
+                handle_viewport_zoom_action,
             )
                 .chain(),
-            update_grid_position_from_board.run_if(on_event::<UpdateGridPositionEvent>()),
-            select_crate.run_if(on_event::<SelectCrateEvent>()),
-            unselect_crate.run_if(on_event::<UnselectCrateEvent>()),
-            update_hud,
-            file_drag_and_drop,
-        )
-            .run_if(in_state(AppState::Main)),
+        ),
     )
     .add_systems(
         FixedUpdate,
@@ -108,6 +100,22 @@ fn main() {
             animate_tiles_movement,
             animate_player_movement,
             animate_camera_zoom,
+        ),
+    );
+
+    app.add_systems(
+        Update,
+        (
+            (
+                handle_other_action,
+                mouse_input,
+                check_level_solved,
+                spawn_board.run_if(resource_changed_or_removed::<LevelId>()),
+            )
+                .chain(),
+            update_grid_position_from_board.run_if(on_event::<UpdateGridPositionEvent>()),
+            update_hud,
+            file_drag_and_drop,
         )
             .run_if(in_state(AppState::Main)),
     );
@@ -118,11 +126,7 @@ fn main() {
     )
     .add_systems(
         Update,
-        (
-            update_solver,
-            (button_input_to_action, handle_automatic_solution_action).chain(),
-        )
-            .run_if(in_state(AppState::AutomaticSolution)),
+        update_solver.run_if(in_state(AppState::AutomaticSolution)),
     )
     .add_systems(
         OnExit(AppState::AutomaticSolution),
@@ -130,16 +134,24 @@ fn main() {
     )
     .insert_resource(SolverState::default());
 
+    app.add_systems(OnEnter(AppState::AutoCratePush), spawn_crate_pushable_marks)
+        .add_systems(
+            Update,
+            mouse_input.run_if(in_state(AppState::AutoCratePush)),
+        )
+        .add_systems(
+            OnExit(AppState::AutoCratePush),
+            despawn_crate_pushable_marks,
+        );
+
     app.init_resource::<ActionState<Action>>()
         .insert_resource(Action::input_map());
 
     app.insert_resource(settings)
         .insert_resource(player_movement)
-        .insert_resource(CrateSelectState::default());
+        .insert_resource(AutoCratePushState::default());
 
-    app.add_event::<SelectCrateEvent>()
-        .add_event::<UnselectCrateEvent>()
-        .add_event::<UpdateGridPositionEvent>();
+    app.add_event::<UpdateGridPositionEvent>();
 
     app.run();
 }

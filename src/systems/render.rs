@@ -136,59 +136,6 @@ pub fn animate_camera_zoom(
     }
 }
 
-pub fn select_crate(
-    mut select_crate_events: EventReader<SelectCrateEvent>,
-    mut commands: Commands,
-    board: Query<&Board>,
-    mut crate_reachable: ResMut<CrateSelectState>,
-) {
-    let event = select_crate_events.read().next().unwrap();
-
-    let crate_position = &event.0;
-    let Board { board, tile_size } = board.single();
-
-    let paths = board.level.crate_pushable_paths(crate_position);
-
-    // spawn crate reachable marks
-    for crate_position in paths.keys().map(|state| state.crate_position).unique() {
-        commands.spawn((
-            SpriteBundle {
-                sprite: Sprite {
-                    color: Color::GREEN.with_a(0.8),
-                    custom_size: Some(Vec2::new(tile_size.x / 4.0, tile_size.y / 4.0)),
-                    ..default()
-                },
-                transform: Transform::from_xyz(
-                    crate_position.x as f32 * tile_size.x,
-                    (board.level.dimensions.y - crate_position.y) as f32 * tile_size.y,
-                    10.0,
-                ),
-                ..default()
-            },
-            ReachableMark,
-        ));
-    }
-
-    if paths.is_empty() {
-        *crate_reachable = CrateSelectState::None;
-    } else {
-        *crate_reachable = CrateSelectState::Some {
-            selected_crate: *crate_position,
-            paths,
-        };
-    }
-}
-
-pub fn unselect_crate(
-    mut unselect_crate_events: EventReader<UnselectCrateEvent>,
-    mut commands: Commands,
-    reachable: Query<Entity, With<ReachableMark>>,
-) {
-    unselect_crate_events.clear();
-
-    reachable.for_each(|entity| commands.entity(entity).despawn());
-}
-
 pub fn update_grid_position_from_board(
     mut update_grid_position_events: EventReader<UpdateGridPositionEvent>,
     mut player: Query<&mut GridPosition, With<Player>>,

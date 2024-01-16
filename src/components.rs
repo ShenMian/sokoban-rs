@@ -33,7 +33,7 @@ pub struct Player;
 pub struct Crate;
 
 #[derive(Component)]
-pub struct ReachableMark;
+pub struct CratePushableMark;
 
 #[derive(Component)]
 pub struct LowerBoundMark;

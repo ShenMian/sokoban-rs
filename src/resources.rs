@@ -55,17 +55,17 @@ pub struct PlayerMovement {
 }
 
 #[derive(Resource)]
-pub enum CrateSelectState {
-    None,
-    Some {
-        selected_crate: Vector2<i32>,
-        paths: HashMap<PushState, Vec<Vector2<i32>>>,
-    },
+pub struct AutoCratePushState {
+    pub selected_crate: Vector2<i32>,
+    pub paths: HashMap<PushState, Vec<Vector2<i32>>>,
 }
 
-impl Default for CrateSelectState {
+impl Default for AutoCratePushState {
     fn default() -> Self {
-        Self::None
+        Self {
+            selected_crate: Vector2::zeros(),
+            paths: HashMap::new(),
+        }
     }
 }
 
