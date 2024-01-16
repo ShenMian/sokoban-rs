@@ -79,17 +79,15 @@ fn main() {
     )
     .add_systems(PostStartup, spawn_board);
 
-    app.add_systems(
-        Update,
-        (button_visual_effect, update_button_state, button_pressed),
-    );
+    app.add_systems(Update, (button_visual_effect, update_button_state));
 
     app.add_systems(
         Update,
         (
             (
-                action_input,
-                automatic_solution_input,
+                button_input_to_action,
+                handle_action,
+                handle_automatic_solution_action,
                 adjust_viewport,
                 mouse_input,
                 check_level_solved,
@@ -114,16 +112,23 @@ fn main() {
             .run_if(in_state(AppState::Main)),
     );
 
-    app.add_systems(OnEnter(AppState::AutomaticSolution), spawn_lowerbound_marks)
-        .add_systems(
-            Update,
-            (update_solver, automatic_solution_input).run_if(in_state(AppState::AutomaticSolution)),
+    app.add_systems(
+        OnEnter(AppState::AutomaticSolution),
+        (spawn_lowerbound_marks, clear_action_state),
+    )
+    .add_systems(
+        Update,
+        (
+            update_solver,
+            (button_input_to_action, handle_automatic_solution_action).chain(),
         )
-        .add_systems(
-            OnExit(AppState::AutomaticSolution),
-            despawn_lowerbound_marks,
-        )
-        .insert_resource(SolverState::default());
+            .run_if(in_state(AppState::AutomaticSolution)),
+    )
+    .add_systems(
+        OnExit(AppState::AutomaticSolution),
+        despawn_lowerbound_marks,
+    )
+    .insert_resource(SolverState::default());
 
     app.init_resource::<ActionState<Action>>()
         .insert_resource(Action::input_map());

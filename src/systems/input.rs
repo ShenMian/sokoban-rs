@@ -229,39 +229,11 @@ pub fn player_move_or_push(
     }
 }
 
-pub fn automatic_solution_input(
-    action_state: Res<ActionState<Action>>,
-    mut solver_state: ResMut<SolverState>,
-    board: Query<&Board>,
-    settings: Res<Settings>,
-
-    state: Res<State<AppState>>,
-    mut next_state: ResMut<NextState<AppState>>,
-
-    mut unselect_crate_events: EventWriter<UnselectCrateEvent>,
-) {
-    if action_state.just_pressed(Action::AutomaticSolution) {
-        let board = &board.single().board;
-
-        let SolverState { solver, timer } = &mut *solver_state;
-
-        if *state == AppState::Main {
-            let mut solver = solver.lock().unwrap();
-            *solver = Solver::new(board.level.clone());
-            solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
-
-            next_state.set(AppState::AutomaticSolution);
-            *timer = std::time::Instant::now();
-        } else {
-            next_state.set(AppState::Main);
-        }
-
-        // TODO: add new state
-        unselect_crate_events.send(UnselectCrateEvent);
-    }
+pub fn clear_action_state(mut action_state: ResMut<ActionState<Action>>) {
+    action_state.consume_all();
 }
 
-pub fn action_input(
+pub fn handle_action(
     action_state: Res<ActionState<Action>>,
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
@@ -273,9 +245,6 @@ pub fn action_input(
 
     mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
     mut unselect_crate_events: EventWriter<UnselectCrateEvent>,
-
-    state: Res<State<AppState>>,
-    mut next_state: ResMut<NextState<AppState>>,
 ) {
     let database = database.lock().unwrap();
     let board = &mut board.single_mut().board;
@@ -349,6 +318,38 @@ pub fn action_input(
     }
 
     if any_pressed {
+        // TODO: add new state
+        unselect_crate_events.send(UnselectCrateEvent);
+    }
+}
+
+pub fn handle_automatic_solution_action(
+    action_state: Res<ActionState<Action>>,
+    mut solver_state: ResMut<SolverState>,
+    board: Query<&Board>,
+    settings: Res<Settings>,
+
+    state: Res<State<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>,
+
+    mut unselect_crate_events: EventWriter<UnselectCrateEvent>,
+) {
+    if action_state.just_pressed(Action::AutomaticSolution) {
+        let board = &board.single().board;
+
+        let SolverState { solver, timer } = &mut *solver_state;
+
+        if *state == AppState::Main {
+            let mut solver = solver.lock().unwrap();
+            *solver = Solver::new(board.level.clone());
+            solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
+
+            next_state.set(AppState::AutomaticSolution);
+            *timer = std::time::Instant::now();
+        } else {
+            next_state.set(AppState::Main);
+        }
+
         // TODO: add new state
         unselect_crate_events.send(UnselectCrateEvent);
     }
