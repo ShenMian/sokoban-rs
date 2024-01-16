@@ -327,7 +327,7 @@ pub fn handle_automatic_solution_action(
             *solver = Solver::new(board.level.clone());
             solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
 
-            next_state.set(AppState::AutomaticSolution);
+            next_state.set(AppState::AutoSolve);
             *timer = std::time::Instant::now();
         } else {
             next_state.set(AppState::Main);
@@ -346,7 +346,7 @@ pub fn spawn_crate_pushable_marks(
 
     let paths = board.level.crate_pushable_paths(crate_position);
 
-    // spawn crate reachable marks
+    // spawn crate pushable marks
     for crate_position in paths.keys().map(|state| state.crate_position).unique() {
         commands.spawn((
             SpriteBundle {
