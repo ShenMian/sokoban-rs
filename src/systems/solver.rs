@@ -43,9 +43,9 @@ pub fn spawn_lowerbound_marks(
 
 pub fn despawn_lowerbound_marks(
     mut commands: Commands,
-    lowerbound_marks: Query<Entity, With<LowerBoundMark>>,
+    marks: Query<Entity, With<LowerBoundMark>>,
 ) {
-    lowerbound_marks.for_each(|entity| commands.entity(entity).despawn());
+    marks.for_each(|entity| commands.entity(entity).despawn());
 }
 
 pub fn update_solver(
