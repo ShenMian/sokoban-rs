@@ -8,14 +8,17 @@ use std::collections::VecDeque;
 use std::fs;
 use std::path::Path;
 
-mod level;
+mod state;
+use state::*;
 
+mod level;
 use level::*;
 
 mod systems;
 use systems::input::*;
 use systems::level::*;
 use systems::render::*;
+use systems::solver::*;
 use systems::ui::*;
 
 mod plugins;
@@ -53,62 +56,85 @@ fn main() {
         timer: Timer::from_seconds(settings.player_move_speed, TimerMode::Repeating),
     };
 
-    App::new()
-        .add_plugins((
-            DefaultPlugins,
-            FrameTimeDiagnosticsPlugin,
-            PerformanceMatrixPlugin,
-            InputManagerPlugin::<Action>::default(),
-            // EditorPlugin::default(),
-        ))
-        .add_systems(PreStartup, (setup_camera, setup_database))
-        .add_systems(
-            Startup,
+    let mut app = App::new();
+
+    app.add_plugins((
+        DefaultPlugins,
+        FrameTimeDiagnosticsPlugin,
+        PerformanceMatrixPlugin,
+        InputManagerPlugin::<Action>::default(),
+        // EditorPlugin::default(),
+    ))
+    .add_state::<AppState>()
+    .add_systems(PreStartup, (setup_camera, setup_database))
+    .add_systems(
+        Startup,
+        (
+            setup_window,
+            setup_version_info,
+            setup_button,
+            setup_hud,
+            setup_level,
+        ),
+    )
+    .add_systems(PostStartup, spawn_board);
+
+    app.add_systems(
+        Update,
+        (button_visual_effect, update_button_state, button_pressed),
+    );
+
+    app.add_systems(
+        Update,
+        (
             (
-                setup_window,
-                setup_version_info,
-                setup_button,
-                setup_hud,
-                setup_level,
-            ),
+                action_input,
+                automatic_solution_input,
+                adjust_viewport,
+                mouse_input,
+                check_level_solved,
+                spawn_board.run_if(resource_changed_or_removed::<LevelId>()),
+            )
+                .chain(),
+            update_grid_position_from_board.run_if(on_event::<UpdateGridPositionEvent>()),
+            select_crate.run_if(on_event::<SelectCrateEvent>()),
+            unselect_crate.run_if(on_event::<UnselectCrateEvent>()),
+            update_hud,
+            file_drag_and_drop,
         )
-        .add_systems(PostStartup, spawn_board)
+            .run_if(in_state(AppState::Main)),
+    )
+    .add_systems(
+        FixedUpdate,
+        (
+            animate_tiles_movement,
+            animate_player_movement,
+            animate_camera_zoom,
+        )
+            .run_if(in_state(AppState::Main)),
+    );
+
+    app.add_systems(OnEnter(AppState::AutomaticSolution), spawn_lowerbound_marks)
         .add_systems(
             Update,
-            (
-                button_visual_effect,
-                update_button_state,
-                button_pressed,
-                update_grid_position_from_board,
-                select_crate,
-                unselect_crate,
-                (
-                    action_input,
-                    adjust_viewport,
-                    mouse_input,
-                    check_level_solved,
-                    spawn_board,
-                )
-                    .chain(),
-                update_hud,
-                file_drag_and_drop,
-            ),
+            (update_solver, automatic_solution_input).run_if(in_state(AppState::AutomaticSolution)),
         )
         .add_systems(
-            FixedUpdate,
-            (
-                animate_tiles_movement,
-                animate_player_movement,
-                animate_camera_zoom,
-            ),
+            OnExit(AppState::AutomaticSolution),
+            despawn_lowerbound_marks,
         )
-        .add_event::<SelectCrate>()
-        .add_event::<UnselectCrate>()
-        .add_event::<UpdateGridPositionEvent>()
-        .init_resource::<ActionState<Action>>()
-        .insert_resource(Action::input_map())
-        .insert_resource(settings)
+        .insert_resource(SolverState::default());
+
+    app.init_resource::<ActionState<Action>>()
+        .insert_resource(Action::input_map());
+
+    app.insert_resource(settings)
         .insert_resource(player_movement)
-        .insert_resource(CrateReachable::default())
-        .run();
+        .insert_resource(CrateSelectState::default());
+
+    app.add_event::<SelectCrateEvent>()
+        .add_event::<UnselectCrateEvent>()
+        .add_event::<UpdateGridPositionEvent>();
+
+    app.run();
 }

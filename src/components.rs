@@ -23,6 +23,9 @@ pub struct Board {
     pub tile_size: Vector2<f32>,
 }
 
+#[derive(Component, Deref, DerefMut)]
+pub struct GridPosition(pub Vector2<i32>);
+
 #[derive(Component)]
 pub struct Player;
 
@@ -32,5 +35,5 @@ pub struct Crate;
 #[derive(Component)]
 pub struct ReachableMark;
 
-#[derive(Component, Deref, DerefMut)]
-pub struct GridPosition(pub Vector2<i32>);
+#[derive(Component)]
+pub struct LowerBoundMark;

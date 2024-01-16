@@ -50,10 +50,6 @@ pub fn spawn_board(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    if !level_id.is_changed() {
-        return;
-    }
-
     let database = database.lock().unwrap();
     let level = database.get_level_by_id(**level_id).unwrap();
 

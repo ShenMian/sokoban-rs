@@ -137,14 +137,11 @@ pub fn animate_camera_zoom(
 }
 
 pub fn select_crate(
-    mut select_crate_events: EventReader<SelectCrate>,
+    mut select_crate_events: EventReader<SelectCrateEvent>,
     mut commands: Commands,
     board: Query<&Board>,
-    mut crate_reachable: ResMut<CrateReachable>,
+    mut crate_reachable: ResMut<CrateSelectState>,
 ) {
-    if select_crate_events.is_empty() {
-        return;
-    }
     let event = select_crate_events.read().next().unwrap();
 
     let crate_position = &event.0;
@@ -173,9 +170,9 @@ pub fn select_crate(
     }
 
     if paths.is_empty() {
-        *crate_reachable = CrateReachable::None;
+        *crate_reachable = CrateSelectState::None;
     } else {
-        *crate_reachable = CrateReachable::Some {
+        *crate_reachable = CrateSelectState::Some {
             selected_crate: *crate_position,
             paths,
         };
@@ -183,16 +180,15 @@ pub fn select_crate(
 }
 
 pub fn unselect_crate(
-    mut unselect_crate_events: EventReader<UnselectCrate>,
+    mut unselect_crate_events: EventReader<UnselectCrateEvent>,
     mut commands: Commands,
     reachable: Query<Entity, With<ReachableMark>>,
+    mut crate_reachable: ResMut<CrateSelectState>,
 ) {
-    if unselect_crate_events.is_empty() {
-        return;
-    }
     unselect_crate_events.clear();
 
     reachable.for_each(|entity| commands.entity(entity).despawn());
+    *crate_reachable = CrateSelectState::None;
 }
 
 pub fn update_grid_position_from_board(
@@ -201,9 +197,6 @@ pub fn update_grid_position_from_board(
     mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
     board: Query<&Board>,
 ) {
-    if update_grid_position_events.is_empty() {
-        return;
-    }
     update_grid_position_events.clear();
 
     let board = &board.single().board;

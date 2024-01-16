@@ -3,13 +3,13 @@ use bevy::prelude::*;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 use nalgebra::Vector2;
 
-use crate::components::*;
 use crate::direction::Direction;
 use crate::events::*;
 use crate::level::{Level, PushState, Tile};
 use crate::resources::*;
 use crate::solver::solver::*;
 use crate::systems::level::*;
+use crate::{components::*, AppState};
 
 #[derive(Actionlike, Reflect, Clone, Hash, PartialEq, Eq)]
 pub enum Action {
@@ -219,7 +219,7 @@ pub fn player_move_to(
     }
 }
 
-fn player_move_or_push(
+pub fn player_move_or_push(
     direction: Direction,
     board: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
@@ -229,69 +229,35 @@ fn player_move_or_push(
     }
 }
 
-#[allow(dead_code)]
-fn print_solver_lowerbounds(solver: &Solver) {
-    for y in 0..solver.level.dimensions.y {
-        for x in 0..solver.level.dimensions.x {
-            let position = Vector2::new(x, y);
-            if let Some(lower_bound) = solver.lower_bounds().get(&position) {
-                print!("{:^2} ", lower_bound);
-            } else {
-                print!("{:^2} ", "##");
-            }
-        }
-        println!();
-    }
-}
+pub fn automatic_solution_input(
+    action_state: Res<ActionState<Action>>,
+    mut solver_state: ResMut<SolverState>,
+    board: Query<&Board>,
+    settings: Res<Settings>,
 
-fn solve_level(
-    board: &mut crate::board::Board,
-    player_movement: &mut PlayerMovement,
-    settings: &Settings,
+    state: Res<State<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>,
+
+    mut unselect_crate_events: EventWriter<UnselectCrateEvent>,
 ) {
-    let mut solver = Solver::new(board.level.clone());
-    solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
-    // print_solver_lowerbounds(&solver);
+    if action_state.just_pressed(Action::AutomaticSolution) {
+        let board = &board.single().board;
 
-    let timeout = std::time::Duration::from_secs(15);
-    info!("Solver: Start (timeout: {:?})", timeout);
+        let SolverState { solver, timer } = &mut *solver_state;
 
-    let timer = std::time::Instant::now();
-    match solver.solve(timeout) {
-        Ok(solution) => {
-            let mut verify_board = board.clone();
-            for movement in &*solution {
-                verify_board.move_or_push(movement.direction);
-            }
-            assert!(verify_board.is_solved());
+        if *state == AppState::Main {
+            let mut solver = solver.lock().unwrap();
+            *solver = Solver::new(board.level.clone());
+            solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
 
-            info!(
-                "Solver: Solved ({} sec)",
-                timer.elapsed().as_millis() as f32 / 1000.0
-            );
-            info!(
-                "    Moves: {}, pushes: {}",
-                solution.move_count(),
-                solution.push_count()
-            );
-            info!("    Solution: {}", solution.lurd());
-
-            for movement in &*solution {
-                player_move_or_push(movement.direction, board, player_movement);
-            }
+            next_state.set(AppState::AutomaticSolution);
+            *timer = std::time::Instant::now();
+        } else {
+            next_state.set(AppState::Main);
         }
-        Err(SolveError::NoSolution) => {
-            info!(
-                "Solver: No solution ({} sec)",
-                timer.elapsed().as_millis() as f32 / 1000.0
-            );
-        }
-        Err(SolveError::Timeout) => {
-            info!(
-                "Solver: Failed to find a solution within the given time limit ({} sec)",
-                timer.elapsed().as_millis() as f32 / 1000.0
-            );
-        }
+
+        // TODO: add new state
+        unselect_crate_events.send(UnselectCrateEvent);
     }
 }
 
@@ -306,7 +272,10 @@ pub fn action_input(
     mut camera: Query<&mut MainCamera>,
 
     mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
-    mut unselect_crate_events: EventWriter<UnselectCrate>,
+    mut unselect_crate_events: EventWriter<UnselectCrateEvent>,
+
+    state: Res<State<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>,
 ) {
     let database = database.lock().unwrap();
     let board = &mut board.single_mut().board;
@@ -367,10 +336,6 @@ pub fn action_input(
         settings.instant_move = !settings.instant_move;
         any_pressed = true;
     }
-    if action_state.just_pressed(Action::AutomaticSolution) {
-        solve_level(board, &mut player_movement, &*settings);
-        any_pressed = true;
-    }
 
     if action_state.just_pressed(Action::ImportLevelsFromClipboard) {
         player_movement.directions.clear();
@@ -384,7 +349,8 @@ pub fn action_input(
     }
 
     if any_pressed {
-        unselect_crate_events.send(UnselectCrate);
+        // TODO: add new state
+        unselect_crate_events.send(UnselectCrateEvent);
     }
 }
 
@@ -396,9 +362,9 @@ pub fn mouse_input(
     mut camera: Query<(&Camera, &GlobalTransform, &mut MainCamera)>,
 
     mut player_movement: ResMut<PlayerMovement>,
-    mut crate_reachable: ResMut<CrateReachable>,
-    mut select_crate_events: EventWriter<SelectCrate>,
-    mut unselect_crate_events: EventWriter<UnselectCrate>,
+    mut crate_reachable: ResMut<CrateSelectState>,
+    mut select_crate_events: EventWriter<SelectCrateEvent>,
+    mut unselect_crate_events: EventWriter<UnselectCrateEvent>,
 ) {
     let Board { board, tile_size } = &mut *board.single_mut();
     let (camera, camera_transform, mut main_camera) = camera.single_mut();
@@ -416,15 +382,15 @@ pub fn mouse_input(
         let grid_position =
             Vector2::new(grid_position.x, board.level.dimensions.y - grid_position.y);
 
-        unselect_crate_events.send(UnselectCrate);
+        unselect_crate_events.send(UnselectCrateEvent);
         match &*crate_reachable {
-            CrateReachable::None => {
+            CrateSelectState::None => {
                 if board.level.crate_positions.contains(&grid_position) {
-                    select_crate_events.send(SelectCrate(grid_position));
+                    select_crate_events.send(SelectCrateEvent(grid_position));
                     return;
                 }
             }
-            CrateReachable::Some {
+            CrateSelectState::Some {
                 selected_crate,
                 paths,
             } => {
@@ -442,7 +408,7 @@ pub fn mouse_input(
                         crate_position: grid_position,
                     }) {
                         if *selected_crate == grid_position {
-                            *crate_reachable = CrateReachable::None;
+                            *crate_reachable = CrateSelectState::None;
                             return;
                         }
                         let crate_path = paths[&PushState {
@@ -467,10 +433,10 @@ pub fn mouse_input(
                 } else if grid_position != *selected_crate
                     && board.level.crate_positions.contains(&grid_position)
                 {
-                    select_crate_events.send(SelectCrate(grid_position));
+                    select_crate_events.send(SelectCrateEvent(grid_position));
                     return;
                 }
-                *crate_reachable = CrateReachable::None;
+                *crate_reachable = CrateSelectState::None;
                 return;
             }
         }

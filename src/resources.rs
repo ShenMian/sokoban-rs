@@ -2,10 +2,10 @@ use bevy::prelude::*;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
 
-use crate::database;
 use crate::direction::Direction;
 use crate::level::PushState;
 use crate::solver::solver::*;
+use crate::{database, Level};
 
 use std::collections::{HashMap, VecDeque};
 use std::sync::Mutex;
@@ -55,7 +55,7 @@ pub struct PlayerMovement {
 }
 
 #[derive(Resource)]
-pub enum CrateReachable {
+pub enum CrateSelectState {
     None,
     Some {
         selected_crate: Vector2<i32>,
@@ -63,8 +63,23 @@ pub enum CrateReachable {
     },
 }
 
-impl Default for CrateReachable {
+impl Default for CrateSelectState {
     fn default() -> Self {
         Self::None
+    }
+}
+
+#[derive(Resource)]
+pub struct SolverState {
+    pub solver: Mutex<Solver>,
+    pub timer: std::time::Instant,
+}
+
+impl Default for SolverState {
+    fn default() -> Self {
+        Self {
+            solver: Mutex::new(Solver::new(Level::empty())),
+            timer: std::time::Instant::now(),
+        }
     }
 }
