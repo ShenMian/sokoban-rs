@@ -139,6 +139,17 @@ impl Level {
         Ok(instance)
     }
 
+    pub fn empty() -> Self {
+        Self {
+            data: vec![Tile::Void; 0],
+            dimensions: Vector2::<i32>::zeros(),
+            metadata: HashMap::<String, String>::new(),
+            player_position: Vector2::<i32>::zeros(),
+            crate_positions: HashSet::<Vector2<i32>>::new(),
+            target_positions: HashSet::<Vector2<i32>>::new(),
+        }
+    }
+
     pub fn load_from_memory(buffer: String) -> Result<Vec<Level>> {
         let buffer = buffer.replace("\r", "") + "\n";
 
