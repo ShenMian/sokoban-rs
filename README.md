@@ -18,8 +18,8 @@ A sokoban with a solver.
 | Key                                   | Action                                   |
 |---------------------------------------|------------------------------------------|
 | Click `Left` on player reachable area | Move the character to this position      |
-| Click `Left` on a crate               | Show the reachable area of the crate     |
-| Click `Left` on crate reachable area  | Push the selected crate to this position |
+| Click `Left` on a crate               | Show the pushable area of the crate      |
+| Click `Left` on crate pushable area   | Push the selected crate to this position |
 | Hold `Right` and drag                 | Adjust viewport                          |
 | Click `Button 4`                      | Undo last push                           |
 | Click `Button 5`                      | Redo last push                           |
