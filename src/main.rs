@@ -122,7 +122,10 @@ fn main() {
 
     app.add_systems(
         OnEnter(AppState::AutoSolve),
-        (spawn_lowerbound_marks, clear_action_state),
+        (
+            (setup_solver, spawn_lowerbound_marks).chain(),
+            clear_action_state,
+        ),
     )
     .add_systems(Update, update_solver.run_if(in_state(AppState::AutoSolve)))
     .add_systems(OnExit(AppState::AutoSolve), despawn_lowerbound_marks)

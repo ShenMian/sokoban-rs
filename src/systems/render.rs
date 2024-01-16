@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy::winit::WinitWindows;
-use itertools::Itertools;
 
 use crate::components::*;
 use crate::events::*;

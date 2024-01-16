@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::time::Stopwatch;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
 
@@ -72,14 +73,14 @@ impl Default for AutoCratePushState {
 #[derive(Resource)]
 pub struct SolverState {
     pub solver: Mutex<Solver>,
-    pub timer: std::time::Instant,
+    pub stopwatch: Stopwatch,
 }
 
 impl Default for SolverState {
     fn default() -> Self {
         Self {
             solver: Mutex::new(Solver::new(Level::empty())),
-            timer: std::time::Instant::now(),
+            stopwatch: Stopwatch::new(),
         }
     }
 }

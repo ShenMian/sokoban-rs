@@ -48,6 +48,19 @@ pub fn despawn_lowerbound_marks(
     marks.for_each(|entity| commands.entity(entity).despawn());
 }
 
+pub fn setup_solver(
+    mut solver_state: ResMut<SolverState>,
+    board: Query<&Board>,
+    settings: Res<Settings>,
+) {
+    let board = &board.single().board;
+    let SolverState { solver, stopwatch } = &mut *solver_state;
+    let mut solver = solver.lock().unwrap();
+    *solver = Solver::new(board.level.clone());
+    solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
+    stopwatch.reset();
+}
+
 pub fn update_solver(
     mut solver_state: ResMut<SolverState>,
     mut board: Query<&mut Board>,
@@ -56,10 +69,11 @@ pub fn update_solver(
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     let board = &mut board.single_mut().board;
-    let SolverState { solver, timer } = &mut *solver_state;
+    let SolverState { solver, stopwatch } = &mut *solver_state;
 
     let mut solver = solver.lock().unwrap();
-    let timeout = std::time::Duration::from_millis(100);
+    let timeout = std::time::Duration::from_millis(50);
+    let timer = std::time::Instant::now();
     match solver.solve(timeout) {
         Ok(solution) => {
             let mut verify_board = board.clone();
@@ -68,9 +82,10 @@ pub fn update_solver(
             }
             assert!(verify_board.is_solved());
 
+            stopwatch.tick(timer.elapsed());
             info!(
                 "Solver: Solved ({} sec)",
-                timer.elapsed().as_millis() as f32 / 1000.0
+                stopwatch.elapsed().as_millis() as f32 / 1000.0
             );
             info!(
                 "    Moves: {}, pushes: {}",
@@ -85,12 +100,15 @@ pub fn update_solver(
             next_state.set(AppState::Main);
         }
         Err(SolveError::NoSolution) => {
+            stopwatch.tick(timer.elapsed());
             info!(
                 "Solver: No solution ({} sec)",
-                timer.elapsed().as_millis() as f32 / 1000.0
+                stopwatch.elapsed().as_millis() as f32 / 1000.0
             );
             next_state.set(AppState::Main);
         }
-        Err(SolveError::Timeout) => (),
+        Err(SolveError::Timeout) => {
+            let _ = stopwatch.tick(timer.elapsed());
+        }
     }
 }

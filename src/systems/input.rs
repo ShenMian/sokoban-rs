@@ -310,25 +310,12 @@ pub fn handle_viewport_zoom_action(
 
 pub fn handle_automatic_solution_action(
     action_state: Res<ActionState<Action>>,
-    mut solver_state: ResMut<SolverState>,
-    board: Query<&Board>,
-    settings: Res<Settings>,
-
     state: Res<State<AppState>>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     if action_state.just_pressed(Action::AutomaticSolution) {
-        let board = &board.single().board;
-
-        let SolverState { solver, timer } = &mut *solver_state;
-
         if *state == AppState::Main {
-            let mut solver = solver.lock().unwrap();
-            *solver = Solver::new(board.level.clone());
-            solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
-
             next_state.set(AppState::AutoSolve);
-            *timer = std::time::Instant::now();
         } else {
             next_state.set(AppState::Main);
         }
