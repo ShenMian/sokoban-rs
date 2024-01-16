@@ -55,6 +55,12 @@ impl Board {
         return true;
     }
 
+    pub fn reset(&mut self) {
+        while !self.movements.is_empty() {
+            self.undo_move();
+        }
+    }
+
     pub fn undo_push(&mut self) {
         while let Some(history) = self.movements.last() {
             if history.is_push {
