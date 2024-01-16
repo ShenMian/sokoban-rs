@@ -121,17 +121,11 @@ fn main() {
     );
 
     app.add_systems(
-        OnEnter(AppState::AutomaticSolution),
+        OnEnter(AppState::AutoSolve),
         (spawn_lowerbound_marks, clear_action_state),
     )
-    .add_systems(
-        Update,
-        update_solver.run_if(in_state(AppState::AutomaticSolution)),
-    )
-    .add_systems(
-        OnExit(AppState::AutomaticSolution),
-        despawn_lowerbound_marks,
-    )
+    .add_systems(Update, update_solver.run_if(in_state(AppState::AutoSolve)))
+    .add_systems(OnExit(AppState::AutoSolve), despawn_lowerbound_marks)
     .insert_resource(SolverState::default());
 
     app.add_systems(OnEnter(AppState::AutoCratePush), spawn_crate_pushable_marks)

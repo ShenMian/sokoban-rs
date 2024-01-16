@@ -4,6 +4,6 @@ use bevy::prelude::*;
 pub enum AppState {
     #[default]
     Main,
-    AutomaticSolution,
+    AutoSolve,
     AutoCratePush,
 }
