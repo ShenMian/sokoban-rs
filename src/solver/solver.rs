@@ -90,7 +90,7 @@ impl Solver {
             }
 
             // Solver::shrink_heap(&mut self.heap);
-            Solver::print_info(&self.visited, &self.heap, &state);
+            // Solver::print_info(&self.visited, &self.heap, &state);
 
             for successor in state.successors(&self) {
                 if self.visited.contains(&successor.normalized(&self)) {
@@ -113,6 +113,10 @@ impl Solver {
     pub fn lower_bounds(&self) -> &HashMap<Vector2<i32>, usize> {
         self.lower_bounds
             .get_or_init(|| self.calculate_lower_bounds())
+    }
+
+    pub fn best_state(&self) -> Option<&State> {
+        self.heap.peek()
     }
 
     fn minimum_push_count_to_nearest_target(&self, position: &Vector2<i32>) -> Option<usize> {

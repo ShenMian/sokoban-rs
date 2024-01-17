@@ -15,10 +15,11 @@ mod level;
 use level::*;
 
 mod systems;
+use systems::auto_crate_push::*;
+use systems::auto_solve::*;
 use systems::input::*;
 use systems::level::*;
 use systems::render::*;
-use systems::solver::*;
 use systems::ui::*;
 
 mod plugins;
@@ -94,14 +95,7 @@ fn main() {
                 .chain(),
         ),
     )
-    .add_systems(
-        FixedUpdate,
-        (
-            animate_tiles_movement,
-            animate_player_movement,
-            animate_camera_zoom,
-        ),
-    );
+    .add_systems(FixedUpdate, animate_camera_zoom);
 
     app.add_systems(
         Update,
@@ -118,6 +112,10 @@ fn main() {
             file_drag_and_drop,
         )
             .run_if(in_state(AppState::Main)),
+    )
+    .add_systems(
+        FixedUpdate,
+        (animate_player_movement, animate_tiles_movement).run_if(in_state(AppState::Main)),
     );
 
     app.add_systems(
@@ -127,8 +125,20 @@ fn main() {
             clear_action_state,
         ),
     )
-    .add_systems(Update, update_solver.run_if(in_state(AppState::AutoSolve)))
-    .add_systems(OnExit(AppState::AutoSolve), despawn_lowerbound_marks)
+    .add_systems(
+        Update,
+        (update_solver, update_grid_position, move_tiles).run_if(in_state(AppState::AutoSolve)),
+    )
+    .add_systems(
+        OnExit(AppState::AutoSolve),
+        (
+            reset_board,
+            update_grid_position,
+            move_tiles,
+            despawn_lowerbound_marks,
+        )
+            .chain(),
+    )
     .insert_resource(SolverState::default());
 
     app.add_systems(OnEnter(AppState::AutoCratePush), spawn_crate_pushable_marks)

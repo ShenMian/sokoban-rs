@@ -54,11 +54,30 @@ pub fn setup_solver(
     settings: Res<Settings>,
 ) {
     let board = &board.single().board;
-    let SolverState { solver, stopwatch } = &mut *solver_state;
+    let SolverState {
+        solver,
+        level,
+        stopwatch,
+    } = &mut *solver_state;
+    *level = board.level.clone();
     let mut solver = solver.lock().unwrap();
-    *solver = Solver::new(board.level.clone());
+    *solver = Solver::new(level.clone());
     solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
     stopwatch.reset();
+}
+
+pub fn reset_board(mut board: Query<&mut Board>, solver_state: Res<SolverState>) {
+    let board = &mut board.single_mut().board;
+    *board = crate::board::Board::with_level(solver_state.level.clone());
+}
+
+pub fn move_tiles(mut tiles: Query<(&mut Transform, &GridPosition)>, board: Query<&Board>) {
+    let Board { board, tile_size } = &board.single();
+    for (mut transform, grid_position) in tiles.iter_mut() {
+        transform.translation.x = grid_position.x as f32 * tile_size.x;
+        transform.translation.y =
+            board.level.dimensions.y as f32 * tile_size.y - grid_position.y as f32 * tile_size.y;
+    }
 }
 
 pub fn update_solver(
@@ -69,7 +88,13 @@ pub fn update_solver(
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     let board = &mut board.single_mut().board;
-    let SolverState { solver, stopwatch } = &mut *solver_state;
+    let SolverState {
+        solver,
+        level,
+        stopwatch,
+    } = &mut *solver_state;
+
+    *board = crate::board::Board::with_level(level.clone());
 
     let mut solver = solver.lock().unwrap();
     let timeout = std::time::Duration::from_millis(50);
@@ -95,9 +120,10 @@ pub fn update_solver(
             info!("    Solution: {}", solution.lurd());
 
             for movement in &*solution {
-                player_move_or_push(movement.direction, board, &mut player_movement);
+                player_move_or_push(movement.direction, &mut player_movement);
             }
             next_state.set(AppState::Main);
+            return;
         }
         Err(SolveError::NoSolution) => {
             stopwatch.tick(timer.elapsed());
@@ -106,9 +132,38 @@ pub fn update_solver(
                 stopwatch.elapsed().as_millis() as f32 / 1000.0
             );
             next_state.set(AppState::Main);
+            return;
         }
         Err(SolveError::Timeout) => {
             let _ = stopwatch.tick(timer.elapsed());
         }
+    }
+    if let Some(best_state) = solver.best_state() {
+        // println!(
+        //     "lower bound: {:3}, moves: {:3}, pushes: {:3}",
+        //     best_state.lower_bound(&solver),
+        //     best_state.movements.move_count(),
+        //     best_state.movements.push_count()
+        // );
+        for movement in &*best_state.movements {
+            board.move_or_push(movement.direction);
+        }
+    }
+}
+
+pub fn update_grid_position(
+    mut player_grid_positions: Query<&mut GridPosition, With<Player>>,
+    mut crate_grid_positions: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
+    board: Query<&Board>,
+) {
+    let board = &board.single().board;
+    let mut player_grid_positions = player_grid_positions.single_mut();
+    **player_grid_positions = board.level.player_position;
+
+    for (mut crate_grid_position, crate_position) in crate_grid_positions
+        .iter_mut()
+        .zip(board.level.crate_positions.iter())
+    {
+        **crate_grid_position = *crate_position;
     }
 }

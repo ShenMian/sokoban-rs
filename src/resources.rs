@@ -22,7 +22,7 @@ impl Default for Settings {
     fn default() -> Self {
         Self {
             instant_move: false,
-            player_move_speed: 0.05,
+            player_move_speed: 0.1,
             solver: SolverSettings::default(),
         }
     }
@@ -73,6 +73,7 @@ impl Default for AutoCratePushState {
 #[derive(Resource)]
 pub struct SolverState {
     pub solver: Mutex<Solver>,
+    pub level: Level,
     pub stopwatch: Stopwatch,
 }
 
@@ -80,6 +81,7 @@ impl Default for SolverState {
     fn default() -> Self {
         Self {
             solver: Mutex::new(Solver::new(Level::empty())),
+            level: Level::empty(),
             stopwatch: Stopwatch::new(),
         }
     }

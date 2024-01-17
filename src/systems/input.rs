@@ -1,16 +1,16 @@
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
-use itertools::Itertools;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 use nalgebra::Vector2;
 
+use crate::components::*;
 use crate::direction::Direction;
 use crate::events::*;
 use crate::level::{Level, PushState, Tile};
 use crate::resources::*;
 use crate::solver::solver::*;
 use crate::systems::level::*;
-use crate::{components::*, AppState};
+use crate::AppState;
 
 #[derive(Actionlike, Reflect, Clone, Hash, PartialEq, Eq)]
 pub enum Action {
@@ -215,19 +215,42 @@ pub fn player_move_to(
             .windows(2)
             .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
         for direction in directions {
-            player_move_or_push(direction, board, player_movement);
+            player_move_or_push(direction, player_movement);
         }
     }
 }
 
-pub fn player_move_or_push(
+pub fn player_move_or_push(direction: Direction, player_movement: &mut PlayerMovement) {
+    player_movement.directions.push_front(direction);
+}
+
+pub fn instant_player_move_to(
+    target: &Vector2<i32>,
+    board: &mut crate::board::Board,
+    player_movement: &mut PlayerMovement,
+) {
+    if let Some(path) = find_path(&board.level.player_position, target, |position| {
+        board
+            .level
+            .get_unchecked(&position)
+            .intersects(Tile::Wall | Tile::Crate)
+    }) {
+        let directions = path
+            .windows(2)
+            .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
+        for direction in directions {
+            instant_player_move_or_push(direction, board, player_movement);
+        }
+    }
+}
+
+pub fn instant_player_move_or_push(
     direction: Direction,
     board: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
 ) {
-    if board.move_or_push(direction) {
-        player_movement.directions.push_front(direction);
-    }
+    board.move_or_push(direction);
+    player_movement.directions.push_front(direction);
 }
 
 pub fn clear_action_state(mut action_state: ResMut<ActionState<Action>>) {
@@ -248,26 +271,26 @@ pub fn handle_other_action(
     let board = &mut board.single_mut().board;
 
     if action_state.just_pressed(Action::MoveUp) {
-        player_move_or_push(Direction::Up, board, &mut player_movement);
+        player_move_or_push(Direction::Up, &mut player_movement);
     }
     if action_state.just_pressed(Action::MoveDown) {
-        player_move_or_push(Direction::Down, board, &mut player_movement);
+        player_move_or_push(Direction::Down, &mut player_movement);
     }
     if action_state.just_pressed(Action::MoveLeft) {
-        player_move_or_push(Direction::Left, board, &mut player_movement);
+        player_move_or_push(Direction::Left, &mut player_movement);
     }
     if action_state.just_pressed(Action::MoveRight) {
-        player_move_or_push(Direction::Right, board, &mut player_movement);
+        player_move_or_push(Direction::Right, &mut player_movement);
     }
 
     if action_state.just_pressed(Action::Undo) {
-        board.undo_push();
         player_movement.directions.clear();
+        board.undo_push();
         update_grid_position_events.send(UpdateGridPositionEvent);
     }
     if action_state.just_pressed(Action::Redo) {
-        board.redo_push();
         player_movement.directions.clear();
+        board.redo_push();
         update_grid_position_events.send(UpdateGridPositionEvent);
     }
 
@@ -312,58 +335,16 @@ pub fn handle_automatic_solution_action(
     action_state: Res<ActionState<Action>>,
     state: Res<State<AppState>>,
     mut next_state: ResMut<NextState<AppState>>,
+    mut player_movement: ResMut<PlayerMovement>,
 ) {
     if action_state.just_pressed(Action::AutomaticSolution) {
+        player_movement.directions.clear();
         if *state == AppState::Main {
             next_state.set(AppState::AutoSolve);
         } else {
             next_state.set(AppState::Main);
         }
     }
-}
-
-pub fn spawn_crate_pushable_marks(
-    mut commands: Commands,
-    mut auto_crate_push_state: ResMut<AutoCratePushState>,
-    board: Query<&Board>,
-    mut next_state: ResMut<NextState<AppState>>,
-) {
-    let crate_position = &auto_crate_push_state.selected_crate;
-    let Board { board, tile_size } = board.single();
-
-    let paths = board.level.crate_pushable_paths(crate_position);
-
-    // spawn crate pushable marks
-    for crate_position in paths.keys().map(|state| state.crate_position).unique() {
-        commands.spawn((
-            SpriteBundle {
-                sprite: Sprite {
-                    color: Color::GREEN.with_a(0.8),
-                    custom_size: Some(Vec2::new(tile_size.x / 4.0, tile_size.y / 4.0)),
-                    ..default()
-                },
-                transform: Transform::from_xyz(
-                    crate_position.x as f32 * tile_size.x,
-                    (board.level.dimensions.y - crate_position.y) as f32 * tile_size.y,
-                    10.0,
-                ),
-                ..default()
-            },
-            CratePushableMark,
-        ));
-    }
-
-    if paths.is_empty() {
-        next_state.set(AppState::Main);
-    }
-    auto_crate_push_state.paths = paths;
-}
-
-pub fn despawn_crate_pushable_marks(
-    mut commands: Commands,
-    marks: Query<Entity, With<CratePushableMark>>,
-) {
-    marks.for_each(|entity| commands.entity(entity).despawn());
 }
 
 pub fn mouse_input_to_action(
@@ -409,7 +390,9 @@ pub fn mouse_input(
 
         match state.get() {
             AppState::Main => {
-                if board.level.crate_positions.contains(&grid_position) {
+                if player_movement.directions.is_empty()
+                    && board.level.crate_positions.contains(&grid_position)
+                {
                     auto_crate_push_state.selected_crate = grid_position;
                     next_state.set(AppState::AutoCratePush);
                     return;
@@ -445,19 +428,29 @@ pub fn mouse_input(
                 if let Some(min_crate_path) =
                     crate_paths.iter().min_by_key(|crate_path| crate_path.len())
                 {
+                    let mut board_clone = board.clone();
                     for (crate_position, push_direction) in min_crate_path
                         .windows(2)
                         .map(|pos| (pos[0], Direction::from_vector(pos[1] - pos[0]).unwrap()))
                     {
                         let player_position = crate_position - push_direction.to_vector();
-                        player_move_to(&player_position, board, &mut player_movement);
-                        player_move_or_push(push_direction, board, &mut player_movement);
+                        instant_player_move_to(
+                            &player_position,
+                            &mut board_clone,
+                            &mut player_movement,
+                        );
+                        instant_player_move_or_push(
+                            push_direction,
+                            &mut board_clone,
+                            &mut player_movement,
+                        );
                     }
                 } else if grid_position != *selected_crate
                     && board.level.crate_positions.contains(&grid_position)
                 {
-                    // FIXME: https://github.com/bevyengine/bevy/issues/9130
                     // auto_crate_push_state.selected_crate = grid_position;
+                    // FIXME: https://github.com/bevyengine/bevy/issues/9130
+                    // Re-entering AppState::AutoCratePush
                     // next_state.set(AppState::AutoCratePush);
                     next_state.set(AppState::Main);
                     return;

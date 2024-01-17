@@ -34,10 +34,13 @@ pub fn setup_camera(mut commands: Commands) {
 pub fn animate_player_movement(
     mut player: Query<(&mut GridPosition, &mut TextureAtlasSprite), With<Player>>,
     mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
+    mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
     settings: Res<Settings>,
 ) {
+    let board = &mut board.single_mut().board;
+
     let (player_grid_position, sprite) = &mut player.single_mut();
     let player_grid_position = &mut ***player_grid_position;
     if !settings.instant_move {
@@ -55,6 +58,8 @@ pub fn animate_player_movement(
             });
             */
 
+            board.move_or_push(direction);
+
             player_grid_position.x += direction.to_vector().x;
             player_grid_position.y += direction.to_vector().y;
 
@@ -71,6 +76,8 @@ pub fn animate_player_movement(
         }
     } else {
         while let Some(direction) = player_movement.directions.pop_back() {
+            board.move_or_push(direction);
+
             player_grid_position.x += direction.to_vector().x;
             player_grid_position.y += direction.to_vector().y;
 
