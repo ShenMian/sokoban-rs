@@ -2,12 +2,16 @@
 
 A sokoban with a solver.
 
-<p align="center"><img src="./docs/screenshot.gif" width=70%></p>
-
 ## Features
 
 - Full mouse control.
+
+<p align="center"><img src="./docs/auto_crate_push.gif" width=60%></p>
+
 - Integrated solver.
+
+<p align="center"><img src="./docs/auto_solve.gif" width=60%></p>
+
 - Front-end and back-end separation.
 - Levels and solutions are stored in the database.
 
