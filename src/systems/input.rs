@@ -124,6 +124,21 @@ impl Action {
                 UserInput::Single(InputKind::Keyboard(KeyCode::P)),
                 Self::AutomaticSolution,
             ),
+            (
+                UserInput::Chord(vec![
+                    InputKind::Keyboard(KeyCode::ControlLeft),
+                    InputKind::Keyboard(KeyCode::V),
+                ]),
+                Self::ImportLevelsFromClipboard,
+            ),
+            (
+                UserInput::Chord(vec![
+                    InputKind::Keyboard(KeyCode::ControlLeft),
+                    InputKind::Keyboard(KeyCode::ShiftLeft),
+                    InputKind::Keyboard(KeyCode::C),
+                ]),
+                Self::ExportLevelToClipboard,
+            ),
             // Keyboard (Vim)
             (
                 UserInput::Single(InputKind::Keyboard(KeyCode::K)),
