@@ -101,7 +101,7 @@ fn main() {
         Update,
         (
             (
-                handle_other_action,
+                handle_other_action.after(button_input_to_action),
                 mouse_input,
                 check_level_solved,
                 spawn_board.run_if(resource_changed_or_removed::<LevelId>()),
