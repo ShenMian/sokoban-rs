@@ -32,12 +32,13 @@ A sokoban with a solver.
 ### Keyboard
 
 | Key                    | Action                            |
-|------------------------|-----------------------------------|
+| ---------------------- | --------------------------------- |
 | `W`/`A`/`S`/`D`        | Move the character                |
 | Arrow keys             | Move the character                |
 | `[`/`]`                | Switch to the previous/next level |
 | `Ctrl` + `Z`           | Undo last push                    |
 | `Ctrl` + `Shift` + `Z` | Redo last push                    |
+| `Esc`                  | Reset current level               |
 | `-`/`=`                | Zoom in/out                       |
 | `Ctrl` + `V`           | Import levels from clipboard      |
 | `Ctrl` + `C`           | Export level to clipboard         |

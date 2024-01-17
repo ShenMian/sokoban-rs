@@ -22,6 +22,7 @@ pub enum Action {
     Undo,
     Redo,
 
+    ResetLevel,
     PreviousLevel,
     NextLevel,
 
@@ -94,6 +95,10 @@ impl Action {
                     InputKind::Keyboard(KeyCode::Z),
                 ]),
                 Self::Redo,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::Escape)),
+                Self::ResetLevel,
             ),
             (
                 UserInput::Single(InputKind::Keyboard(KeyCode::BracketLeft)),
@@ -296,6 +301,10 @@ pub fn handle_other_action(
 
     if action_state.just_pressed(Action::InstantMove) {
         settings.instant_move = !settings.instant_move;
+    }
+
+    if action_state.just_pressed(Action::ResetLevel) {
+        **level_id = **level_id;
     }
 
     let database = database.lock().unwrap();
