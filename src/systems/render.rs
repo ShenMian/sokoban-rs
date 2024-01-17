@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy::winit::WinitWindows;
 
 use crate::components::*;
+use crate::direction::Direction;
 use crate::events::*;
 use crate::resources::*;
 
@@ -31,8 +32,25 @@ pub fn setup_camera(mut commands: Commands) {
     commands.spawn((Camera2dBundle::default(), MainCamera::default()));
 }
 
+pub fn animate_player(
+    mut player: Query<&mut TextureAtlasSprite, With<Player>>,
+    mut board: Query<&mut Board>,
+) {
+    let board = &mut board.single_mut().board;
+    let sprite = &mut player.single_mut();
+
+    // TODO: 仅进行推动撤回时角色的朝向正确, 但看上去有点怪. 支持操作撤回应该可以解决该问题
+    let direction = board.player_facing_direction();
+    **sprite = TextureAtlasSprite::new(match direction {
+        Direction::Up => 4 + 0,
+        Direction::Right => 4 + 1,
+        Direction::Down => 4 + 2,
+        Direction::Left => 4 + 3,
+    });
+}
+
 pub fn animate_player_movement(
-    mut player: Query<(&mut GridPosition, &mut TextureAtlasSprite), With<Player>>,
+    mut player: Query<&mut GridPosition, With<Player>>,
     mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
@@ -41,23 +59,13 @@ pub fn animate_player_movement(
 ) {
     let board = &mut board.single_mut().board;
 
-    let (player_grid_position, sprite) = &mut player.single_mut();
-    let player_grid_position = &mut ***player_grid_position;
+    let player_grid_position = &mut **player.single_mut();
     if !settings.instant_move {
         player_movement.timer.tick(time.delta());
         if !player_movement.timer.just_finished() {
             return;
         }
         if let Some(direction) = player_movement.directions.pop_back() {
-            /*
-            **sprite = TextureAtlasSprite::new(match direction {
-                Direction::Up => 4 + 0,
-                Direction::Right => 4 + 1,
-                Direction::Down => 4 + 2,
-                Direction::Left => 4 + 3,
-            });
-            */
-
             board.move_or_push(direction);
 
             player_grid_position.x += direction.to_vector().x;

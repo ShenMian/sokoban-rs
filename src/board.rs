@@ -21,7 +21,7 @@ impl Board {
         }
     }
 
-    pub fn move_or_push(&mut self, direction: Direction) -> bool {
+    pub fn move_or_push(&mut self, direction: Direction) {
         let direction_vector = direction.to_vector();
         let player_next_position = self.level.player_position + direction_vector;
         if self
@@ -29,7 +29,7 @@ impl Board {
             .get_unchecked(&player_next_position)
             .intersects(Tile::Wall)
         {
-            return false;
+            return;
         }
         if self
             .level
@@ -42,7 +42,7 @@ impl Board {
                 .get_unchecked(&crate_next_position)
                 .intersects(Tile::Wall | Tile::Crate)
             {
-                return false;
+                return;
             }
             self.move_crate(player_next_position, crate_next_position);
 
@@ -52,7 +52,6 @@ impl Board {
         }
         self.move_player(player_next_position);
         self.undone_movements.clear();
-        return true;
     }
 
     pub fn reset(&mut self) {
@@ -71,7 +70,7 @@ impl Board {
         }
     }
 
-    fn undo_move(&mut self) {
+    pub fn undo_move(&mut self) {
         debug_assert!(!self.movements.is_empty());
         let history = self.movements.pop().unwrap();
         let direction = history.direction;
@@ -94,7 +93,7 @@ impl Board {
         }
     }
 
-    fn redo_move(&mut self) {
+    pub fn redo_move(&mut self) {
         debug_assert!(!self.undone_movements.is_empty());
         let history = self.undone_movements.pop().unwrap();
         let undone_movements = self.undone_movements.clone();
@@ -106,11 +105,11 @@ impl Board {
         return self.level.crate_positions == self.level.target_positions;
     }
 
+    #[allow(dead_code)]
     pub fn player_facing_direction(&self) -> Direction {
         self.movements
-            .iter()
-            .map(|movement| movement.direction)
             .last()
+            .map(|movement| movement.direction)
             .unwrap_or(Direction::Down)
     }
 

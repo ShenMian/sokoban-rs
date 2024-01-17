@@ -23,6 +23,7 @@ impl Neg for Direction {
 }
 
 impl Direction {
+    /// Convert to 2D unit vector.
     pub fn to_vector(&self) -> Vector2<i32> {
         match self {
             Direction::Up => -Vector2::<i32>::y(),

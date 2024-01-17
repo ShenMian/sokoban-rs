@@ -247,6 +247,7 @@ impl Solver {
         }
     }
 
+    #[allow(dead_code)]
     fn print_info(visited: &HashSet<State>, heap: &BinaryHeap<State>, state: &State) {
         print!(
             "Visited: {:<6}, Heuristic: {:<4}, Moves: {:<4}, Pushes: {:<4}, Pressure: {:<4}\r",

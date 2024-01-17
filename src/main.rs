@@ -95,7 +95,7 @@ fn main() {
                 .chain(),
         ),
     )
-    .add_systems(FixedUpdate, animate_camera_zoom);
+    .add_systems(FixedUpdate, (animate_camera_zoom, animate_player));
 
     app.add_systems(
         Update,
