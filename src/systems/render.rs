@@ -33,20 +33,32 @@ pub fn setup_camera(mut commands: Commands) {
 }
 
 pub fn animate_player(
-    mut player: Query<&mut TextureAtlasSprite, With<Player>>,
+    mut player: Query<(&mut AnimationState, &mut TextureAtlasSprite), With<Player>>,
     mut board: Query<&mut Board>,
+    time: Res<Time>,
+    player_movement: Res<PlayerMovement>,
 ) {
     let board = &mut board.single_mut().board;
-    let sprite = &mut player.single_mut();
+    let (animation_state, sprite) = &mut player.single_mut();
 
     // TODO: 仅进行推动撤回时角色的朝向正确, 但看上去有点怪. 支持操作撤回应该可以解决该问题
     let direction = board.player_facing_direction();
-    **sprite = TextureAtlasSprite::new(match direction {
-        Direction::Up => 4 + 0,
-        Direction::Right => 4 + 1,
-        Direction::Down => 4 + 2,
-        Direction::Left => 4 + 3,
-    });
+
+    let face_up = benimator::Animation::from_indices([4], benimator::FrameRate::from_fps(1.0));
+    let face_down = benimator::Animation::from_indices([6], benimator::FrameRate::from_fps(1.0));
+    let face_left = benimator::Animation::from_indices([7], benimator::FrameRate::from_fps(1.0));
+    let face_right = benimator::Animation::from_indices([5], benimator::FrameRate::from_fps(1.0));
+    let animation = match direction {
+        Direction::Up => face_up,
+        Direction::Right => face_right,
+        Direction::Down => face_down,
+        Direction::Left => face_left,
+    };
+
+    if player_movement.directions.is_empty() {}
+
+    animation_state.update(&animation, time.delta());
+    sprite.index = animation_state.frame_index();
 }
 
 pub fn animate_player_movement(
