@@ -106,7 +106,7 @@ pub fn spawn_board(
                                 GridPosition(position),
                             ));
                             if tile == Tile::Player {
-                                entity.insert(Player);
+                                entity.insert((Player, AnimationState::default()));
                             } else if tile == Tile::Crate {
                                 entity.insert(Crate);
                             }

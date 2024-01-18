@@ -29,6 +29,9 @@ pub struct GridPosition(pub Vector2<i32>);
 #[derive(Component)]
 pub struct Player;
 
+#[derive(Default, Component, Deref, DerefMut)]
+pub struct AnimationState(benimator::State);
+
 #[derive(Component)]
 pub struct Crate;
 
