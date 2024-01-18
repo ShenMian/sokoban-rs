@@ -120,6 +120,10 @@ impl Solver {
     }
 
     fn minimum_push_count_to_nearest_target(&self, position: &Vector2<i32>) -> Option<usize> {
+        // TODO: 优化求解器最小推动数计算方法
+        // 从目标开始逆推, 得到全部可达位置的下界.
+        // 若以存在下界, 取最小值. 若已经为更小的值, 停止搜索.
+
         if self.level.target_positions.contains(position) {
             return Some(0);
         }
@@ -207,17 +211,17 @@ impl Solver {
                 ]
                 .chunks(2)
                 {
-                    let neighbor = [
+                    let neighbors = [
                         position + directions[0].to_vector(),
                         position + directions[1].to_vector(),
                     ];
                     if !(self
                         .level
-                        .get_unchecked(&neighbor[0])
+                        .get_unchecked(&neighbors[0])
                         .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&neighbor[1])
+                            .get_unchecked(&neighbors[1])
                             .intersects(Tile::Wall))
                     {
                         continue;

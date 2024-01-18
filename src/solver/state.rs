@@ -101,6 +101,7 @@ impl State {
                     continue;
                 }
 
+                // TODO: 检测是否会产生新的死锁
                 if self.can_block_crate(&new_crate_position, solver) {
                     continue;
                 }

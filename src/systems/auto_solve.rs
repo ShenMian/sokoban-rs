@@ -120,7 +120,7 @@ pub fn update_solver(
             info!("    Solution: {}", solution.lurd());
 
             for movement in &*solution {
-                player_move_or_push(movement.direction, &mut player_movement);
+                player_move(movement.direction, &mut player_movement);
             }
             next_state.set(AppState::Main);
             return;

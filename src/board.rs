@@ -21,6 +21,32 @@ impl Board {
         }
     }
 
+    pub fn moveable(&self, direction: Direction) -> bool {
+        let player_next_position = self.level.player_position + direction.to_vector();
+        if self
+            .level
+            .get_unchecked(&player_next_position)
+            .intersects(Tile::Wall)
+        {
+            return false;
+        }
+        if self
+            .level
+            .get_unchecked(&player_next_position)
+            .intersects(Tile::Crate)
+        {
+            let crate_next_position = player_next_position + direction.to_vector();
+            if self
+                .level
+                .get_unchecked(&crate_next_position)
+                .intersects(Tile::Crate | Tile::Wall)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     pub fn move_or_push(&mut self, direction: Direction) {
         let direction_vector = direction.to_vector();
         let player_next_position = self.level.player_position + direction_vector;

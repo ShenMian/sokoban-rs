@@ -222,8 +222,8 @@ impl Action {
 
 pub fn player_move_to(
     target: &Vector2<i32>,
-    board: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
+    board: &crate::board::Board,
 ) {
     if let Some(path) = find_path(&board.level.player_position, target, |position| {
         board
@@ -235,12 +235,23 @@ pub fn player_move_to(
             .windows(2)
             .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
         for direction in directions {
-            player_move_or_push(direction, player_movement);
+            player_move(direction, player_movement);
         }
     }
 }
 
-pub fn player_move_or_push(direction: Direction, player_movement: &mut PlayerMovement) {
+pub fn player_move(direction: Direction, player_movement: &mut PlayerMovement) {
+    player_movement.directions.push_front(direction);
+}
+
+pub fn player_move_with_check(
+    direction: Direction,
+    player_movement: &mut PlayerMovement,
+    board: &crate::board::Board,
+) {
+    if !board.moveable(direction) {
+        return;
+    }
     player_movement.directions.push_front(direction);
 }
 
@@ -291,16 +302,16 @@ pub fn handle_other_action(
     let board = &mut board.single_mut().board;
 
     if action_state.just_pressed(Action::MoveUp) {
-        player_move_or_push(Direction::Up, &mut player_movement);
+        player_move_with_check(Direction::Up, &mut player_movement, board);
     }
     if action_state.just_pressed(Action::MoveDown) {
-        player_move_or_push(Direction::Down, &mut player_movement);
+        player_move_with_check(Direction::Down, &mut player_movement, board);
     }
     if action_state.just_pressed(Action::MoveLeft) {
-        player_move_or_push(Direction::Left, &mut player_movement);
+        player_move_with_check(Direction::Left, &mut player_movement, board);
     }
     if action_state.just_pressed(Action::MoveRight) {
-        player_move_or_push(Direction::Right, &mut player_movement);
+        player_move_with_check(Direction::Right, &mut player_movement, board);
     }
 
     if action_state.just_pressed(Action::Undo) {
@@ -485,7 +496,7 @@ pub fn mouse_input(
             _ => unreachable!(),
         }
 
-        player_move_to(&grid_position, board, &mut player_movement);
+        player_move_to(&grid_position, &mut player_movement, board);
     }
 }
 
