@@ -53,13 +53,13 @@ pub fn spawn_board(
     let database = database.lock().unwrap();
     let level = database.get_level_by_id(**level_id).unwrap();
 
-    let spritesheet_handle = asset_server.load("textures/spritesheet.png");
+    let spritesheet_handle = asset_server.load("textures/spritesheet-full.png");
     let tile_size = Vector2::new(128.0, 128.0);
     let texture_atlas = TextureAtlas::from_grid(
         spritesheet_handle,
         Vec2::new(tile_size.x, tile_size.y),
-        4,
-        2,
+        13,
+        8,
         None,
         None,
     );
@@ -88,19 +88,19 @@ pub fn spawn_board(
                         continue;
                     }
                     let tiles = HashMap::from([
-                        (Tile::Floor, 0),
-                        (Tile::Wall, 1),
-                        (Tile::Crate, 2),
-                        (Tile::Target, 3),
-                        (Tile::Player, 6),
+                        (Tile::Floor, (89, 0.0)),
+                        (Tile::Wall, (84, 1.0)),
+                        (Tile::Crate, (1, 2.0)),
+                        (Tile::Target, (39, 3.0)),
+                        (Tile::Player, (0, 4.0)),
                     ]);
-                    for (tile, sprite_index) in tiles.into_iter() {
+                    for (tile, (sprite_index, z_order)) in tiles.into_iter() {
                         if level.get_unchecked(&position).intersects(tile) {
                             let mut entity = parent.spawn((
                                 SpriteSheetBundle {
                                     texture_atlas: texture_atlas_handle.clone(),
                                     sprite: TextureAtlasSprite::new(sprite_index),
-                                    transform: Transform::from_xyz(0.0, 0.0, sprite_index as f32),
+                                    transform: Transform::from_xyz(0.0, 0.0, z_order),
                                     ..default()
                                 },
                                 GridPosition(position),

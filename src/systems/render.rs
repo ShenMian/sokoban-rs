@@ -44,18 +44,35 @@ pub fn animate_player(
     // TODO: 仅进行推动撤回时角色的朝向正确, 但看上去有点怪. 支持操作撤回应该可以解决该问题
     let direction = board.player_facing_direction();
 
-    let face_up = benimator::Animation::from_indices([4], benimator::FrameRate::from_fps(1.0));
-    let face_down = benimator::Animation::from_indices([6], benimator::FrameRate::from_fps(1.0));
-    let face_left = benimator::Animation::from_indices([7], benimator::FrameRate::from_fps(1.0));
-    let face_right = benimator::Animation::from_indices([5], benimator::FrameRate::from_fps(1.0));
-    let animation = match direction {
-        Direction::Up => face_up,
-        Direction::Right => face_right,
-        Direction::Down => face_down,
-        Direction::Left => face_left,
-    };
+    let face_up = benimator::Animation::from_indices([55], benimator::FrameRate::from_fps(1.0));
+    let face_down = benimator::Animation::from_indices([52], benimator::FrameRate::from_fps(1.0));
+    let face_left = benimator::Animation::from_indices([81], benimator::FrameRate::from_fps(1.0));
+    let face_right = benimator::Animation::from_indices([78], benimator::FrameRate::from_fps(1.0));
 
-    if player_movement.directions.is_empty() {}
+    let move_up = benimator::Animation::from_indices(55..=57, benimator::FrameRate::from_fps(6.0));
+    let move_down =
+        benimator::Animation::from_indices(52..=54, benimator::FrameRate::from_fps(6.0));
+    let move_left =
+        benimator::Animation::from_indices(81..=83, benimator::FrameRate::from_fps(6.0));
+    let move_right =
+        benimator::Animation::from_indices(78..=80, benimator::FrameRate::from_fps(6.0));
+
+    let animation;
+    if player_movement.directions.is_empty() {
+        animation = match direction {
+            Direction::Up => face_up,
+            Direction::Right => face_right,
+            Direction::Down => face_down,
+            Direction::Left => face_left,
+        };
+    } else {
+        animation = match direction {
+            Direction::Up => move_up,
+            Direction::Right => move_right,
+            Direction::Down => move_down,
+            Direction::Left => move_left,
+        };
+    }
 
     animation_state.update(&animation, time.delta());
     sprite.index = animation_state.frame_index();
@@ -130,12 +147,12 @@ pub fn animate_tiles_movement(
                 - grid_position.y as f32 * tile_size.y;
 
             if (transform.translation.x - target_x).abs() > 0.001 {
-                transform.translation.x = lerp(transform.translation.x, target_x, 0.5);
+                transform.translation.x = lerp(transform.translation.x, target_x, 0.3);
             } else {
                 transform.translation.x = target_x;
             }
             if (transform.translation.y - target_y).abs() > 0.001 {
-                transform.translation.y = lerp(transform.translation.y, target_y, 0.5);
+                transform.translation.y = lerp(transform.translation.y, target_y, 0.3);
             } else {
                 transform.translation.y = target_y;
             }
