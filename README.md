@@ -6,11 +6,11 @@ A sokoban with a solver.
 
 - Full mouse control.
 
-<p align="center"><img src="./docs/auto_crate_push.gif" width=60%></p>
+<p align="center"><img src="./docs/auto_crate_push.gif" width=50%></p>
 
 - Integrated solver.
 
-<p align="center"><img src="./docs/auto_solve.gif" width=60%></p>
+<p align="center"><img src="./docs/auto_solve.gif" width=50%></p>
 
 - Front-end and back-end separation.
 - Levels and solutions are stored in the database.
