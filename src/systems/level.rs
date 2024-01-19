@@ -53,7 +53,7 @@ pub fn spawn_board(
     let database = database.lock().unwrap();
     let level = database.get_level_by_id(**level_id).unwrap();
 
-    let spritesheet_handle = asset_server.load("textures/spritesheet-full.png");
+    let spritesheet_handle = asset_server.load("textures/tilesheet.png");
     let tile_size = Vector2::new(128.0, 128.0);
     let texture_atlas = TextureAtlas::from_grid(
         spritesheet_handle,
