@@ -257,11 +257,11 @@ pub fn player_move_with_check(
 
 pub fn instant_player_move_to(
     target: &Vector2<i32>,
-    board: &mut crate::board::Board,
+    board_clone: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
 ) {
-    if let Some(path) = find_path(&board.level.player_position, target, |position| {
-        board
+    if let Some(path) = find_path(&board_clone.level.player_position, target, |position| {
+        board_clone
             .level
             .get_unchecked(&position)
             .intersects(Tile::Wall | Tile::Crate)
@@ -270,17 +270,17 @@ pub fn instant_player_move_to(
             .windows(2)
             .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
         for direction in directions {
-            instant_player_move_or_push(direction, board, player_movement);
+            instant_player_move(direction, board_clone, player_movement);
         }
     }
 }
 
-pub fn instant_player_move_or_push(
+pub fn instant_player_move(
     direction: Direction,
-    board: &mut crate::board::Board,
+    board_clone: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
 ) {
-    board.move_or_push(direction);
+    board_clone.move_or_push(direction);
     player_movement.directions.push_front(direction);
 }
 
@@ -301,6 +301,7 @@ pub fn handle_other_action(
 ) {
     let board = &mut board.single_mut().board;
 
+    // TODO: 直接移动角色通过 PlayerMovement, 受角色移动速度限制, 会给玩家带来输入的迟滞感
     if action_state.just_pressed(Action::MoveUp) {
         player_move_with_check(Direction::Up, &mut player_movement, board);
     }
@@ -474,11 +475,7 @@ pub fn mouse_input(
                             &mut board_clone,
                             &mut player_movement,
                         );
-                        instant_player_move_or_push(
-                            push_direction,
-                            &mut board_clone,
-                            &mut player_movement,
-                        );
+                        instant_player_move(push_direction, &mut board_clone, &mut player_movement);
                     }
                 } else if grid_position != *selected_crate
                     && board.level.crate_positions.contains(&grid_position)
