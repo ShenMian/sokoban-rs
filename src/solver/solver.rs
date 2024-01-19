@@ -1,3 +1,4 @@
+use itertools::Itertools;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
 
@@ -41,6 +42,7 @@ pub struct Solver {
     strategy: Strategy,
     lower_bound_method: LowerBoundMethod,
     lower_bounds: OnceCell<HashMap<Vector2<i32>, usize>>,
+    tunnels: OnceCell<HashSet<(Vector2<i32>, Direction)>>,
     visited: HashSet<State>,
     heap: BinaryHeap<State>,
 }
@@ -56,16 +58,15 @@ type Result<T> = std::result::Result<T, SolveError>;
 impl Solver {
     pub fn new(mut level: Level) -> Self {
         level.clear(Tile::Player | Tile::Crate);
-        let mut instance = Self {
+        Self {
             level,
             strategy: Strategy::Fast,
             lower_bound_method: LowerBoundMethod::PushCount,
             lower_bounds: OnceCell::new(),
+            tunnels: OnceCell::new(),
             visited: HashSet::new(),
             heap: BinaryHeap::new(),
-        };
-        instance.calculate_tunnel_positions();
-        instance
+        }
     }
 
     pub fn initial(&mut self, strategy: Strategy, lower_bound_method: LowerBoundMethod) {
@@ -196,41 +197,110 @@ impl Solver {
         lower_bounds
     }
 
-    fn calculate_tunnel_positions(&mut self) {
+    pub fn tunnels(&self) -> &HashSet<(Vector2<i32>, Direction)> {
+        self.tunnels.get_or_init(|| self.calculate_tunnels())
+    }
+
+    fn calculate_tunnels(&self) -> HashSet<(Vector2<i32>, Direction)> {
+        let mut tunels = HashSet::new();
         for x in 1..self.level.dimensions.x - 1 {
             for y in 1..self.level.dimensions.y - 1 {
                 let position = Vector2::new(x, y);
-                if !self.level.get_unchecked(&position).intersects(Tile::Floor) {
+                if !self.level.get_unchecked(&position).intersects(Tile::Floor)
+                    || self.level.get_unchecked(&position).intersects(Tile::Target)
+                {
                     continue;
                 }
-                for directions in [
+
+                // #$#
+                // #@#
+                for (up, right, _down, left) in [
                     Direction::Up,
+                    Direction::Right,
                     Direction::Down,
                     Direction::Left,
+                    Direction::Up,
                     Direction::Right,
+                    Direction::Down,
                 ]
-                .chunks(2)
+                .iter()
+                .tuple_windows::<(_, _, _, _)>()
                 {
-                    let neighbors = [
-                        position + directions[0].to_vector(),
-                        position + directions[1].to_vector(),
-                    ];
-                    if !(self
+                    if self
                         .level
-                        .get_unchecked(&neighbors[0])
+                        .get_unchecked(&(position + left.to_vector()))
                         .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&neighbors[1])
-                            .intersects(Tile::Wall))
+                            .get_unchecked(&(position + right.to_vector()))
+                            .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(position + up.to_vector() + left.to_vector()))
+                            .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(position + up.to_vector() + right.to_vector()))
+                            .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(position + up.to_vector()))
+                            .intersects(Tile::Floor)
                     {
-                        continue;
+                        tunels.insert((position, *up));
                     }
+                }
 
-                    self.level.get_unchecked_mut(&position).insert(Tile::Tunnel);
+                // #$_ _$#
+                // #@# #@#
+                // TODO
+                for (up, right, _down, left) in [
+                    Direction::Up,
+                    Direction::Right,
+                    Direction::Down,
+                    Direction::Left,
+                    Direction::Up,
+                    Direction::Right,
+                    Direction::Down,
+                ]
+                .iter()
+                .tuple_windows::<(_, _, _, _)>()
+                {
+                    if self
+                        .level
+                        .get_unchecked(&(position + left.to_vector()))
+                        .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(position + right.to_vector()))
+                            .intersects(Tile::Wall)
+                        && ((self
+                            .level
+                            .get_unchecked(&(position + up.to_vector() + left.to_vector()))
+                            .intersects(Tile::Wall)
+                            && self
+                                .level
+                                .get_unchecked(&(position + up.to_vector() + right.to_vector()))
+                                .intersects(Tile::Floor))
+                            || (self
+                                .level
+                                .get_unchecked(&(position + up.to_vector() + left.to_vector()))
+                                .intersects(Tile::Floor)
+                                && self
+                                    .level
+                                    .get_unchecked(&(position + up.to_vector() + right.to_vector()))
+                                    .intersects(Tile::Wall)))
+                        && self
+                            .level
+                            .get_unchecked(&(position + up.to_vector()))
+                            .intersects(Tile::Floor)
+                    {
+                        tunels.insert((position, *up));
+                    }
                 }
             }
         }
+        tunels
     }
 
     #[allow(dead_code)]

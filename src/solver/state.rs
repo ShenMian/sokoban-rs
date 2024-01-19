@@ -106,31 +106,6 @@ impl State {
                     continue;
                 }
 
-                // slide in tunnel
-                let mut slide_movements = Vec::new();
-                if solver
-                    .level
-                    .get_unchecked(&crate_position)
-                    .intersects(Tile::Tunnel)
-                {
-                    while solver
-                        .level
-                        .get_unchecked(&new_crate_position)
-                        .intersects(Tile::Tunnel)
-                        && solver
-                            .level
-                            .get_unchecked(&(new_crate_position + push_direction.to_vector()))
-                            .intersects(Tile::Tunnel)
-                        && !solver
-                            .level
-                            .get_unchecked(&new_crate_position)
-                            .intersects(Tile::Target)
-                    {
-                        new_crate_position += push_direction.to_vector();
-                        slide_movements.push(Movement::with_push(push_direction));
-                    }
-                }
-
                 let mut new_movements = self.movements.clone();
                 if let Some(path) =
                     find_path(&self.player_position, &next_player_position, |position| {
@@ -144,7 +119,20 @@ impl State {
                     )
                 }
                 new_movements.push(Movement::with_push(push_direction));
-                new_movements.extend(slide_movements);
+
+                // slide in tunnel
+                while solver
+                    .tunnels()
+                    .contains(&(new_crate_position, push_direction))
+                {
+                    if self
+                        .can_block_crate(&(new_crate_position + push_direction.to_vector()), solver)
+                    {
+                        break;
+                    }
+                    new_crate_position += push_direction.to_vector();
+                    new_movements.push(Movement::with_push(push_direction));
+                }
 
                 let mut new_crate_positions = self.crate_positions.clone();
                 new_crate_positions.remove(crate_position);

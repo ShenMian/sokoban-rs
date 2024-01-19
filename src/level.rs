@@ -26,7 +26,6 @@ bitflags! {
         const Player = 1 << 5;
 
         const Deadlock = 1 << 6;
-        const Tunnel = 1 << 7;
     }
 }
 
