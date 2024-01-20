@@ -101,23 +101,20 @@ impl State {
                     continue;
                 }
 
-                // TODO: 检测是否会产生新的死锁
                 if self.can_block_crate(&new_crate_position, solver) {
                     continue;
                 }
 
                 let mut new_movements = self.movements.clone();
-                if let Some(path) =
-                    find_path(&self.player_position, &next_player_position, |position| {
-                        self.can_block_player(position, solver)
-                    })
-                {
-                    new_movements.extend(
-                        path.windows(2)
-                            .map(|p| Direction::from_vector(p[1] - p[0]).unwrap())
-                            .map(Movement::with_move),
-                    )
-                }
+                let path = find_path(&self.player_position, &next_player_position, |position| {
+                    self.can_block_player(position, solver)
+                })
+                .unwrap();
+                new_movements.extend(
+                    path.windows(2)
+                        .map(|p| Direction::from_vector(p[1] - p[0]).unwrap())
+                        .map(Movement::with_move),
+                );
                 new_movements.push(Movement::with_push(push_direction));
 
                 // skip tunnels
@@ -137,6 +134,18 @@ impl State {
                 let mut new_crate_positions = self.crate_positions.clone();
                 new_crate_positions.remove(crate_position);
                 new_crate_positions.insert(new_crate_position);
+
+                // skip deadlocks
+                if !solver.level.target_positions.contains(&new_crate_position)
+                    && self.is_freeze_deadlock(
+                        &new_crate_position,
+                        &new_crate_positions,
+                        solver,
+                        &mut HashSet::new(),
+                    )
+                {
+                    continue;
+                }
 
                 let new_player_position = new_crate_position - push_direction.to_vector();
 
@@ -172,6 +181,52 @@ impl State {
         let mut instance = self.clone();
         instance.player_position = self.normalized_player_position(solver);
         instance
+    }
+
+    fn is_freeze_deadlock(
+        &self,
+        crate_position: &Vector2<i32>,
+        crate_positions: &HashSet<Vector2<i32>>,
+        solver: &Solver,
+        visited: &mut HashSet<Vector2<i32>>,
+    ) -> bool {
+        if !visited.insert(*crate_position) {
+            return true;
+        }
+
+        for direction in [
+            Direction::Up,
+            Direction::Down,
+            Direction::Left,
+            Direction::Right,
+        ]
+        .chunks(2)
+        {
+            let neighbors = [
+                crate_position + direction[0].to_vector(),
+                crate_position + direction[1].to_vector(),
+            ];
+            if solver
+                .level
+                .get_unchecked(&neighbors[0])
+                .intersects(Tile::Wall)
+                || solver
+                    .level
+                    .get_unchecked(&neighbors[1])
+                    .intersects(Tile::Wall)
+            {
+                continue;
+            }
+            if (crate_positions.contains(&neighbors[0])
+                && self.is_freeze_deadlock(&neighbors[0], crate_positions, solver, visited))
+                || (crate_positions.contains(&neighbors[1])
+                    && self.is_freeze_deadlock(&neighbors[1], crate_positions, solver, visited))
+            {
+                continue;
+            }
+            return false;
+        }
+        return true;
     }
 
     /// Minimum number of pushes required to complete the level.

@@ -22,8 +22,8 @@ mod tests {
         let levels = Level::load_from_file(Path::new("assets/levels/box_world.xsb")).unwrap();
         let mut failed = 0;
         for i in [
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 18, 19, 21, 24, 28, 29, 31, 34,
-            36, 40, 43, 61, 62, 64, 65, 69, 74, 76, 90, 91,
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 18, 19, 21, 24, 28, 30, 31,
+            34, 36, 40, 43, 61, 62, 64, 65, 69, 74, 76, 90, 91,
         ] {
             let level = levels[i].clone();
             let mut solver = Solver::new(level.clone());

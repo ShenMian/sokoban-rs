@@ -12,8 +12,9 @@ pub fn spawn_lowerbound_marks(
     mut board: Query<&mut Board>,
 ) {
     let Board { board, tile_size } = &mut *board.single_mut();
+    let solver = solver_state.solver.lock().unwrap();
 
-    let lowerbounds = solver_state.solver.lock().unwrap().lower_bounds().clone();
+    let lowerbounds = solver.lower_bounds().clone();
     let max_lowerbound = lowerbounds
         .iter()
         .map(|(_, lowerbound)| *lowerbound)
