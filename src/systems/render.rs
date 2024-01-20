@@ -16,7 +16,7 @@ pub fn setup_window(mut window: Query<&mut Window>, winit_windows: NonSend<Winit
     // set window icon
     let (icon_rgba, icon_width, icon_height) = {
         let image = image::open("assets/textures/crate.png")
-            .expect("Failed to open icon path")
+            .expect("failed to open icon path")
             .into_rgba8();
         let (width, height) = image.dimensions();
         let rgba = image.into_raw();
