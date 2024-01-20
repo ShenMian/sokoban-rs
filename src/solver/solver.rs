@@ -253,7 +253,6 @@ impl Solver {
 
                 // #$_ _$#
                 // #@# #@#
-                // TODO
                 for (up, right, _down, left) in [
                     Direction::Up,
                     Direction::Right,

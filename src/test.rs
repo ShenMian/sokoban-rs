@@ -20,17 +20,20 @@ mod tests {
     #[test]
     fn solver() {
         let levels = Level::load_from_file(Path::new("assets/levels/box_world.xsb")).unwrap();
-        for level in [
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 18, 19, 21, 24, 28, 29, 30, 31,
-            34, 36, 40, 43, 61, 62, 63, 64, 65, 67, 69, 74, 76, 90, 91,
-        ]
-        .map(|x| levels[x].clone())
-        {
+        let mut failed = 0;
+        for i in [
+            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 16, 18, 19, 21, 24, 28, 29, 31, 34,
+            36, 40, 43, 61, 62, 64, 65, 69, 74, 76, 90, 91,
+        ] {
+            let level = levels[i].clone();
             let mut solver = Solver::new(level.clone());
             solver.initial(Strategy::Fast, LowerBoundMethod::PushCount);
             let solution = solver.solve(std::time::Duration::from_secs(30));
             if solution.is_err() {
+                println!("#{}", i + 1);
                 println!("{}", level.export_map());
+                println!("{:?}\n\n", solution.clone().err());
+                failed += 1;
                 continue;
             }
             let solution = solution.unwrap();
@@ -41,6 +44,8 @@ mod tests {
             }
             assert!(board.is_solved());
         }
+
+        assert!(failed == 0);
     }
 
     // #[bench]

@@ -120,11 +120,11 @@ impl State {
                 }
                 new_movements.push(Movement::with_push(push_direction));
 
-                // slide in tunnel
-                while solver
-                    .tunnels()
-                    .contains(&(new_crate_position, push_direction))
-                {
+                // skip tunnels
+                while solver.tunnels().contains(&(
+                    (new_crate_position - push_direction.to_vector()),
+                    push_direction,
+                )) {
                     if self
                         .can_block_crate(&(new_crate_position + push_direction.to_vector()), solver)
                     {
