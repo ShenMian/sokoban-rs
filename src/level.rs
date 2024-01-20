@@ -171,7 +171,7 @@ impl Level {
                 }
                 continue;
             }
-            if trimmed_line.starts_with(";") {
+            if trimmed_line.starts_with(";") || trimmed_line.starts_with("'") {
                 continue;
             }
 
@@ -364,7 +364,7 @@ impl Level {
         unreachable!();
     }
 
-    // TODO: 有遗漏: box_world.xsb #12
+    // TODO: 有遗漏: BoxWorld #12
     fn calculate_dead_positions(&mut self) {
         for x in 1..self.dimensions.x - 1 {
             for y in 1..self.dimensions.y - 1 {

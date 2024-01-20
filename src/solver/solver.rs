@@ -253,50 +253,53 @@ impl Solver {
 
                 // #$_ _$#
                 // #@# #@#
-                for (up, right, _down, left) in [
-                    Direction::Up,
-                    Direction::Right,
-                    Direction::Down,
-                    Direction::Left,
-                    Direction::Up,
-                    Direction::Right,
-                    Direction::Down,
-                ]
-                .iter()
-                .tuple_windows::<(_, _, _, _)>()
-                {
-                    if self
-                        .level
-                        .get_unchecked(&(position + left.to_vector()))
-                        .intersects(Tile::Wall)
-                        && self
+                // FIXME: Microban #11
+                /*
+                    for (up, right, _down, left) in [
+                        Direction::Up,
+                        Direction::Right,
+                        Direction::Down,
+                        Direction::Left,
+                        Direction::Up,
+                        Direction::Right,
+                        Direction::Down,
+                    ]
+                    .iter()
+                    .tuple_windows::<(_, _, _, _)>()
+                    {
+                        if self
                             .level
-                            .get_unchecked(&(position + right.to_vector()))
-                            .intersects(Tile::Wall)
-                        && ((self
-                            .level
-                            .get_unchecked(&(position + up.to_vector() + left.to_vector()))
+                            .get_unchecked(&(position + left.to_vector()))
                             .intersects(Tile::Wall)
                             && self
                                 .level
-                                .get_unchecked(&(position + up.to_vector() + right.to_vector()))
-                                .intersects(Tile::Floor))
-                            || (self
+                                .get_unchecked(&(position + right.to_vector()))
+                                .intersects(Tile::Wall)
+                            && ((self
                                 .level
                                 .get_unchecked(&(position + up.to_vector() + left.to_vector()))
-                                .intersects(Tile::Floor)
+                                .intersects(Tile::Wall)
                                 && self
                                     .level
                                     .get_unchecked(&(position + up.to_vector() + right.to_vector()))
-                                    .intersects(Tile::Wall)))
-                        && self
-                            .level
-                            .get_unchecked(&(position + up.to_vector()))
-                            .intersects(Tile::Floor)
-                    {
-                        tunels.insert((position, *up));
+                                    .intersects(Tile::Floor))
+                                || (self
+                                    .level
+                                    .get_unchecked(&(position + up.to_vector() + left.to_vector()))
+                                    .intersects(Tile::Floor)
+                                    && self
+                                        .level
+                                        .get_unchecked(&(position + up.to_vector() + right.to_vector()))
+                                        .intersects(Tile::Wall)))
+                            && self
+                                .level
+                                .get_unchecked(&(position + up.to_vector()))
+                                .intersects(Tile::Floor)
+                        {
+                            tunels.insert((position, *up));
+                        }
                     }
-                }
+                */
             }
         }
         tunels
