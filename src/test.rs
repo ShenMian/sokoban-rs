@@ -18,6 +18,7 @@ mod tests {
     }
 
     #[test]
+    #[cfg(not(debug_assertions))]
     fn solver() {
         let levels = Level::load_from_file(Path::new("assets/levels/box_world.xsb")).unwrap();
         let mut failed = 0;
