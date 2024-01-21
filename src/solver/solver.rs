@@ -16,8 +16,11 @@ use std::time::{Duration, Instant};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Strategy {
-    /// Find any solution
+    /// Speed priority
     Fast,
+
+    /// Balanced speed and steps
+    Mixed,
 
     /// Find move optimal solutions with best pushes
     // FIXME: 结果非最优解, 可能是由于遇到答案就直接返回忽略剩余状态导致的
@@ -25,14 +28,17 @@ pub enum Strategy {
 
     /// Find push optimal solutions with best moves
     OptimalPushMove,
-
-    Mixed,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum LowerBoundMethod {
+    /// Minimum push count to nearest target
     PushCount,
+
+    /// Minimum move count to nearest target
     MoveCount,
+
+    /// Manhattan distance to nearest target
     ManhattanDistance,
 }
 
@@ -201,18 +207,18 @@ impl Solver {
     }
 
     fn calculate_tunnels(&self) -> HashSet<(Vector2<i32>, Direction)> {
-        let mut tunels = HashSet::new();
+        let mut tunnels = HashSet::new();
         for x in 1..self.level.dimensions.x - 1 {
             for y in 1..self.level.dimensions.y - 1 {
-                let position = Vector2::new(x, y);
-                if !self.level.get_unchecked(&position).intersects(Tile::Floor)
-                    || self.level.get_unchecked(&position).intersects(Tile::Target)
+                let player_position = Vector2::new(x, y);
+                if !self
+                    .level
+                    .get_unchecked(&player_position)
+                    .intersects(Tile::Floor)
                 {
                     continue;
                 }
 
-                // #$#
-                // #@#
                 for (up, right, _down, left) in [
                     Direction::Up,
                     Direction::Right,
@@ -225,83 +231,83 @@ impl Solver {
                 .iter()
                 .tuple_windows::<(_, _, _, _)>()
                 {
+                    // #$#
+                    // #@#
                     if self
                         .level
-                        .get_unchecked(&(position + left.to_vector()))
+                        .get_unchecked(&(player_position + left.to_vector()))
                         .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&(position + right.to_vector()))
+                            .get_unchecked(&(player_position + right.to_vector()))
                             .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&(position + up.to_vector() + left.to_vector()))
+                            .get_unchecked(&(player_position + up.to_vector() + left.to_vector()))
                             .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&(position + up.to_vector() + right.to_vector()))
+                            .get_unchecked(&(player_position + up.to_vector() + right.to_vector()))
                             .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&(position + up.to_vector()))
+                            .get_unchecked(&(player_position + up.to_vector()))
                             .intersects(Tile::Floor)
-                    {
-                        tunels.insert((position, *up));
-                    }
-                }
-
-                // #$_ _$#
-                // #@# #@#
-                // FIXME: Microban #11
-                /*
-                    for (up, right, _down, left) in [
-                        Direction::Up,
-                        Direction::Right,
-                        Direction::Down,
-                        Direction::Left,
-                        Direction::Up,
-                        Direction::Right,
-                        Direction::Down,
-                    ]
-                    .iter()
-                    .tuple_windows::<(_, _, _, _)>()
-                    {
-                        if self
+                        && !self
                             .level
-                            .get_unchecked(&(position + left.to_vector()))
+                            .get_unchecked(&(player_position + up.to_vector()))
+                            .intersects(Tile::Target)
+                    {
+                        tunnels.insert((player_position, *up));
+                    }
+
+                    // #$_ _$#
+                    // #@# #@#
+                    if self
+                        .level
+                        .get_unchecked(&(player_position + left.to_vector()))
+                        .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(player_position + right.to_vector()))
+                            .intersects(Tile::Wall)
+                        && (self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector() + right.to_vector()))
                             .intersects(Tile::Wall)
                             && self
                                 .level
-                                .get_unchecked(&(position + right.to_vector()))
-                                .intersects(Tile::Wall)
-                            && ((self
+                                .get_unchecked(
+                                    &(player_position + up.to_vector() + left.to_vector()),
+                                )
+                                .intersects(Tile::Floor)
+                            || self
                                 .level
-                                .get_unchecked(&(position + up.to_vector() + left.to_vector()))
-                                .intersects(Tile::Wall)
+                                .get_unchecked(
+                                    &(player_position + up.to_vector() + right.to_vector()),
+                                )
+                                .intersects(Tile::Floor)
                                 && self
                                     .level
-                                    .get_unchecked(&(position + up.to_vector() + right.to_vector()))
-                                    .intersects(Tile::Floor))
-                                || (self
-                                    .level
-                                    .get_unchecked(&(position + up.to_vector() + left.to_vector()))
-                                    .intersects(Tile::Floor)
-                                    && self
-                                        .level
-                                        .get_unchecked(&(position + up.to_vector() + right.to_vector()))
-                                        .intersects(Tile::Wall)))
-                            && self
-                                .level
-                                .get_unchecked(&(position + up.to_vector()))
-                                .intersects(Tile::Floor)
-                        {
-                            tunels.insert((position, *up));
-                        }
+                                    .get_unchecked(
+                                        &(player_position + up.to_vector() + left.to_vector()),
+                                    )
+                                    .intersects(Tile::Wall))
+                        && self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector()))
+                            .intersects(Tile::Floor)
+                        && !self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector()))
+                            .intersects(Tile::Target)
+                    {
+                        tunnels.insert((player_position, *up));
                     }
-                */
+                }
             }
         }
-        tunels
+        tunnels
     }
 
     #[allow(dead_code)]
