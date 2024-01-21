@@ -481,8 +481,7 @@ pub fn mouse_input(
                     && board.level.crate_positions.contains(&grid_position)
                 {
                     // auto_crate_push_state.selected_crate = grid_position;
-                    // FIXME: https://github.com/bevyengine/bevy/issues/9130
-                    // Re-entering AppState::AutoCratePush
+                    // FIXME: Re-entering AppState::AutoCratePush https://github.com/bevyengine/bevy/issues/9130
                     // next_state.set(AppState::AutoCratePush);
                     next_state.set(AppState::Main);
                     return;

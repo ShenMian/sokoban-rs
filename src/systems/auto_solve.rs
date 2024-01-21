@@ -6,6 +6,8 @@ use crate::solver::solver::*;
 use crate::systems::input::*;
 use crate::AppState;
 
+use std::time::{Duration, Instant};
+
 pub fn spawn_lowerbound_marks(
     solver_state: Res<SolverState>,
     mut commands: Commands,
@@ -98,8 +100,8 @@ pub fn update_solver(
     *board = crate::board::Board::with_level(level.clone());
 
     let mut solver = solver.lock().unwrap();
-    let timeout = std::time::Duration::from_millis(50);
-    let timer = std::time::Instant::now();
+    let timeout = Duration::from_millis(50);
+    let timer = Instant::now();
     match solver.solve(timeout) {
         Ok(solution) => {
             let mut verify_board = board.clone();

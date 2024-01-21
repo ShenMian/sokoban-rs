@@ -1,3 +1,4 @@
+use benimator::{Animation, FrameRate};
 use bevy::prelude::*;
 use bevy::winit::WinitWindows;
 
@@ -7,6 +8,7 @@ use crate::events::*;
 use crate::resources::*;
 
 use std::collections::HashSet;
+use std::time::Duration;
 
 pub fn setup_window(mut window: Query<&mut Window>, winit_windows: NonSend<WinitWindows>) {
     let mut window = window.single_mut();
@@ -42,31 +44,28 @@ pub fn animate_player(
     let (animation_state, sprite) = &mut player.single_mut();
 
     // TODO: 仅进行推动撤回时角色的朝向正确, 但看上去有点怪. 支持操作撤回应该可以解决该问题
-    let direction = board.player_facing_direction();
+    let player_orientation = board.player_orientation();
 
-    let face_up = benimator::Animation::from_indices([55], benimator::FrameRate::from_fps(1.0));
-    let face_down = benimator::Animation::from_indices([52], benimator::FrameRate::from_fps(1.0));
-    let face_left = benimator::Animation::from_indices([81], benimator::FrameRate::from_fps(1.0));
-    let face_right = benimator::Animation::from_indices([78], benimator::FrameRate::from_fps(1.0));
+    let face_up = Animation::from_indices([55], FrameRate::from_frame_duration(Duration::MAX));
+    let face_down = Animation::from_indices([52], FrameRate::from_frame_duration(Duration::MAX));
+    let face_left = Animation::from_indices([81], FrameRate::from_frame_duration(Duration::MAX));
+    let face_right = Animation::from_indices([78], FrameRate::from_frame_duration(Duration::MAX));
 
-    let move_up = benimator::Animation::from_indices(55..=57, benimator::FrameRate::from_fps(6.0));
-    let move_down =
-        benimator::Animation::from_indices(52..=54, benimator::FrameRate::from_fps(6.0));
-    let move_left =
-        benimator::Animation::from_indices(81..=83, benimator::FrameRate::from_fps(6.0));
-    let move_right =
-        benimator::Animation::from_indices(78..=80, benimator::FrameRate::from_fps(6.0));
+    let move_up = Animation::from_indices(55..=57, FrameRate::from_fps(6.0));
+    let move_down = Animation::from_indices(52..=54, FrameRate::from_fps(6.0));
+    let move_left = Animation::from_indices(81..=83, FrameRate::from_fps(6.0));
+    let move_right = Animation::from_indices(78..=80, FrameRate::from_fps(6.0));
 
     let animation;
     if player_movement.directions.is_empty() {
-        animation = match direction {
+        animation = match player_orientation {
             Direction::Up => face_up,
             Direction::Right => face_right,
             Direction::Down => face_down,
             Direction::Left => face_left,
         };
     } else {
-        animation = match direction {
+        animation = match player_orientation {
             Direction::Up => move_up,
             Direction::Right => move_right,
             Direction::Down => move_down,

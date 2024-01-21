@@ -237,7 +237,7 @@ impl State {
     }
 
     fn calculate_lower_bound(&self, solver: &Solver) -> usize {
-        // FIXME: panic on Microban #155
+        // FIXME: Panic on Microban #155
         self.crate_positions
             .iter()
             .map(|crate_position| solver.lower_bounds()[&crate_position])

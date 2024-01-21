@@ -8,6 +8,7 @@ mod tests {
     use std::fs;
     use std::ops::RangeBounds;
     use std::path::Path;
+    use std::time::Duration;
 
     // use test::Bencher;
 
@@ -33,7 +34,7 @@ mod tests {
             let level = levels[id].clone();
             let mut solver = Solver::new(level.clone());
             solver.initial(Strategy::Fast, LowerBoundMethod::PushCount);
-            let solution = solver.solve(std::time::Duration::from_secs(time_limit));
+            let solution = solver.solve(Duration::from_secs(time_limit));
             if solution.is_err() {
                 println!("{}", level.export_map());
                 println!("{:?}\n\n", solution.clone().err());
@@ -60,8 +61,8 @@ mod tests {
                 &levels,
                 0..155,
                 &[
-                    87, 92, 96, 97, 98, 107, 108, 110, 113, 116, 121, 122, 137, 138, 142, 144, 145,
-                    149, 150, 152, 154
+                    35, 87, 92, 96, 97, 98, 107, 108, 110, 113, 116, 121, 122, 137, 138, 142, 144,
+                    145, 149, 150, 152, 154
                 ],
                 15 * 2
             ) == 0

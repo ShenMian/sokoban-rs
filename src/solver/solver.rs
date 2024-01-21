@@ -11,9 +11,8 @@ use std::cell::OnceCell;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::hash::Hash;
-use std::time;
-
 use std::io::Write;
+use std::time::{Duration, Instant};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum Strategy {
@@ -80,9 +79,9 @@ impl Solver {
         ));
     }
 
-    pub fn solve(&mut self, timeout: time::Duration) -> Result<Movements> {
+    pub fn solve(&mut self, timeout: Duration) -> Result<Movements> {
         debug_assert!(!self.heap.is_empty());
-        let timer = std::time::Instant::now();
+        let timer = Instant::now();
         while let Some(state) = self.heap.pop() {
             self.visited.insert(state.normalized(&self));
 

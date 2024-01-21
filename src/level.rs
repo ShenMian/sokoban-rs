@@ -4,6 +4,7 @@ use siphasher::sip::SipHasher24;
 
 use crate::direction::Direction;
 
+use std::cmp;
 use std::collections::{HashMap, HashSet, VecDeque};
 use std::hash::{Hash, Hasher};
 use std::path::Path;
@@ -125,6 +126,9 @@ impl Level {
             return Err(ParseMapError::MismatchBetweenCratesAndTargets);
         }
 
+        crate_positions.shrink_to_fit();
+        target_positions.shrink_to_fit();
+
         let mut instance = Self {
             data,
             dimensions,
@@ -213,7 +217,7 @@ impl Level {
                 map_data.push(line.to_string());
             }
 
-            map_dimensions.x = std::cmp::max(line.len() as i32, map_dimensions.x);
+            map_dimensions.x = cmp::max(line.len() as i32, map_dimensions.x);
             map_dimensions.y += 1;
         }
 
@@ -336,7 +340,7 @@ impl Level {
             self.hash(&mut hasher);
             let hash = hasher.finish();
 
-            min_hash = std::cmp::min(min_hash, hash);
+            min_hash = cmp::min(min_hash, hash);
         }
 
         for i in 1..=8 {

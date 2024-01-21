@@ -9,6 +9,7 @@ use crate::level::Level;
 use crate::level::Tile;
 use crate::resources::*;
 
+use std::cmp;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
@@ -71,7 +72,7 @@ pub fn spawn_board(
     let (mut transform, mut main_camera) = camera.single_mut();
     transform.translation.x = (board_size.x - tile_size.x) / 2.0;
     transform.translation.y = (board_size.y + tile_size.y) / 2.0;
-    main_camera.target_scale = 0.2 * (std::cmp::max(level.dimensions.x, level.dimensions.y) as f32);
+    main_camera.target_scale = 0.2 * (cmp::max(level.dimensions.x, level.dimensions.y) as f32);
 
     // despawn the previous `Board`
     commands.entity(board.single()).despawn_recursive();

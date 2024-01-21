@@ -125,8 +125,7 @@ impl Board {
         return self.level.crate_positions == self.level.target_positions;
     }
 
-    #[allow(dead_code)]
-    pub fn player_facing_direction(&self) -> Direction {
+    pub fn player_orientation(&self) -> Direction {
         self.movements
             .last()
             .map(|movement| movement.direction)
