@@ -45,8 +45,9 @@ A sokoban with a solver.
 | `-`/`=`                | Zoom in/out                       |
 | `Ctrl` + `V`           | Import levels from clipboard      |
 | `Ctrl` + `C`           | Export level to clipboard         |
-| `P`                    | Automatic solution                |
-| `I`                    | Trigger instant move[^1]          |
+| `P`                    | Toggle automatic solution         |
+| `I`                    | Toggle instant move[^1]           |
+| `F11`                  | Toggle fullscreen                 |
 
 ### Keyboard (Vim)
 
@@ -58,15 +59,15 @@ A sokoban with a solver.
 
 ### Controller
 
-| Key               | Action                            |
-|-------------------|-----------------------------------|
-| D-Pad             | Move the character                |
-| `LB`/`RB`         | Switch to the previous/next level |
-| `B`/`Circle`      | Undo last push                    |
-| `A`/`Cross`       | Redo last push                    |
-| `LT`/`RT`         | Zoom in/out                       |
-| Right stick       | Adjust viewport                   |
-| `X`/`Square`      | Trigger instant move[^1]          |
-| `Y`/`Triangle`    | Automatic solution                |
+| Key            | Action                            |
+| -------------- | --------------------------------- |
+| D-Pad          | Move the character                |
+| `LB`/`RB`      | Switch to the previous/next level |
+| `B`/`Circle`   | Undo last push                    |
+| `A`/`Cross`    | Redo last push                    |
+| `LT`/`RT`      | Zoom in/out                       |
+| Right stick    | Adjust viewport                   |
+| `X`/`Square`   | Toggle instant move[^1]           |
+| `Y`/`Triangle` | Toggle automatic solution         |
 
 [^1]: Turn off character and crates movement animations.

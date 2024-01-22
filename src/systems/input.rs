@@ -1,5 +1,6 @@
 use bevy::input::mouse::{MouseMotion, MouseWheel};
 use bevy::prelude::*;
+use bevy::window::WindowMode;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 use nalgebra::Vector2;
 
@@ -31,6 +32,7 @@ pub enum Action {
 
     ToggleInstantMove,
     ToggleAutomaticSolution,
+    ToggleFullscreen,
 
     ImportLevelsFromClipboard,
     ExportLevelToClipboard,
@@ -123,6 +125,10 @@ impl Action {
             (
                 UserInput::Single(InputKind::Keyboard(KeyCode::P)),
                 Self::ToggleAutomaticSolution,
+            ),
+            (
+                UserInput::Single(InputKind::Keyboard(KeyCode::F11)),
+                Self::ToggleFullscreen,
             ),
             (
                 UserInput::Chord(vec![
@@ -295,6 +301,7 @@ pub fn handle_other_action(
     mut player_movement: ResMut<PlayerMovement>,
     mut settings: ResMut<Settings>,
 
+    mut window: Query<&mut Window>,
     mut board: Query<&mut Board>,
 
     mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
@@ -328,6 +335,14 @@ pub fn handle_other_action(
 
     if action_state.just_pressed(Action::ToggleInstantMove) {
         settings.instant_move = !settings.instant_move;
+    }
+    if action_state.just_pressed(Action::ToggleFullscreen) {
+        let mut window = window.single_mut();
+        window.mode = match window.mode {
+            WindowMode::BorderlessFullscreen => WindowMode::Windowed,
+            WindowMode::Windowed => WindowMode::BorderlessFullscreen,
+            _ => unreachable!(),
+        };
     }
 
     if action_state.just_pressed(Action::ResetLevel) {

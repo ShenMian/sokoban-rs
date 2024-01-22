@@ -13,7 +13,6 @@ use std::time::Duration;
 pub fn setup_window(mut window: Query<&mut Window>, winit_windows: NonSend<WinitWindows>) {
     let mut window = window.single_mut();
     window.title = "Sokoban".to_string();
-    // window.mode = bevy::window::WindowMode::BorderlessFullscreen;
 
     // set window icon
     let (icon_rgba, icon_width, icon_height) = {
