@@ -109,7 +109,7 @@ pub fn update_solver(
     let mut solver = solver.lock().unwrap();
     let timeout = Duration::from_millis(50);
     let timer = Instant::now();
-    match solver.solve(timeout) {
+    match solver.search(timeout) {
         Ok(solution) => {
             let mut verify_board = board.clone();
             for movement in &*solution {

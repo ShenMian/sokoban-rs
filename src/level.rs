@@ -142,6 +142,7 @@ impl Level {
         Ok(instance)
     }
 
+    /// Creates a new empty level.
     pub fn empty() -> Self {
         Self {
             data: vec![Tile::Void; 0],

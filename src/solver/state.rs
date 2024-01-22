@@ -37,7 +37,7 @@ impl Hash for State {
 
 impl Ord for State {
     fn cmp(&self, other: &Self) -> Ordering {
-        other.heuristic.cmp(&self.heuristic)
+        self.heuristic.cmp(&other.heuristic).reverse()
     }
 }
 
@@ -78,6 +78,8 @@ impl State {
                     + instance.lower_bound(solver)
             }
         };
+        instance.crate_positions.shrink_to_fit();
+        instance.movements.shrink_to_fit();
         instance
     }
 

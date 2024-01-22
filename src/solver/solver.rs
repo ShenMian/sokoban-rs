@@ -11,7 +11,6 @@ use std::cell::OnceCell;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::hash::Hash;
-use std::io::Write;
 use std::time::{Duration, Instant};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
@@ -61,6 +60,7 @@ pub enum SolveError {
 type Result<T> = std::result::Result<T, SolveError>;
 
 impl Solver {
+    /// Creates a new solver.
     pub fn new(mut level: Level, strategy: Strategy, lower_bound_method: LowerBoundMethod) -> Self {
         level.clear(Tile::Player | Tile::Crate);
         let mut instance = Self {
@@ -81,28 +81,27 @@ impl Solver {
         instance
     }
 
-    pub fn solve(&mut self, timeout: Duration) -> Result<Movements> {
-        debug_assert!(!self.heap.is_empty());
+    /// Search for solution using the A* algorithm.
+    pub fn search(&mut self, timeout: Duration) -> Result<Movements> {
         let timer = Instant::now();
+        self.visited
+            .insert(self.heap.peek().unwrap().normalized(&self));
         while let Some(state) = self.heap.pop() {
-            self.visited.insert(state.normalized(&self));
-
             if timer.elapsed() >= timeout {
                 return Err(SolveError::Timeout);
             }
-
-            // Solver::shrink_heap(&mut self.heap);
-            // Solver::print_info(&self.visited, &self.heap, &state);
+            if state.is_solved(&self) {
+                return Ok(state.movements);
+            }
 
             for successor in state.successors(&self) {
-                if self.visited.contains(&successor.normalized(&self)) {
+                if !self.visited.insert(successor.normalized(&self)) {
                     continue;
-                }
-                if successor.is_solved(&self) {
-                    return Ok(successor.movements);
                 }
                 self.heap.push(successor);
             }
+
+            // Solver::shrink_heap(&mut self.heap);
         }
 
         Err(SolveError::NoSolution)
@@ -112,8 +111,118 @@ impl Solver {
         self.strategy
     }
 
+    /// Returns the best state in the binary heap, or `None` if it is empty.
     pub fn best_state(&self) -> Option<&State> {
         self.heap.peek()
+    }
+
+    pub fn tunnels(&self) -> &HashSet<(Vector2<i32>, Direction)> {
+        self.tunnels.get_or_init(|| self.calculate_tunnels())
+    }
+
+    fn calculate_tunnels(&self) -> HashSet<(Vector2<i32>, Direction)> {
+        let mut tunnels = HashSet::new();
+        for x in 1..self.level.dimensions.x - 1 {
+            for y in 1..self.level.dimensions.y - 1 {
+                let player_position = Vector2::new(x, y);
+                if !self
+                    .level
+                    .get_unchecked(&player_position)
+                    .intersects(Tile::Floor)
+                {
+                    continue;
+                }
+
+                for (up, right, _down, left) in [
+                    Direction::Up,
+                    Direction::Right,
+                    Direction::Down,
+                    Direction::Left,
+                    Direction::Up,
+                    Direction::Right,
+                    Direction::Down,
+                ]
+                .iter()
+                .tuple_windows::<(_, _, _, _)>()
+                {
+                    // #$#
+                    // #@#
+                    if self
+                        .level
+                        .get_unchecked(&(player_position + left.to_vector()))
+                        .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(player_position + right.to_vector()))
+                            .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector() + left.to_vector()))
+                            .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector() + right.to_vector()))
+                            .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector()))
+                            .intersects(Tile::Floor)
+                        && !self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector()))
+                            .intersects(Tile::Target)
+                    {
+                        tunnels.insert((player_position, *up));
+                    }
+
+                    // #$_ _$#
+                    // #@# #@#
+                    if self
+                        .level
+                        .get_unchecked(&(player_position + left.to_vector()))
+                        .intersects(Tile::Wall)
+                        && self
+                            .level
+                            .get_unchecked(&(player_position + right.to_vector()))
+                            .intersects(Tile::Wall)
+                        && (self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector() + right.to_vector()))
+                            .intersects(Tile::Wall)
+                            && self
+                                .level
+                                .get_unchecked(
+                                    &(player_position + up.to_vector() + left.to_vector()),
+                                )
+                                .intersects(Tile::Floor)
+                            || self
+                                .level
+                                .get_unchecked(
+                                    &(player_position + up.to_vector() + right.to_vector()),
+                                )
+                                .intersects(Tile::Floor)
+                                && self
+                                    .level
+                                    .get_unchecked(
+                                        &(player_position + up.to_vector() + left.to_vector()),
+                                    )
+                                    .intersects(Tile::Wall))
+                        && self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector()))
+                            .intersects(Tile::Floor)
+                        && !self
+                            .level
+                            .get_unchecked(&(player_position + up.to_vector()))
+                            .intersects(Tile::Target)
+                    {
+                        tunnels.insert((player_position, *up));
+                    }
+                }
+            }
+        }
+        tunnels.shrink_to_fit();
+        tunnels
     }
 
     pub fn lower_bounds(&self) -> &HashMap<Vector2<i32>, usize> {
@@ -242,114 +351,6 @@ impl Solver {
         lower_bounds
     }
 
-    pub fn tunnels(&self) -> &HashSet<(Vector2<i32>, Direction)> {
-        self.tunnels.get_or_init(|| self.calculate_tunnels())
-    }
-
-    fn calculate_tunnels(&self) -> HashSet<(Vector2<i32>, Direction)> {
-        let mut tunnels = HashSet::new();
-        for x in 1..self.level.dimensions.x - 1 {
-            for y in 1..self.level.dimensions.y - 1 {
-                let player_position = Vector2::new(x, y);
-                if !self
-                    .level
-                    .get_unchecked(&player_position)
-                    .intersects(Tile::Floor)
-                {
-                    continue;
-                }
-
-                for (up, right, _down, left) in [
-                    Direction::Up,
-                    Direction::Right,
-                    Direction::Down,
-                    Direction::Left,
-                    Direction::Up,
-                    Direction::Right,
-                    Direction::Down,
-                ]
-                .iter()
-                .tuple_windows::<(_, _, _, _)>()
-                {
-                    // #$#
-                    // #@#
-                    if self
-                        .level
-                        .get_unchecked(&(player_position + left.to_vector()))
-                        .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get_unchecked(&(player_position + right.to_vector()))
-                            .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get_unchecked(&(player_position + up.to_vector() + left.to_vector()))
-                            .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get_unchecked(&(player_position + up.to_vector() + right.to_vector()))
-                            .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get_unchecked(&(player_position + up.to_vector()))
-                            .intersects(Tile::Floor)
-                        && !self
-                            .level
-                            .get_unchecked(&(player_position + up.to_vector()))
-                            .intersects(Tile::Target)
-                    {
-                        tunnels.insert((player_position, *up));
-                    }
-
-                    // #$_ _$#
-                    // #@# #@#
-                    if self
-                        .level
-                        .get_unchecked(&(player_position + left.to_vector()))
-                        .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get_unchecked(&(player_position + right.to_vector()))
-                            .intersects(Tile::Wall)
-                        && (self
-                            .level
-                            .get_unchecked(&(player_position + up.to_vector() + right.to_vector()))
-                            .intersects(Tile::Wall)
-                            && self
-                                .level
-                                .get_unchecked(
-                                    &(player_position + up.to_vector() + left.to_vector()),
-                                )
-                                .intersects(Tile::Floor)
-                            || self
-                                .level
-                                .get_unchecked(
-                                    &(player_position + up.to_vector() + right.to_vector()),
-                                )
-                                .intersects(Tile::Floor)
-                                && self
-                                    .level
-                                    .get_unchecked(
-                                        &(player_position + up.to_vector() + left.to_vector()),
-                                    )
-                                    .intersects(Tile::Wall))
-                        && self
-                            .level
-                            .get_unchecked(&(player_position + up.to_vector()))
-                            .intersects(Tile::Floor)
-                        && !self
-                            .level
-                            .get_unchecked(&(player_position + up.to_vector()))
-                            .intersects(Tile::Target)
-                    {
-                        tunnels.insert((player_position, *up));
-                    }
-                }
-            }
-        }
-        tunnels
-    }
-
     #[allow(dead_code)]
     fn shrink_heap(heap: &mut BinaryHeap<State>) {
         let max_pressure = 200_000;
@@ -381,19 +382,6 @@ impl Solver {
             }
             println!();
         }
-    }
-
-    #[allow(dead_code)]
-    fn print_info(visited: &HashSet<State>, heap: &BinaryHeap<State>, state: &State) {
-        print!(
-            "Visited: {:<6}, Heuristic: {:<4}, Moves: {:<4}, Pushes: {:<4}, Pressure: {:<4}\r",
-            visited.len(),
-            state.heuristic(),
-            state.move_count(),
-            state.push_count(),
-            heap.len()
-        );
-        std::io::stdout().flush().unwrap();
     }
 }
 
