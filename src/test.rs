@@ -33,7 +33,7 @@ mod tests {
             println!("#{} ({})", id + 1, id);
             let level = levels[id].clone();
             let mut solver = Solver::new(level.clone());
-            solver.initial(Strategy::Fast, LowerBoundMethod::PushCount);
+            solver.initial(Strategy::Fast, LowerBoundMethod::MinimumMove);
             let solution = solver.solve(Duration::from_secs(time_limit));
             if solution.is_err() {
                 println!("{}", level.export_map());

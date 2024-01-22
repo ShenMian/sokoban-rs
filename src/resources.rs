@@ -38,7 +38,7 @@ impl Default for SolverSettings {
     fn default() -> Self {
         Self {
             strategy: Strategy::Fast,
-            lower_bound_method: LowerBoundMethod::PushCount,
+            lower_bound_method: LowerBoundMethod::MinimumMove,
         }
     }
 }

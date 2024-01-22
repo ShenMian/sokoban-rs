@@ -13,9 +13,9 @@ The solver can automatically solve simple levels.
 
 ## Lower bound calculation method
 
-- `PushCount`: Minimum push count to nearest target.
-- `MoveCount`: Minimum move count to nearest target.
-- `ManhattanDistance`: Manhattan distance to nearest target.
+- `MinimumPush`: Minimum push count to nearest target.
+- `MinimumMove`: Minimum move count to nearest target. (Slow, especially on maps with many crates or large areas)
+- `ManhattanDistance`: Manhattan distance to nearest target. (Fast, suitable for maps with many crates or large areas)
 
 ## Optimization
 
@@ -31,4 +31,4 @@ Supports visualization of the automatic solution process. This feature can be us
 - Displays the optimal state obtained by the current solver.
 - Display the lower bound as a heat map.
 
-![Visualization](solver_visualization.png)
+<p align="center"><img src="solver_visualization.png" width=70%></p>

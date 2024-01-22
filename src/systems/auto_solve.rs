@@ -8,6 +8,24 @@ use crate::AppState;
 
 use std::time::{Duration, Instant};
 
+pub fn setup_solver(
+    mut solver_state: ResMut<SolverState>,
+    board: Query<&Board>,
+    settings: Res<Settings>,
+) {
+    let board = &board.single().board;
+    let SolverState {
+        solver,
+        level,
+        stopwatch,
+    } = &mut *solver_state;
+    *level = board.level.clone();
+    let mut solver = solver.lock().unwrap();
+    *solver = Solver::new(level.clone());
+    solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
+    stopwatch.reset();
+}
+
 pub fn spawn_lowerbound_marks(
     solver_state: Res<SolverState>,
     mut commands: Commands,
@@ -49,24 +67,6 @@ pub fn despawn_lowerbound_marks(
     marks: Query<Entity, With<LowerBoundMark>>,
 ) {
     marks.for_each(|entity| commands.entity(entity).despawn());
-}
-
-pub fn setup_solver(
-    mut solver_state: ResMut<SolverState>,
-    board: Query<&Board>,
-    settings: Res<Settings>,
-) {
-    let board = &board.single().board;
-    let SolverState {
-        solver,
-        level,
-        stopwatch,
-    } = &mut *solver_state;
-    *level = board.level.clone();
-    let mut solver = solver.lock().unwrap();
-    *solver = Solver::new(level.clone());
-    solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
-    stopwatch.reset();
 }
 
 pub fn reset_board(mut board: Query<&mut Board>, solver_state: Res<SolverState>) {

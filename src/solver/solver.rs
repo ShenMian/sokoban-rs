@@ -33,10 +33,10 @@ pub enum Strategy {
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
 pub enum LowerBoundMethod {
     /// Minimum push count to nearest target
-    PushCount,
+    MinimumPush,
 
     /// Minimum move count to nearest target
-    MoveCount,
+    MinimumMove,
 
     /// Manhattan distance to nearest target
     ManhattanDistance,
@@ -66,7 +66,7 @@ impl Solver {
         Self {
             level,
             strategy: Strategy::Fast,
-            lower_bound_method: LowerBoundMethod::PushCount,
+            lower_bound_method: LowerBoundMethod::MinimumMove,
             lower_bounds: OnceCell::new(),
             tunnels: OnceCell::new(),
             visited: HashSet::new(),
@@ -116,61 +116,73 @@ impl Solver {
         self.strategy
     }
 
+    pub fn best_state(&self) -> Option<&State> {
+        self.heap.peek()
+    }
+
     pub fn lower_bounds(&self) -> &HashMap<Vector2<i32>, usize> {
         self.lower_bounds
             .get_or_init(|| self.calculate_lower_bounds())
     }
 
-    pub fn best_state(&self) -> Option<&State> {
-        self.heap.peek()
-    }
-
-    fn minimum_push_count_to_nearest_target(&self, position: &Vector2<i32>) -> Option<usize> {
-        // TODO: 优化求解器最小推动数计算方法
-        // 从目标开始逆推, 得到全部可达位置的下界.
-        // 若以存在下界, 取最小值. 若已经为更小的值, 停止搜索.
-
-        if self.level.target_positions.contains(position) {
-            return Some(0);
-        }
-
-        let paths = self
-            .level
-            .crate_pushable_paths_with_crate_positions(position, &HashSet::new());
-
-        paths
-            .iter()
-            .filter(|path| self.level.target_positions.contains(&path.0.crate_position))
-            .map(|path| path.1.len() - 1)
-            .min()
-    }
-
-    fn minimum_move_count_to_nearest_target(&self, position: &Vector2<i32>) -> Option<usize> {
-        let nearest_target_position = self
-            .level
-            .target_positions
-            .iter()
-            .min_by_key(|crate_pos| manhattan_distance(crate_pos, &position))
-            .unwrap();
-        let movements = find_path(&position, &nearest_target_position, |position| {
-            self.level.get_unchecked(&position).intersects(Tile::Wall)
-        })
-        .unwrap();
-        Some(movements.len() - 1)
-    }
-
-    fn manhattan_distance_to_nearest_target(&self, position: &Vector2<i32>) -> Option<usize> {
-        Some(
-            self.level
-                .target_positions
-                .iter()
-                .map(|crate_pos| manhattan_distance(crate_pos, &position))
-                .min()
-                .unwrap() as usize,
-        )
-    }
-
     fn calculate_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
+        match self.lower_bound_method {
+            LowerBoundMethod::MinimumPush => self.minimum_push_lower_bounds(),
+            LowerBoundMethod::MinimumMove => self.minimum_move_lower_bounds(),
+            LowerBoundMethod::ManhattanDistance => self.manhattan_distance_lower_bounds(),
+        }
+    }
+
+    fn minimum_push_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
+        let mut lower_bounds = HashMap::new();
+        for target_position in &self.level.target_positions {
+            lower_bounds.insert(*target_position, 0);
+            self.minimum_push_to(target_position, &mut lower_bounds);
+        }
+        lower_bounds
+    }
+
+    fn minimum_push_to(
+        &self,
+        position: &Vector2<i32>,
+        lower_bounds: &mut HashMap<Vector2<i32>, usize>,
+    ) {
+        for direction in [
+            Direction::Up,
+            Direction::Right,
+            Direction::Down,
+            Direction::Left,
+        ] {
+            let crate_position = position + direction.to_vector();
+            if self
+                .level
+                .get_unchecked(&crate_position)
+                .intersects(Tile::Wall)
+            {
+                continue;
+            }
+
+            let player_position = crate_position + direction.to_vector();
+            if !self.level.in_bounds(&player_position)
+                || self
+                    .level
+                    .get_unchecked(&player_position)
+                    .intersects(Tile::Wall)
+            {
+                continue;
+            }
+
+            let lower_bound = *lower_bounds.get(&crate_position).unwrap_or(&usize::MAX);
+            let new_lower_bound = lower_bounds[&position] + 1;
+            if new_lower_bound > lower_bound {
+                continue;
+            }
+            lower_bounds.insert(crate_position, new_lower_bound);
+            self.minimum_push_to(&crate_position, lower_bounds);
+        }
+    }
+
+    fn minimum_move_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
         for x in 1..self.level.dimensions.x - 1 {
             for y in 1..self.level.dimensions.y - 1 {
@@ -183,20 +195,48 @@ impl Solver {
                 {
                     continue;
                 }
-                let lower_bound = match self.lower_bound_method {
-                    LowerBoundMethod::PushCount => {
-                        self.minimum_push_count_to_nearest_target(&position)
-                    }
-                    LowerBoundMethod::MoveCount => {
-                        self.minimum_move_count_to_nearest_target(&position)
-                    }
-                    LowerBoundMethod::ManhattanDistance => {
-                        self.manhattan_distance_to_nearest_target(&position)
-                    }
-                };
-                if let Some(lower_bound) = lower_bound {
+                if self.level.target_positions.contains(&position) {
+                    lower_bounds.insert(position, 0);
+                    continue;
+                }
+
+                let paths = self
+                    .level
+                    .crate_pushable_paths_with_crate_positions(&position, &HashSet::new());
+                if let Some(lower_bound) = paths
+                    .iter()
+                    .filter(|path| self.level.target_positions.contains(&path.0.crate_position))
+                    .map(|path| path.1.len() - 1)
+                    .min()
+                {
                     lower_bounds.insert(position, lower_bound);
                 }
+            }
+        }
+        lower_bounds
+    }
+
+    fn manhattan_distance_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
+        let mut lower_bounds = HashMap::new();
+        for x in 1..self.level.dimensions.x - 1 {
+            for y in 1..self.level.dimensions.y - 1 {
+                let position = Vector2::new(x, y);
+                if !self.level.get_unchecked(&position).intersects(Tile::Floor)
+                    || self
+                        .level
+                        .get_unchecked(&position)
+                        .intersects(Tile::Deadlock)
+                {
+                    continue;
+                }
+                let lower_bound = self
+                    .level
+                    .target_positions
+                    .iter()
+                    .map(|crate_pos| manhattan_distance(crate_pos, &position))
+                    .min()
+                    .unwrap() as usize;
+                lower_bounds.insert(position, lower_bound);
             }
         }
         lower_bounds
@@ -325,6 +365,21 @@ impl Solver {
             heap.retain(|state| {
                 state.heuristic() <= heuristic_median && state.move_count() <= cost_median
             });
+        }
+    }
+
+    #[allow(dead_code)]
+    pub fn print_lower_bounds(&self) {
+        for y in 0..self.level.dimensions.y {
+            for x in 0..self.level.dimensions.x {
+                let position = Vector2::new(x, y);
+                if let Some(lower_bound) = self.lower_bounds().get(&position) {
+                    print!("{:3} ", lower_bound);
+                } else {
+                    print!("{:3} ", "###");
+                }
+            }
+            println!();
         }
     }
 
