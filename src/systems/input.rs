@@ -411,7 +411,7 @@ pub fn mouse_input(
     let Board { board, tile_size } = &mut *board.single_mut();
     let (camera, camera_transform) = camera.single_mut();
 
-    if mouse_buttons.just_pressed(MouseButton::Left) {
+    if mouse_buttons.just_pressed(MouseButton::Left) && player_movement.directions.is_empty() {
         let cursor_position = windows.single().cursor_position();
         if cursor_position.is_none() {
             return;
@@ -426,9 +426,7 @@ pub fn mouse_input(
 
         match state.get() {
             AppState::Main => {
-                if player_movement.directions.is_empty()
-                    && board.level.crate_positions.contains(&grid_position)
-                {
+                if board.level.crate_positions.contains(&grid_position) {
                     auto_crate_push_state.selected_crate = grid_position;
                     next_state.set(AppState::AutoCratePush);
                     return;
