@@ -266,10 +266,8 @@ pub fn update_hud(
         hud.sections[1].value = format!("#{}", **level_id);
 
         let database = database.lock().unwrap();
-        hud.sections[7].value =
-            format!("{}", database.get_best_move_count(**level_id).unwrap_or(0));
-        hud.sections[9].value =
-            format!("{}", database.get_best_push_count(**level_id).unwrap_or(0));
+        hud.sections[7].value = format!("{}", database.best_move_count(**level_id).unwrap_or(0));
+        hud.sections[9].value = format!("{}", database.best_push_count(**level_id).unwrap_or(0));
     }
 
     hud.sections[3].value = format!("{}", board.movements.move_count());

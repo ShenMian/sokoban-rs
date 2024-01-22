@@ -124,6 +124,16 @@ impl Database {
         Some(level)
     }
 
+    pub fn next_unsolved_level_id(&self, id: u64) -> Option<u64> {
+        let mut statement = self.connection.prepare(
+            "SELECT id FROM tb_level WHERE id > ? AND id NOT IN (SELECT level_id FROM tb_solution) ORDER BY id ASC LIMIT 1",
+        ).unwrap();
+        let mut rows = statement.query([id]).unwrap();
+
+        let row = rows.next().unwrap()?;
+        Some(row.get(0).unwrap())
+    }
+
     pub fn update_solution(&self, level_id: u64, solution: &[Movement]) {
         let move_count = solution.len();
         let push_count = solution.iter().filter(|x| x.is_push).count();
@@ -132,7 +142,7 @@ impl Database {
             .map(|x| Into::<char>::into(x.clone()))
             .collect();
 
-        if let Some(best_move_count) = self.get_best_move_count(level_id) {
+        if let Some(best_move_count) = self.best_move_count(level_id) {
             if move_count < best_move_count {
                 self.connection
                     .execute(
@@ -143,7 +153,7 @@ impl Database {
             }
         }
 
-        if let Some(best_push_count) = self.get_best_push_count(level_id) {
+        if let Some(best_push_count) = self.best_push_count(level_id) {
             if push_count < best_push_count {
                 self.connection
                     .execute(
@@ -160,20 +170,20 @@ impl Database {
         );
     }
 
-    pub fn get_best_move_count(&self, level_id: u64) -> Option<usize> {
-        Some(self.get_best_move_solution(level_id)?.len())
+    pub fn best_move_count(&self, level_id: u64) -> Option<usize> {
+        Some(self.best_move_solution(level_id)?.len())
     }
 
-    pub fn get_best_push_count(&self, level_id: u64) -> Option<usize> {
+    pub fn best_push_count(&self, level_id: u64) -> Option<usize> {
         Some(
-            self.get_best_push_solution(level_id)?
+            self.best_push_solution(level_id)?
                 .chars()
                 .filter(|x| x.is_ascii_uppercase())
                 .count(),
         )
     }
 
-    pub fn get_best_move_solution(&self, level_id: u64) -> Option<String> {
+    pub fn best_move_solution(&self, level_id: u64) -> Option<String> {
         let mut statement = self
             .connection
             .prepare("SELECT best_move_solution FROM tb_solution WHERE level_id = ?")
@@ -184,7 +194,7 @@ impl Database {
         Some(best_move)
     }
 
-    pub fn get_best_push_solution(&self, level_id: u64) -> Option<String> {
+    pub fn best_push_solution(&self, level_id: u64) -> Option<String> {
         let mut statement = self
             .connection
             .prepare("SELECT best_push_solution FROM tb_solution WHERE level_id = ?")

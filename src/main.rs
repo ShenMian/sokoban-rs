@@ -103,7 +103,7 @@ fn main() {
             (
                 handle_other_action.after(button_input_to_action),
                 mouse_input,
-                check_level_solved,
+                auto_level_switch,
                 spawn_board.run_if(resource_changed_or_removed::<LevelId>()),
             )
                 .chain(),

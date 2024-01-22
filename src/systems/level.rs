@@ -39,7 +39,11 @@ pub fn setup_level(mut commands: Commands, database: Res<Database>) {
         board: board::Board::with_level(level),
         tile_size: Vector2::zeros(),
     });
-    commands.insert_resource(LevelId(1));
+
+    let next_unsolved_level_id = database
+        .next_unsolved_level_id(0)
+        .unwrap_or(database.max_level_id().unwrap());
+    commands.insert_resource(LevelId(next_unsolved_level_id));
 }
 
 pub fn spawn_board(
@@ -118,7 +122,7 @@ pub fn spawn_board(
         });
 }
 
-pub fn check_level_solved(
+pub fn auto_level_switch(
     mut board: Query<&mut Board>,
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
@@ -137,7 +141,7 @@ pub fn check_level_solved(
         info!("Pushes  : {}", board.movements.push_count());
         info!("Solution: {}", board.movements.lurd());
         database.update_solution(**level_id, &board.movements);
-        switch_to_next_level(&mut level_id, &database);
+        switch_to_next_unsolved_level(&mut level_id, &database);
     }
 }
 
@@ -158,6 +162,16 @@ pub fn export_to_clipboard(board: &crate::board::Board) {
     clipboard
         .set_text(board.level.export_map() + &board.level.export_metadata())
         .unwrap();
+}
+
+pub fn switch_to_next_unsolved_level(
+    level_id: &mut LevelId,
+    database: &MutexGuard<database::Database>,
+) {
+    let next_unsolved_level_id = database
+        .next_unsolved_level_id(**level_id)
+        .unwrap_or(database.max_level_id().unwrap());
+    **level_id = next_unsolved_level_id;
 }
 
 pub fn switch_to_next_level(level_id: &mut LevelId, database: &MutexGuard<database::Database>) {
