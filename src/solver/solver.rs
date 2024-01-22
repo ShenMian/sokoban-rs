@@ -61,28 +61,24 @@ pub enum SolveError {
 type Result<T> = std::result::Result<T, SolveError>;
 
 impl Solver {
-    pub fn new(mut level: Level) -> Self {
+    pub fn new(mut level: Level, strategy: Strategy, lower_bound_method: LowerBoundMethod) -> Self {
         level.clear(Tile::Player | Tile::Crate);
-        Self {
+        let mut instance = Self {
             level,
-            strategy: Strategy::Fast,
-            lower_bound_method: LowerBoundMethod::MinimumMove,
+            strategy,
+            lower_bound_method,
             lower_bounds: OnceCell::new(),
             tunnels: OnceCell::new(),
             visited: HashSet::new(),
             heap: BinaryHeap::new(),
-        }
-    }
-
-    pub fn initial(&mut self, strategy: Strategy, lower_bound_method: LowerBoundMethod) {
-        self.strategy = strategy;
-        self.lower_bound_method = lower_bound_method;
-        self.heap.push(State::new(
-            self.level.player_position,
-            self.level.crate_positions.clone(),
+        };
+        instance.heap.push(State::new(
+            instance.level.player_position,
+            instance.level.crate_positions.clone(),
             Movements::new(),
-            self,
+            &instance,
         ));
+        instance
     }
 
     pub fn solve(&mut self, timeout: Duration) -> Result<Movements> {
@@ -195,7 +191,7 @@ impl Solver {
                 {
                     continue;
                 }
-                if self.level.target_positions.contains(&position) {
+                if self.level.get_unchecked(&position).intersects(Tile::Target) {
                     lower_bounds.insert(position, 0);
                     continue;
                 }
@@ -205,7 +201,11 @@ impl Solver {
                     .crate_pushable_paths_with_crate_positions(&position, &HashSet::new());
                 if let Some(lower_bound) = paths
                     .iter()
-                    .filter(|path| self.level.target_positions.contains(&path.0.crate_position))
+                    .filter(|path| {
+                        self.level
+                            .get_unchecked(&path.0.crate_position)
+                            .intersects(Tile::Target)
+                    })
                     .map(|path| path.1.len() - 1)
                     .min()
                 {

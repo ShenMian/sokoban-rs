@@ -80,7 +80,11 @@ pub struct SolverState {
 impl Default for SolverState {
     fn default() -> Self {
         Self {
-            solver: Mutex::new(Solver::new(Level::empty())),
+            solver: Mutex::new(Solver::new(
+                Level::empty(),
+                Strategy::Fast,
+                LowerBoundMethod::MinimumMove,
+            )),
             level: Level::empty(),
             stopwatch: Stopwatch::new(),
         }

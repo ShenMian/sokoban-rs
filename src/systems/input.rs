@@ -29,8 +29,8 @@ pub enum Action {
     ZoomOut,
     ZoomIn,
 
-    InstantMove,
-    AutomaticSolution,
+    ToggleInstantMove,
+    ToggleAutomaticSolution,
 
     ImportLevelsFromClipboard,
     ExportLevelToClipboard,
@@ -118,11 +118,11 @@ impl Action {
             ),
             (
                 UserInput::Single(InputKind::Keyboard(KeyCode::I)),
-                Self::InstantMove,
+                Self::ToggleInstantMove,
             ),
             (
                 UserInput::Single(InputKind::Keyboard(KeyCode::P)),
-                Self::AutomaticSolution,
+                Self::ToggleAutomaticSolution,
             ),
             (
                 UserInput::Chord(vec![
@@ -210,11 +210,11 @@ impl Action {
             ),
             (
                 UserInput::Single(InputKind::GamepadButton(GamepadButtonType::West)),
-                Self::InstantMove,
+                Self::ToggleInstantMove,
             ),
             (
                 UserInput::Single(InputKind::GamepadButton(GamepadButtonType::North)),
-                Self::AutomaticSolution,
+                Self::ToggleAutomaticSolution,
             ),
         ])
     }
@@ -326,7 +326,7 @@ pub fn handle_other_action(
         update_grid_position_events.send(UpdateGridPositionEvent);
     }
 
-    if action_state.just_pressed(Action::InstantMove) {
+    if action_state.just_pressed(Action::ToggleInstantMove) {
         settings.instant_move = !settings.instant_move;
     }
 
@@ -373,7 +373,7 @@ pub fn handle_automatic_solution_action(
     mut next_state: ResMut<NextState<AppState>>,
     mut player_movement: ResMut<PlayerMovement>,
 ) {
-    if action_state.just_pressed(Action::AutomaticSolution) {
+    if action_state.just_pressed(Action::ToggleAutomaticSolution) {
         player_movement.directions.clear();
         if *state == AppState::Main {
             next_state.set(AppState::AutoSolve);

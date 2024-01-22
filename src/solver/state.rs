@@ -136,7 +136,10 @@ impl State {
                 new_crate_positions.insert(new_crate_position);
 
                 // skip deadlocks
-                if !solver.level.target_positions.contains(&new_crate_position)
+                if !solver
+                    .level
+                    .get_unchecked(&new_crate_position)
+                    .intersects(Tile::Target)
                     && self.is_freeze_deadlock(
                         &new_crate_position,
                         &new_crate_positions,
@@ -237,7 +240,6 @@ impl State {
     }
 
     fn calculate_lower_bound(&self, solver: &Solver) -> usize {
-        // FIXME: Panic on Microban #155
         self.crate_positions
             .iter()
             .map(|crate_position| solver.lower_bounds()[&crate_position])

@@ -8,7 +8,7 @@ use crate::AppState;
 
 use std::time::{Duration, Instant};
 
-pub fn setup_solver(
+pub fn load_solver(
     mut solver_state: ResMut<SolverState>,
     board: Query<&Board>,
     settings: Res<Settings>,
@@ -21,9 +21,16 @@ pub fn setup_solver(
     } = &mut *solver_state;
     *level = board.level.clone();
     let mut solver = solver.lock().unwrap();
-    *solver = Solver::new(level.clone());
-    solver.initial(settings.solver.strategy, settings.solver.lower_bound_method);
+    *solver = Solver::new(
+        level.clone(),
+        settings.solver.strategy,
+        settings.solver.lower_bound_method,
+    );
     stopwatch.reset();
+}
+
+pub fn unload_solver(mut solver_state: ResMut<SolverState>) {
+    *solver_state = SolverState::default();
 }
 
 pub fn spawn_lowerbound_marks(

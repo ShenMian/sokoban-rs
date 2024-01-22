@@ -122,7 +122,7 @@ impl Board {
     }
 
     pub fn is_solved(&self) -> bool {
-        return self.level.crate_positions == self.level.target_positions;
+        self.level.crate_positions == self.level.target_positions
     }
 
     pub fn player_orientation(&self) -> Direction {

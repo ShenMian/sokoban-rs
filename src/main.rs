@@ -121,7 +121,7 @@ fn main() {
     app.add_systems(
         OnEnter(AppState::AutoSolve),
         (
-            (setup_solver, spawn_lowerbound_marks).chain(),
+            (load_solver, spawn_lowerbound_marks).chain(),
             clear_action_state,
         ),
     )
@@ -135,6 +135,7 @@ fn main() {
             reset_board,
             update_grid_position,
             move_tiles,
+            unload_solver,
             despawn_lowerbound_marks,
         )
             .chain(),

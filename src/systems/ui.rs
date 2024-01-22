@@ -81,8 +81,8 @@ pub fn button_input_to_action(
             continue;
         }
         match *button {
-            MainButton::InstantMove => action_state.press(Action::InstantMove),
-            MainButton::AutomaticSolution => action_state.press(Action::AutomaticSolution),
+            MainButton::InstantMove => action_state.press(Action::ToggleInstantMove),
+            MainButton::AutomaticSolution => action_state.press(Action::ToggleAutomaticSolution),
             MainButton::PreviousLevel => action_state.press(Action::PreviousLevel),
             MainButton::NextLevel => action_state.press(Action::NextLevel),
         }
