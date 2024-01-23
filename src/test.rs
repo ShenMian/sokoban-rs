@@ -7,8 +7,10 @@ mod tests {
     use crate::solver::solver::*;
     use std::fs;
     use std::ops::RangeBounds;
-    use std::path::Path;
     use std::time::Duration;
+
+    #[cfg(not(debug_assertions))]
+    use std::path::Path;
 
     // use test::Bencher;
 
@@ -19,6 +21,7 @@ mod tests {
         }
     }
 
+    #[allow(dead_code)]
     fn solve<R: RangeBounds<usize> + IntoIterator<Item = usize>>(
         levels: &[Level],
         range: R,

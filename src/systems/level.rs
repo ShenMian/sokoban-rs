@@ -9,7 +9,6 @@ use crate::level::Level;
 use crate::level::Tile;
 use crate::resources::*;
 
-use std::cmp;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
