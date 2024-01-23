@@ -50,6 +50,7 @@ pub fn spawn_board(
     mut commands: Commands,
     database: Res<Database>,
     mut camera: Query<(&mut Transform, &mut MainCamera)>,
+    window: Query<&Window>,
     board: Query<Entity, With<Board>>,
     level_id: Res<LevelId>,
     asset_server: Res<AssetServer>,
@@ -76,7 +77,16 @@ pub fn spawn_board(
     let (mut transform, mut main_camera) = camera.single_mut();
     transform.translation.x = (board_size.x - tile_size.x) / 2.0;
     transform.translation.y = (board_size.y + tile_size.y) / 2.0;
-    main_camera.target_scale = 0.2 * (cmp::max(level.dimensions.x, level.dimensions.y) as f32);
+
+    let window = window.single();
+    let width_scale = board_size.x / window.resolution.width();
+    let height_scale = board_size.y / window.resolution.height();
+    let scale = if width_scale > height_scale {
+        width_scale
+    } else {
+        height_scale
+    };
+    main_camera.target_scale = scale / 0.9;
 
     // despawn the previous `Board`
     commands.entity(board.single()).despawn_recursive();
