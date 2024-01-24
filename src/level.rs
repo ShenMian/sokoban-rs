@@ -373,7 +373,6 @@ impl Level {
         unreachable!();
     }
 
-    // TODO: 有遗漏: BoxWorld #12
     fn calculate_dead_positions(&mut self) {
         for x in 1..self.dimensions.x - 1 {
             for y in 1..self.dimensions.y - 1 {
@@ -416,6 +415,27 @@ impl Level {
                     {
                         dead_positions.insert(next_position);
                         next_position += -directions[0].to_vector();
+                        if self.get_unchecked(&next_position).intersects(Tile::Target) {
+                            break;
+                        }
+                        if self.get_unchecked(&next_position).intersects(Tile::Wall) {
+                            for dead_position in dead_positions {
+                                self.get_unchecked_mut(&dead_position)
+                                    .insert(Tile::Deadlock);
+                            }
+                            break;
+                        }
+                    }
+
+                    let mut dead_positions = HashSet::new();
+                    let mut next_position = position;
+                    while !self.get_unchecked(&next_position).intersects(Tile::Wall)
+                        && self
+                            .get_unchecked(&(next_position + directions[0].to_vector()))
+                            .intersects(Tile::Wall)
+                    {
+                        dead_positions.insert(next_position);
+                        next_position += -directions[1].to_vector();
                         if self.get_unchecked(&next_position).intersects(Tile::Target) {
                             break;
                         }
