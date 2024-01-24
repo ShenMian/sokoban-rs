@@ -61,20 +61,22 @@ impl State {
             heuristic: 0,
             lower_bound: OnceCell::new(),
         };
-        debug_assert!(instance.move_count() < 10000);
-        debug_assert!(instance.push_count() < 10000);
+        debug_assert!(instance.movements.move_count() < 10000);
+        debug_assert!(instance.movements.push_count() < 10000);
         debug_assert!(instance.lower_bound(solver) < 10000);
         instance.heuristic = match solver.strategy() {
-            Strategy::Fast => instance.lower_bound(solver) * 10000 + instance.move_count(),
-            Strategy::Mixed => instance.lower_bound(solver) + instance.move_count(),
+            Strategy::Fast => {
+                instance.lower_bound(solver) * 10000 + instance.movements.move_count()
+            }
+            Strategy::Mixed => instance.lower_bound(solver) + instance.movements.move_count(),
             Strategy::OptimalMovePush => {
-                instance.move_count() * 10000_0000
-                    + instance.push_count() * 10000
+                instance.movements.move_count() * 10000_0000
+                    + instance.movements.push_count() * 10000
                     + instance.lower_bound(solver)
             }
             Strategy::OptimalPushMove => {
-                instance.push_count() * 10000_0000
-                    + instance.move_count() * 10000
+                instance.movements.push_count() * 10000_0000
+                    + instance.movements.move_count() * 10000
                     + instance.lower_bound(solver)
             }
         };
@@ -166,28 +168,24 @@ impl State {
         successors
     }
 
+    /// Checks if the current state represents a solved level.
     pub fn is_solved(&self, solver: &Solver) -> bool {
         self.lower_bound(solver) == 0
     }
 
+    /// Returns the heuristic value of the current state.
     pub fn heuristic(&self) -> usize {
         self.heuristic
     }
 
-    pub fn move_count(&self) -> usize {
-        self.movements.len()
-    }
-
-    pub fn push_count(&self) -> usize {
-        self.movements.iter().filter(|x| x.is_push).count()
-    }
-
+    /// Returns a normalized clone of the current state.
     pub fn normalized(&self, solver: &Solver) -> Self {
         let mut instance = self.clone();
         instance.player_position = self.normalized_player_position(solver);
         instance
     }
 
+    /// Checks if the new crate position leads to a freeze deadlock.
     fn is_freeze_deadlock(
         &self,
         crate_position: &Vector2<i32>,
@@ -211,6 +209,8 @@ impl State {
                 crate_position + direction[0].to_vector(),
                 crate_position + direction[1].to_vector(),
             ];
+
+            // Checks if any immovable walls on the axis.
             if solver
                 .level
                 .get_unchecked(&neighbors[0])
@@ -222,6 +222,8 @@ impl State {
             {
                 continue;
             }
+
+            // Checks if any immovable crates on the axis.
             if (crate_positions.contains(&neighbors[0])
                 && self.is_freeze_deadlock(&neighbors[0], crate_positions, solver, visited))
                 || (crate_positions.contains(&neighbors[1])
@@ -229,18 +231,20 @@ impl State {
             {
                 continue;
             }
+
             return false;
         }
         return true;
     }
 
-    /// Minimum number of pushes required to complete the level.
+    /// Returns the lower bound value for the current state.
     fn lower_bound(&self, solver: &Solver) -> usize {
         *self
             .lower_bound
             .get_or_init(|| self.calculate_lower_bound(solver))
     }
 
+    /// Calculates and returns the lower bound value for the current state.
     fn calculate_lower_bound(&self, solver: &Solver) -> usize {
         self.crate_positions
             .iter()
@@ -248,11 +252,13 @@ impl State {
             .sum()
     }
 
+    /// Checks if a position can block the player's movement.
     fn can_block_player(&self, position: &Vector2<i32>, solver: &Solver) -> bool {
         solver.level.get_unchecked(position).intersects(Tile::Wall)
             || self.crate_positions.contains(position)
     }
 
+    /// Checks if a position can block a crate's movement.
     fn can_block_crate(&self, position: &Vector2<i32>, solver: &Solver) -> bool {
         solver
             .level
@@ -262,10 +268,12 @@ impl State {
             || self.crate_positions.contains(position)
     }
 
+    /// Returns the normalized player position based on reachable area.
     fn normalized_player_position(&self, solver: &Solver) -> Vector2<i32> {
         normalized_area(&self.player_reachable_area(solver))
     }
 
+    /// Returns the reachable area for the player in the current state.
     fn player_reachable_area(&self, solver: &Solver) -> HashSet<Vector2<i32>> {
         solver
             .level

@@ -13,6 +13,7 @@ pub struct Board {
 }
 
 impl Board {
+    /// Creates a new board with the specified level.
     pub fn with_level(level: Level) -> Self {
         Self {
             level,
@@ -21,6 +22,7 @@ impl Board {
         }
     }
 
+    /// Checks if the player can move or push in the specified direction.
     pub fn moveable(&self, direction: Direction) -> bool {
         let player_next_position = self.level.player_position + direction.to_vector();
         if self
@@ -47,6 +49,7 @@ impl Board {
         return true;
     }
 
+    /// Moves the player or pushes a crate in the specified direction.
     pub fn move_or_push(&mut self, direction: Direction) {
         let direction_vector = direction.to_vector();
         let player_next_position = self.level.player_position + direction_vector;
@@ -80,6 +83,7 @@ impl Board {
         self.undone_movements.clear();
     }
 
+    /// Undoes the last push.
     pub fn undo_push(&mut self) {
         while let Some(history) = self.movements.last() {
             if history.is_push {
@@ -90,6 +94,7 @@ impl Board {
         }
     }
 
+    /// Undoes the last move.
     pub fn undo_move(&mut self) {
         debug_assert!(!self.movements.is_empty());
         let history = self.movements.pop().unwrap();
@@ -103,6 +108,7 @@ impl Board {
         self.undone_movements.push(history);
     }
 
+    /// Redoes the last push.
     pub fn redo_push(&mut self) {
         while let Some(history) = self.undone_movements.last() {
             if history.is_push {
@@ -113,6 +119,7 @@ impl Board {
         }
     }
 
+    /// Redoes the last move.
     pub fn redo_move(&mut self) {
         debug_assert!(!self.undone_movements.is_empty());
         let history = self.undone_movements.pop().unwrap();
@@ -121,10 +128,12 @@ impl Board {
         self.undone_movements = undone_movements;
     }
 
+    /// Checks if the level is solved.
     pub fn is_solved(&self) -> bool {
         self.level.crate_positions == self.level.target_positions
     }
 
+    /// Returns the player's current orientation.
     pub fn player_orientation(&self) -> Direction {
         self.movements
             .last()

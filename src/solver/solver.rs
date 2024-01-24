@@ -81,7 +81,7 @@ impl Solver {
         instance
     }
 
-    /// Search for solution using the A* algorithm.
+    /// Searches for solution using the A* algorithm.
     pub fn search(&mut self, timeout: Duration) -> Result<Movements> {
         let timer = Instant::now();
         self.visited
@@ -116,10 +116,12 @@ impl Solver {
         self.heap.peek()
     }
 
+    /// Returns a reference to the set of tunnels.
     pub fn tunnels(&self) -> &HashSet<(Vector2<i32>, Direction)> {
         self.tunnels.get_or_init(|| self.calculate_tunnels())
     }
 
+    /// Calculates and returns the set of tunnels in the level.
     fn calculate_tunnels(&self) -> HashSet<(Vector2<i32>, Direction)> {
         let mut tunnels = HashSet::new();
         for x in 1..self.level.dimensions.x - 1 {
@@ -225,11 +227,13 @@ impl Solver {
         tunnels
     }
 
+    /// Returns a reference to the set of lower bounds.
     pub fn lower_bounds(&self) -> &HashMap<Vector2<i32>, usize> {
         self.lower_bounds
             .get_or_init(|| self.calculate_lower_bounds())
     }
 
+    /// Calculates and returns the set of lower bounds.
     fn calculate_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         match self.lower_bound_method {
             LowerBoundMethod::MinimumPush => self.minimum_push_lower_bounds(),
@@ -238,6 +242,7 @@ impl Solver {
         }
     }
 
+    /// Calculates and returns the lower bounds using the minimum push method.
     fn minimum_push_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
         for target_position in &self.level.target_positions {
@@ -287,6 +292,7 @@ impl Solver {
         }
     }
 
+    /// Calculates and returns the lower bounds using the minimum move method.
     fn minimum_move_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
         for x in 1..self.level.dimensions.x - 1 {
@@ -325,6 +331,7 @@ impl Solver {
         lower_bounds
     }
 
+    /// Calculates and returns the lower bounds using the Manhattan distance method.
     fn manhattan_distance_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
         for x in 1..self.level.dimensions.x - 1 {
@@ -351,24 +358,21 @@ impl Solver {
         lower_bounds
     }
 
+    /// Shrinks the heap by retaining only a subset of states based on heuristics.
     #[allow(dead_code)]
     fn shrink_heap(heap: &mut BinaryHeap<State>) {
         let max_pressure = 200_000;
         if heap.len() > max_pressure {
             let mut heuristics: Vec<_> = heap.iter().map(|state| state.heuristic()).collect();
             heuristics.sort_unstable();
-            let mut costs: Vec<_> = heap.iter().map(|state| state.move_count()).collect();
-            costs.sort_unstable();
 
             let alpha = 0.8;
             let heuristic_median = heuristics[(heuristics.len() as f32 * alpha) as usize];
-            let cost_median = costs[(costs.len() as f32 * alpha) as usize];
-            heap.retain(|state| {
-                state.heuristic() <= heuristic_median && state.move_count() <= cost_median
-            });
+            heap.retain(|state| state.heuristic() <= heuristic_median);
         }
     }
 
+    /// Prints the lower bounds for each position in the level.
     #[allow(dead_code)]
     pub fn print_lower_bounds(&self) {
         for y in 0..self.level.dimensions.y {

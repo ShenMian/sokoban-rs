@@ -71,6 +71,7 @@ impl fmt::Display for ParseMapError {
 type Result<T> = std::result::Result<T, ParseMapError>;
 
 impl Level {
+    /// Creates a new level.
     pub fn new(
         map: Vec<String>,
         dimensions: Vector2<i32>,
@@ -257,6 +258,7 @@ impl Level {
         &mut self.data[(position.y * self.dimensions.x + position.x) as usize]
     }
 
+    /// Exports the map layout as a XSB format string.
     pub fn export_map(&self) -> String {
         let mut result = String::new();
         for y in 0..self.dimensions.y {
@@ -283,6 +285,7 @@ impl Level {
         result
     }
 
+    /// Exports metadata as a XSB format string.
     pub fn export_metadata(&self) -> String {
         let mut result = String::new();
         for (key, value) in self.metadata.iter() {
@@ -291,6 +294,7 @@ impl Level {
         result
     }
 
+    /// Normalizes the level.
     pub fn normalize(&mut self) {
         assert!(self
             .get_unchecked(&self.player_position)
@@ -616,6 +620,7 @@ impl Level {
             .collect();
     }
 
+    /// Checks if a position is within the bounds of the level.
     pub fn in_bounds(&self, position: &Vector2<i32>) -> bool {
         0 <= position.x
             && position.x < self.dimensions.x

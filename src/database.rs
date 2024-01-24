@@ -14,16 +14,18 @@ pub struct Database {
 }
 
 impl Database {
+    /// Creates a new Database instance with a connection to a file-based database.
+    pub fn from_file<P: AsRef<Path>>(path: P) -> Self {
+        Self {
+            connection: Connection::open(path).expect("failed to open database"),
+        }
+    }
+
+    /// Creates a new Database instance with an in-memory connection.
     #[allow(dead_code)]
     pub fn from_memory() -> Self {
         Self {
             connection: Connection::open_in_memory().expect("failed to open database"),
-        }
-    }
-
-    pub fn from_file<P: AsRef<Path>>(path: P) -> Self {
-        Self {
-            connection: Connection::open(path).expect("failed to open database"),
         }
     }
 
@@ -86,6 +88,7 @@ impl Database {
         );
     }
 
+    /// Returns the level ID by the provided level.
     pub fn get_level_id(&self, level: &Level) -> Option<u64> {
         let hash = Database::normalized_hash(level);
         match self.connection.query_row(
@@ -98,6 +101,7 @@ impl Database {
         }
     }
 
+    /// Returns a level based by ID.
     pub fn get_level_by_id(&self, id: u64) -> Option<Level> {
         let mut statement = self
             .connection
@@ -124,6 +128,7 @@ impl Database {
         Some(level)
     }
 
+    /// Returns the ID of the next unsolved level after the provided ID.
     pub fn next_unsolved_level_id(&self, id: u64) -> Option<u64> {
         let mut statement = self.connection.prepare(
             "SELECT id FROM tb_level WHERE id > ? AND id NOT IN (SELECT level_id FROM tb_solution) ORDER BY id ASC LIMIT 1",
@@ -205,27 +210,28 @@ impl Database {
         Some(best_push)
     }
 
-    /// Retrieves the maximum level ID.
+    /// Returns the maximum level ID.
     pub fn max_level_id(&self) -> Option<u64> {
         self.connection
             .query_row("SELECT MAX(id) FROM tb_level", [], |row| row.get(0))
             .unwrap()
     }
 
-    /// Retrieves the minimum level ID.
+    /// Returns the minimum level ID.
     pub fn min_level_id(&self) -> Option<u64> {
         self.connection
             .query_row("SELECT MIN(id) FROM tb_level", [], |row| row.get(0))
             .unwrap()
     }
 
+    /// Computes a normalized hash for the provided level.
     fn normalized_hash(level: &Level) -> String {
         let mut hasher = SipHasher24::new();
         let mut normalized_level = level.clone();
         normalized_level.normalize();
         normalized_level.hash(&mut hasher);
         let hash = hasher.finish();
-        // 必须先将 hash 转为字符串, 否则 rusqlite 可能报错
+        // Must convert the hash to a string first, otherwise rusqlite may throw an error.
         hash.to_string()
     }
 }
