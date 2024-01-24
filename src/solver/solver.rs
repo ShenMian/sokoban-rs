@@ -247,48 +247,97 @@ impl Solver {
         let mut lower_bounds = HashMap::new();
         for target_position in &self.level.target_positions {
             lower_bounds.insert(*target_position, 0);
-            self.minimum_push_to(target_position, &mut lower_bounds);
+            let mut player_position = None;
+            for pull_direction in [
+                Direction::Up,
+                Direction::Right,
+                Direction::Down,
+                Direction::Left,
+            ] {
+                let next_crate_position = target_position + pull_direction.to_vector();
+                let next_player_position = next_crate_position + pull_direction.to_vector();
+                if self.level.in_bounds(&next_player_position)
+                    && !self
+                        .level
+                        .get_unchecked(&next_player_position)
+                        .intersects(Tile::Wall)
+                    && !self
+                        .level
+                        .get_unchecked(&next_crate_position)
+                        .intersects(Tile::Wall)
+                {
+                    player_position = Some(next_player_position);
+                    break;
+                }
+            }
+            if let Some(player_position) = player_position {
+                self.minimum_push_to(
+                    target_position,
+                    &player_position,
+                    &mut lower_bounds,
+                    &mut HashSet::new(),
+                );
+            } else {
+                continue;
+            }
         }
         lower_bounds
     }
 
     fn minimum_push_to(
         &self,
-        position: &Vector2<i32>,
+        crate_position: &Vector2<i32>,
+        player_position: &Vector2<i32>,
         lower_bounds: &mut HashMap<Vector2<i32>, usize>,
+        visited: &mut HashSet<(Vector2<i32>, Direction)>,
     ) {
-        for direction in [
+        let player_reachable_area = self.level.reachable_area(player_position, |position| {
+            self.level.get_unchecked(position).intersects(Tile::Wall) || position == crate_position
+        });
+        for pull_direction in [
             Direction::Up,
             Direction::Right,
             Direction::Down,
             Direction::Left,
         ] {
-            let crate_position = position + direction.to_vector();
+            let next_crate_position = crate_position + pull_direction.to_vector();
             if self
                 .level
-                .get_unchecked(&crate_position)
+                .get_unchecked(&next_crate_position)
                 .intersects(Tile::Wall)
             {
                 continue;
             }
 
-            let player_position = crate_position + direction.to_vector();
-            if !self.level.in_bounds(&player_position)
+            let next_player_position = next_crate_position + pull_direction.to_vector();
+            if !self.level.in_bounds(&next_player_position)
                 || self
                     .level
-                    .get_unchecked(&player_position)
+                    .get_unchecked(&next_player_position)
                     .intersects(Tile::Wall)
             {
                 continue;
             }
-
-            let lower_bound = *lower_bounds.get(&crate_position).unwrap_or(&usize::MAX);
-            let new_lower_bound = lower_bounds[&position] + 1;
-            if new_lower_bound > lower_bound {
+            if !player_reachable_area.contains(&next_player_position) {
                 continue;
             }
-            lower_bounds.insert(crate_position, new_lower_bound);
-            self.minimum_push_to(&crate_position, lower_bounds);
+
+            let lower_bound = *lower_bounds
+                .get(&next_crate_position)
+                .unwrap_or(&usize::MAX);
+            let new_lower_bound = lower_bounds[&crate_position] + 1;
+            if !visited.insert((next_crate_position, pull_direction)) {
+                continue;
+            }
+            if new_lower_bound < lower_bound {
+                lower_bounds.insert(next_crate_position, new_lower_bound);
+            }
+            self.minimum_push_to(
+                &next_crate_position,
+                &next_player_position,
+                lower_bounds,
+                visited,
+            );
         }
     }
 

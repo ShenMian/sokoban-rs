@@ -93,7 +93,7 @@ mod tests {
     //         let mut solver = Solver::new(
     //             levels[2].clone(),
     //             Strategy::Fast,
-    //             LowerBoundMethod::MinimumMove,
+    //             LowerBoundMethod::MinimumPush,
     //         );
     //         solver.search(Duration::from_secs(10))
     //     });

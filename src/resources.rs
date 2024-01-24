@@ -38,7 +38,7 @@ impl Default for SolverSettings {
     fn default() -> Self {
         Self {
             strategy: Strategy::Fast,
-            lower_bound_method: LowerBoundMethod::MinimumMove,
+            lower_bound_method: LowerBoundMethod::MinimumPush,
         }
     }
 }
@@ -83,7 +83,7 @@ impl Default for SolverState {
             solver: Mutex::new(Solver::new(
                 Level::empty(),
                 Strategy::Fast,
-                LowerBoundMethod::MinimumMove,
+                LowerBoundMethod::MinimumPush,
             )),
             level: Level::empty(),
             stopwatch: Stopwatch::new(),
