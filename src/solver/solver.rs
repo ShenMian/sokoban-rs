@@ -298,16 +298,17 @@ impl Solver {
         for x in 1..self.level.dimensions.x - 1 {
             for y in 1..self.level.dimensions.y - 1 {
                 let position = Vector2::new(x, y);
+                // 关卡可能存在装饰性的目标, 箱子已经位于目标上且玩家无法到达(所以没有地板)
+                if self.level.get_unchecked(&position).intersects(Tile::Target) {
+                    lower_bounds.insert(position, 0);
+                    continue;
+                }
                 if !self.level.get_unchecked(&position).intersects(Tile::Floor)
                     || self
                         .level
                         .get_unchecked(&position)
                         .intersects(Tile::Deadlock)
                 {
-                    continue;
-                }
-                if self.level.get_unchecked(&position).intersects(Tile::Target) {
-                    lower_bounds.insert(position, 0);
                     continue;
                 }
 
@@ -337,6 +338,11 @@ impl Solver {
         for x in 1..self.level.dimensions.x - 1 {
             for y in 1..self.level.dimensions.y - 1 {
                 let position = Vector2::new(x, y);
+                // 关卡可能存在装饰性的目标, 箱子已经位于目标上且玩家无法到达(所以没有地板)
+                if self.level.get_unchecked(&position).intersects(Tile::Target) {
+                    lower_bounds.insert(position, 0);
+                    continue;
+                }
                 if !self.level.get_unchecked(&position).intersects(Tile::Floor)
                     || self
                         .level
