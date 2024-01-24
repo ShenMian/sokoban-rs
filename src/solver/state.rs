@@ -97,15 +97,14 @@ impl State {
                 Direction::Right,
             ] {
                 let mut new_crate_position = crate_position + push_direction.to_vector();
+                if self.can_block_crate(&new_crate_position, solver) {
+                    continue;
+                }
 
                 let next_player_position = crate_position - push_direction.to_vector();
                 if self.can_block_player(&next_player_position, solver)
                     || !player_reachable_area.contains(&next_player_position)
                 {
-                    continue;
-                }
-
-                if self.can_block_crate(&new_crate_position, solver) {
                     continue;
                 }
 

@@ -2,6 +2,7 @@
 
 #[cfg(test)]
 mod tests {
+    // use super::test::Bencher;
     use crate::board::Board;
     use crate::level::Level;
     use crate::solver::solver::*;
@@ -11,8 +12,6 @@ mod tests {
 
     #[cfg(not(debug_assertions))]
     use std::path::Path;
-
-    // use test::Bencher;
 
     #[test]
     fn load_levels_from_file() {
@@ -88,7 +87,20 @@ mod tests {
     }
 
     // #[bench]
+    // fn bench_solver(b: &mut Bencher) {
+    //     let levels = Level::load_from_file(Path::new("assets/levels/box_world_100.xsb")).unwrap();
+    //     b.iter(|| {
+    //         let mut solver = Solver::new(
+    //             levels[2].clone(),
+    //             Strategy::Fast,
+    //             LowerBoundMethod::MinimumMove,
+    //         );
+    //         solver.search(Duration::from_secs(10))
+    //     });
+    // }
+
+    // #[bench]
     // fn bench_load_levels_from_file(b: &mut Bencher) {
-    //     b.iter(|| Level::load_from_file(Path::new("assets/levels/box_world.xsb")).unwrap());
+    //     b.iter(|| Level::load_from_file(Path::new("assets/levels/box_world_100.xsb")).unwrap());
     // }
 }
