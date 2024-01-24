@@ -346,9 +346,9 @@ pub fn handle_other_action(
     }
 
     if action_state.just_pressed(Action::ResetLevel) {
+        player_movement.directions.clear();
         **level_id = **level_id;
     }
-
     let database = database.lock().unwrap();
     if action_state.just_pressed(Action::PreviousLevel) {
         player_movement.directions.clear();
