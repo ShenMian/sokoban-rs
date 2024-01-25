@@ -13,8 +13,12 @@ use std::sync::Mutex;
 
 #[derive(Resource, Serialize, Deserialize)]
 pub struct Settings {
+    /// Disable player movement animation.
     pub instant_move: bool,
+    /// Player movement animation speed, seconds per step.
     pub player_move_speed: f32,
+    /// Make the floor look like a chessboard with alternating light square and dark square.
+    pub even_square_shades: f32,
     pub solver: SolverSettings,
 }
 
@@ -23,6 +27,7 @@ impl Default for Settings {
         Self {
             instant_move: false,
             player_move_speed: 0.1,
+            even_square_shades: 0.0,
             solver: SolverSettings::default(),
         }
     }
