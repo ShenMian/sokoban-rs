@@ -56,13 +56,30 @@ mod tests {
 
     #[test]
     #[cfg(not(debug_assertions))]
+    fn solver_microban_2() {
+        let levels = Level::load_from_file(Path::new("assets/levels/microban_II_135.xsb")).unwrap();
+        assert!(
+            solve(
+                &levels,
+                0..135,
+                &[
+                    65, 66, 67, 71, 73, 74, 77, 93, 94, 98, 100, 101, 103, 108, 110, 112, 114, 117,
+                    118, 119, 120, 123, 124, 125, 129, 130
+                ],
+                10
+            ) == 0
+        );
+    }
+
+    #[test]
+    #[cfg(not(debug_assertions))]
     fn solver_microban() {
         let levels = Level::load_from_file(Path::new("assets/levels/microban_155.xsb")).unwrap();
         assert!(
             solve(
                 &levels,
                 0..155,
-                &[92, 97, 108, 110, 113, 121, 138, 142, 144, 145, 152, 154],
+                &[92, 97, 108, 110, 113, 121, 138, 142, 144, 145, 152],
                 10 * 3
             ) == 0
         );
