@@ -24,6 +24,18 @@ The solver can automatically solve simple levels.
   - Freeze deadlocks.
 - Tunnels detection.
 
+## Statistics
+
+CPU       : 13th Gen Intel(R) Core(TM) i9-13900HX (Base speed: 2.20 GHz).  
+Threads   : 1.  
+Time limit: 10 sec.
+
+| Collection          | Total | Solved |
+| ------------------- | ----- | ------ |
+| box_world_100.xsb   | 100   | 41     |
+| microban_155.xsb    | 100   | 144    |
+| microban_II_135.xsb | 135   | 109    |
+
 ## Visualization
 
 Supports visualization of the automatic solution process. This feature can be used to intuitively view the working status of the solver.
