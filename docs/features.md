@@ -13,11 +13,11 @@
 
 ### Limits
 
-|                  | Limit                                                              | Description                         |
-| ---------------- | ------------------------------------------------------------------ | ----------------------------------- |
-| Maximal map size | 2^31 − 1 x 2^31 − 1                                                | `i32::MAX` * `i32::MAX`             |
-| Maximal moves    | A size big enough to contain every address on the target platform. | `usize`                             |
-| Maximal boxes    | Determined by maximal map size                                     | (`i32::MAX` - 1) * (`i32::MAX` - 1) |
+|                  | Limit     |
+| ---------------- | --------- |
+| Maximal map size | unlimited |
+| Maximal moves    | unlimited |
+| Maximal boxes    | unlimited |
 
 ## Game play
 
@@ -70,6 +70,23 @@
 | redo all              | :heavy_multiplication_x: |
 | replay                | :heavy_multiplication_x: |
 | remember last session | :heavy_multiplication_x: |
+
+## Customizing
+
+| Feature            | Support          |
+| ------------------ | ---------------- |
+| settings interface | TOML config file |
+
+## Skin features
+
+| Feature                    | Support                  |
+| -------------------------- | ------------------------ |
+| customizable skin          | :heavy_check_mark:       |
+| resizeable skins           | :heavy_multiplication_x: |
+| directional player         | :heavy_check_mark:       |
+| support for seamless walls | :heavy_multiplication_x: |
+| walls can be transparent   | :heavy_check_mark:       |
+| floors can be transparent  | :heavy_check_mark:       |
 
 ## Map viewing
 
