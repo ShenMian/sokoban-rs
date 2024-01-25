@@ -77,8 +77,7 @@ fn main() {
             setup_hud,
             setup_level,
         ),
-    )
-    .add_systems(PostStartup, spawn_board);
+    );
 
     app.add_systems(
         Update,
