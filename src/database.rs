@@ -84,18 +84,18 @@ impl Database {
 
         let _ = self.connection.execute(
             "INSERT INTO tb_level(title, author, map, width, height, hash, date) VALUES (?, ?, ?, ?, ?, ?, DATE('now'))",
-            (&title, &author, &level.export_map(), level.dimensions.x, level.dimensions.y, hash.to_string()),
+            (&title, &author, &level.export_map(), level.dimensions.x, level.dimensions.y, hash),
         );
     }
 
     /// Returns the level ID by the provided level.
     pub fn get_level_id(&self, level: &Level) -> Option<u64> {
         let hash = Database::normalized_hash(level);
-        match self.connection.query_row(
-            "SELECT id FROM tb_level WHERE hash = ?",
-            [hash.to_string()],
-            |row| row.get(0),
-        ) {
+        match self
+            .connection
+            .query_row("SELECT id FROM tb_level WHERE hash = ?", [hash], |row| {
+                row.get(0)
+            }) {
             Ok(level_id) => level_id,
             Err(_) => None,
         }
