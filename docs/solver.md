@@ -33,7 +33,7 @@ Time limit: 10 sec.
 | Collection          | Total | Solved |
 | ------------------- | ----- | ------ |
 | box_world_100.xsb   | 100   | 41     |
-| microban_155.xsb    | 100   | 144    |
+| microban_155.xsb    | 155   | 144    |
 | microban_II_135.xsb | 135   | 109    |
 
 ## Visualization
