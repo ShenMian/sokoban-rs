@@ -47,7 +47,7 @@ pub struct Solver {
     lower_bound_method: LowerBoundMethod,
     lower_bounds: OnceCell<HashMap<Vector2<i32>, usize>>,
     tunnels: OnceCell<HashSet<(Vector2<i32>, Direction)>>,
-    visited: HashSet<State>,
+    visited: HashSet<u64>,
     heap: BinaryHeap<State>,
 }
 
@@ -85,7 +85,7 @@ impl Solver {
     pub fn search(&mut self, timeout: Duration) -> Result<Movements> {
         let timer = Instant::now();
         self.visited
-            .insert(self.heap.peek().unwrap().normalized(&self));
+            .insert(self.heap.peek().unwrap().normalized_hash(&self));
         while let Some(state) = self.heap.pop() {
             if timer.elapsed() >= timeout {
                 return Err(SolveError::Timeout);
@@ -95,7 +95,7 @@ impl Solver {
             }
 
             for successor in state.successors(&self) {
-                if !self.visited.insert(successor.normalized(&self)) {
+                if !self.visited.insert(successor.normalized_hash(&self)) {
                     continue;
                 }
                 self.heap.push(successor);

@@ -1,4 +1,5 @@
 use nalgebra::Vector2;
+use siphasher::sip::SipHasher24;
 
 use crate::direction::Direction;
 use crate::level::{normalized_area, Tile};
@@ -182,6 +183,13 @@ impl State {
         let mut instance = self.clone();
         instance.player_position = self.normalized_player_position(solver);
         instance
+    }
+
+    /// Returns a normalized hash of the current state.
+    pub fn normalized_hash(&self, solver: &Solver) -> u64 {
+        let mut hasher = SipHasher24::new();
+        self.normalized(solver).hash(&mut hasher);
+        hasher.finish()
     }
 
     /// Checks if the new crate position leads to a freeze deadlock.
