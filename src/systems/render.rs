@@ -87,6 +87,10 @@ pub fn animate_player_movement(
     mut crate_leave_target_events: EventWriter<CrateLeaveTarget>,
     mut level_solved_events: EventWriter<LevelSolved>,
 ) {
+    if player_movement.directions.is_empty() {
+        return;
+    }
+
     let board = &mut board.single_mut().board;
 
     let player_grid_position = &mut **player.single_mut();

@@ -19,6 +19,8 @@ pub struct Settings {
     pub player_move_speed: f32,
     /// Make the floor look like a chessboard with alternating light square and dark square.
     pub even_square_shades: f32,
+    /// Enable auto switch to next unsolved level when the current level is solved.
+    pub auto_switch_to_next_unsolved_level: bool,
     pub solver: SolverSettings,
 }
 
@@ -27,7 +29,8 @@ impl Default for Settings {
         Self {
             instant_move: false,
             player_move_speed: 0.1,
-            even_square_shades: 0.0,
+            even_square_shades: 0.1,
+            auto_switch_to_next_unsolved_level: true,
             solver: SolverSettings::default(),
         }
     }

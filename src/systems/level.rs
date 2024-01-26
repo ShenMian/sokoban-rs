@@ -143,9 +143,14 @@ pub fn auto_switch_to_next_unsolved_level(
     mut board: Query<&mut Board>,
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
+    settings: Res<Settings>,
 ) {
+    if !settings.auto_switch_to_next_unsolved_level {
+        return;
+    }
     let database = database.lock().unwrap();
     let board = &mut board.single_mut().board;
+    debug_assert!(board.is_solved());
     info!("{}", "=".repeat(15));
     info!("#{} Sloved!", **level_id);
     info!("Moves   : {}", board.movements.move_count());
