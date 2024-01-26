@@ -47,20 +47,26 @@ mod test;
 #[allow(unused_imports)]
 use bevy_editor_pls::prelude::*;
 
+const SETTINGS_FILE_PATH: &'static str = "settings.toml";
+const KEYMAP_FILE_PATH: &'static str = "keymap.toml";
+
+fn save_settings(settings: Res<Settings>) {
+    let settings_toml = toml::to_string(&*settings).unwrap();
+    fs::write(SETTINGS_FILE_PATH, settings_toml).unwrap();
+}
+
 #[bevy_main]
 fn main() {
-    const SETTINGS_FILE_PATH: &'static str = "settings.toml";
     if !Path::new(SETTINGS_FILE_PATH).is_file() {
         let default_settings_toml = toml::to_string(&Settings::default()).unwrap();
-        fs::write(SETTINGS_FILE_PATH, default_settings_toml);
+        fs::write(SETTINGS_FILE_PATH, default_settings_toml).unwrap();
     }
     let settings_toml = fs::read_to_string(SETTINGS_FILE_PATH).unwrap();
     let settings: Settings = toml::from_str(settings_toml.as_str()).unwrap();
 
-    const KEYMAP_FILE_PATH: &'static str = "keymap.toml";
     if !Path::new(KEYMAP_FILE_PATH).is_file() {
         let default_keymap_toml = toml::to_string(&default_input_action_map()).unwrap();
-        fs::write(KEYMAP_FILE_PATH, default_keymap_toml);
+        fs::write(KEYMAP_FILE_PATH, default_keymap_toml).unwrap();
     }
     let keymap_toml = fs::read_to_string(KEYMAP_FILE_PATH).unwrap();
     let input_action_map: InputMap<Action> = toml::from_str(keymap_toml.as_str()).unwrap();
@@ -100,6 +106,7 @@ fn main() {
             update_button_state,
             handle_audio_event,
             adjust_viewport,
+            save_settings.run_if(resource_changed_or_removed::<Settings>()),
             (button_input_to_action, handle_actions).chain(),
         ),
     )
