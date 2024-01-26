@@ -31,6 +31,9 @@ use resources::*;
 mod events;
 use events::*;
 
+mod input_action_map;
+use input_action_map::*;
+
 mod board;
 mod components;
 mod database;
@@ -54,7 +57,7 @@ fn main() {
 
     const KEYMAP_FILE_PATH: &'static str = "keymap.toml";
     if !Path::new(KEYMAP_FILE_PATH).is_file() {
-        let default_keymap_toml = toml::to_string(&Action::input_action_map()).unwrap();
+        let default_keymap_toml = toml::to_string(&default_input_action_map()).unwrap();
         fs::write(KEYMAP_FILE_PATH, default_keymap_toml);
     }
     let keymap_toml = fs::read_to_string(KEYMAP_FILE_PATH).unwrap();
@@ -93,13 +96,7 @@ fn main() {
             button_visual_effect,
             update_button_state,
             adjust_viewport,
-            (
-                button_input_to_action,
-                mouse_input_to_action,
-                handle_automatic_solution_action,
-                handle_viewport_zoom_action,
-            )
-                .chain(),
+            (button_input_to_action, handle_actions).chain(),
         ),
     )
     .add_systems(FixedUpdate, (animate_camera_zoom, animate_player));
@@ -108,7 +105,6 @@ fn main() {
         Update,
         (
             (
-                handle_other_action.after(button_input_to_action),
                 mouse_input,
                 auto_level_switch,
                 spawn_board.run_if(resource_changed_or_removed::<LevelId>()),

@@ -1,11 +1,9 @@
-use bevy::input::mouse::{MouseMotion, MouseWheel};
+use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 use bevy::window::WindowMode;
-use leafwing_input_manager::{prelude::*, user_input::InputKind};
+use leafwing_input_manager::prelude::*;
 use nalgebra::Vector2;
-use serde::{Deserialize, Serialize};
 
-use crate::components::*;
 use crate::direction::Direction;
 use crate::events::*;
 use crate::level::{Level, PushState, Tile};
@@ -13,219 +11,7 @@ use crate::resources::*;
 use crate::solver::solver::*;
 use crate::systems::level::*;
 use crate::AppState;
-
-#[derive(Actionlike, Reflect, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
-pub enum Action {
-    MoveUp,
-    MoveDown,
-    MoveLeft,
-    MoveRight,
-
-    Undo,
-    Redo,
-
-    ResetLevel,
-    PreviousLevel,
-    NextLevel,
-
-    ZoomOut,
-    ZoomIn,
-
-    ToggleInstantMove,
-    ToggleAutomaticSolution,
-    ToggleFullscreen,
-
-    ImportLevelsFromClipboard,
-    ExportLevelToClipboard,
-}
-
-impl Action {
-    pub fn input_action_map() -> InputMap<Action> {
-        InputMap::new([
-            // Mouse
-            (
-                UserInput::Single(InputKind::Mouse(MouseButton::Other(1))),
-                Self::Undo,
-            ),
-            (
-                UserInput::Single(InputKind::Mouse(MouseButton::Other(2))),
-                Self::Redo,
-            ),
-            // Keyboard
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::W)),
-                Self::MoveUp,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::S)),
-                Self::MoveDown,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::A)),
-                Self::MoveLeft,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::D)),
-                Self::MoveRight,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::Up)),
-                Self::MoveUp,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::Down)),
-                Self::MoveDown,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::Left)),
-                Self::MoveLeft,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::Right)),
-                Self::MoveRight,
-            ),
-            (
-                UserInput::Chord(vec![
-                    InputKind::Keyboard(KeyCode::ControlLeft),
-                    InputKind::Keyboard(KeyCode::Z),
-                ]),
-                Self::Undo,
-            ),
-            (
-                UserInput::Chord(vec![
-                    InputKind::Keyboard(KeyCode::ControlLeft),
-                    InputKind::Keyboard(KeyCode::ShiftLeft),
-                    InputKind::Keyboard(KeyCode::Z),
-                ]),
-                Self::Redo,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::Escape)),
-                Self::ResetLevel,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::BracketLeft)),
-                Self::PreviousLevel,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::BracketRight)),
-                Self::NextLevel,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::Minus)),
-                Self::ZoomOut,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::Equals)),
-                Self::ZoomIn,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::I)),
-                Self::ToggleInstantMove,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::P)),
-                Self::ToggleAutomaticSolution,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::F11)),
-                Self::ToggleFullscreen,
-            ),
-            (
-                UserInput::Chord(vec![
-                    InputKind::Keyboard(KeyCode::ControlLeft),
-                    InputKind::Keyboard(KeyCode::V),
-                ]),
-                Self::ImportLevelsFromClipboard,
-            ),
-            (
-                UserInput::Chord(vec![
-                    InputKind::Keyboard(KeyCode::ControlLeft),
-                    InputKind::Keyboard(KeyCode::ShiftLeft),
-                    InputKind::Keyboard(KeyCode::C),
-                ]),
-                Self::ExportLevelToClipboard,
-            ),
-            // Keyboard (Vim)
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::K)),
-                Self::MoveUp,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::J)),
-                Self::MoveDown,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::H)),
-                Self::MoveLeft,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::L)),
-                Self::MoveRight,
-            ),
-            (
-                UserInput::Single(InputKind::Keyboard(KeyCode::U)),
-                Self::Undo,
-            ),
-            (
-                UserInput::Chord(vec![
-                    InputKind::Keyboard(KeyCode::ControlLeft),
-                    InputKind::Keyboard(KeyCode::R),
-                ]),
-                Self::Redo,
-            ),
-            // Gamepad
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadUp)),
-                Self::MoveUp,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadDown)),
-                Self::MoveDown,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadLeft)),
-                Self::MoveLeft,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadRight)),
-                Self::MoveRight,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::East)),
-                Self::Undo,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::South)),
-                Self::Redo,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger)),
-                Self::PreviousLevel,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::RightTrigger)),
-                Self::NextLevel,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger2)),
-                Self::ZoomOut,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::RightTrigger2)),
-                Self::ZoomIn,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::West)),
-                Self::ToggleInstantMove,
-            ),
-            (
-                UserInput::Single(InputKind::GamepadButton(GamepadButtonType::North)),
-                Self::ToggleAutomaticSolution,
-            ),
-        ])
-    }
-}
+use crate::{components::*, Action};
 
 pub fn player_move_to(
     target: &Vector2<i32>,
@@ -295,34 +81,152 @@ pub fn clear_action_state(mut action_state: ResMut<ActionState<Action>>) {
     action_state.consume_all();
 }
 
-pub fn handle_other_action(
+pub fn handle_actions(
     action_state: Res<ActionState<Action>>,
+
+    state: Res<State<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>,
+
+    mut camera: Query<&mut MainCamera>,
+    mut board: Query<&mut Board>,
+    mut window: Query<&mut Window>,
+
+    mut player_movement: ResMut<PlayerMovement>,
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
-    mut player_movement: ResMut<PlayerMovement>,
     mut settings: ResMut<Settings>,
-
-    mut window: Query<&mut Window>,
-    mut board: Query<&mut Board>,
 
     mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
 ) {
     let board = &mut board.single_mut().board;
+    let main_camera = &mut *camera.single_mut();
+    let database = database.lock().unwrap();
+    let window = &mut *window.single_mut();
+    match state.get() {
+        AppState::Main => {
+            handle_viewport_zoom_action(&action_state, main_camera);
+            handle_player_movement_action(&action_state, &mut player_movement, board);
+            handle_level_switch_action(
+                &action_state,
+                &mut player_movement,
+                &mut level_id,
+                &database,
+            );
+            handle_clipboard_action(
+                &action_state,
+                &mut player_movement,
+                &mut level_id,
+                &database,
+                board,
+            );
+            handle_toggle_instant_move_action(&action_state, &mut settings);
+            handle_toggle_toggle_fullscreen_action(&action_state, window);
+            handle_undo_redo_action(
+                &action_state,
+                &mut player_movement,
+                board,
+                &mut update_grid_position_events,
+            );
+            handle_automatic_solution_action(
+                &action_state,
+                &state,
+                &mut next_state,
+                &mut player_movement,
+            );
+        }
+        AppState::AutoCratePush => handle_viewport_zoom_action(&action_state, main_camera),
+        AppState::AutoSolve => handle_viewport_zoom_action(&action_state, main_camera),
+    }
+}
 
-    // TODO: 直接移动角色通过 PlayerMovement, 受角色移动速度限制, 会给玩家带来输入的迟滞感
+fn handle_viewport_zoom_action(action_state: &ActionState<Action>, main_camera: &mut MainCamera) {
+    if action_state.just_pressed(Action::ZoomOut) {
+        main_camera.target_scale *= 1.25;
+    } else if action_state.just_pressed(Action::ZoomIn) {
+        main_camera.target_scale /= 1.25;
+    }
+}
+
+fn handle_player_movement_action(
+    action_state: &ActionState<Action>,
+    player_movement: &mut ResMut<PlayerMovement>,
+    board: &crate::board::Board,
+) {
+    // TODO: 通过 PlayerMovement 移动角色受角色移动速度限制, 会给玩家带来输入的迟滞感
     if action_state.just_pressed(Action::MoveUp) {
-        player_move_with_check(Direction::Up, &mut player_movement, board);
+        player_move_with_check(Direction::Up, player_movement, board);
     }
     if action_state.just_pressed(Action::MoveDown) {
-        player_move_with_check(Direction::Down, &mut player_movement, board);
+        player_move_with_check(Direction::Down, player_movement, board);
     }
     if action_state.just_pressed(Action::MoveLeft) {
-        player_move_with_check(Direction::Left, &mut player_movement, board);
+        player_move_with_check(Direction::Left, player_movement, board);
     }
     if action_state.just_pressed(Action::MoveRight) {
-        player_move_with_check(Direction::Right, &mut player_movement, board);
+        player_move_with_check(Direction::Right, player_movement, board);
     }
+}
 
+fn handle_level_switch_action(
+    action_state: &ActionState<Action>,
+    player_movement: &mut ResMut<PlayerMovement>,
+    level_id: &mut ResMut<LevelId>,
+    database: &crate::database::Database,
+) {
+    if action_state.just_pressed(Action::ResetLevel) {
+        player_movement.directions.clear();
+        level_id.0 = level_id.0;
+    } else if action_state.just_pressed(Action::PreviousLevel) {
+        player_movement.directions.clear();
+        switch_to_previous_level(level_id, database);
+    } else if action_state.just_pressed(Action::NextLevel) {
+        player_movement.directions.clear();
+        switch_to_next_level(level_id, database);
+    }
+}
+
+fn handle_clipboard_action(
+    action_state: &ActionState<Action>,
+    player_movement: &mut ResMut<PlayerMovement>,
+    level_id: &mut ResMut<LevelId>,
+    database: &crate::database::Database,
+    board: &crate::board::Board,
+) {
+    if action_state.just_pressed(Action::ImportLevelsFromClipboard) {
+        player_movement.directions.clear();
+        import_from_clipboard(level_id, database);
+    }
+    if action_state.just_pressed(Action::ExportLevelToClipboard) {
+        player_movement.directions.clear();
+        export_to_clipboard(board);
+    }
+}
+
+fn handle_toggle_instant_move_action(
+    action_state: &ActionState<Action>,
+    settings: &mut ResMut<Settings>,
+) {
+    if action_state.just_pressed(Action::ToggleInstantMove) {
+        settings.instant_move = !settings.instant_move;
+    }
+}
+
+fn handle_toggle_toggle_fullscreen_action(action_state: &ActionState<Action>, window: &mut Window) {
+    if action_state.just_pressed(Action::ToggleFullscreen) {
+        window.mode = match window.mode {
+            WindowMode::BorderlessFullscreen => WindowMode::Windowed,
+            WindowMode::Windowed => WindowMode::BorderlessFullscreen,
+            _ => unreachable!(),
+        };
+    }
+}
+
+fn handle_undo_redo_action(
+    action_state: &ActionState<Action>,
+    player_movement: &mut PlayerMovement,
+    board: &mut crate::board::Board,
+    update_grid_position_events: &mut EventWriter<UpdateGridPositionEvent>,
+) {
     if action_state.just_pressed(Action::Undo) {
         player_movement.directions.clear();
         board.undo_push();
@@ -333,61 +237,13 @@ pub fn handle_other_action(
         board.redo_push();
         update_grid_position_events.send(UpdateGridPositionEvent);
     }
-
-    if action_state.just_pressed(Action::ToggleInstantMove) {
-        settings.instant_move = !settings.instant_move;
-    }
-    if action_state.just_pressed(Action::ToggleFullscreen) {
-        let mut window = window.single_mut();
-        window.mode = match window.mode {
-            WindowMode::BorderlessFullscreen => WindowMode::Windowed,
-            WindowMode::Windowed => WindowMode::BorderlessFullscreen,
-            _ => unreachable!(),
-        };
-    }
-
-    if action_state.just_pressed(Action::ResetLevel) {
-        player_movement.directions.clear();
-        **level_id = **level_id;
-    }
-    let database = database.lock().unwrap();
-    if action_state.just_pressed(Action::PreviousLevel) {
-        player_movement.directions.clear();
-        switch_to_previous_level(&mut level_id, &database);
-    }
-    if action_state.just_pressed(Action::NextLevel) {
-        player_movement.directions.clear();
-        switch_to_next_level(&mut level_id, &database);
-    }
-
-    if action_state.just_pressed(Action::ImportLevelsFromClipboard) {
-        player_movement.directions.clear();
-        import_from_clipboard(&mut level_id, &database);
-    }
-    if action_state.just_pressed(Action::ExportLevelToClipboard) {
-        player_movement.directions.clear();
-        export_to_clipboard(&board);
-    }
-}
-
-pub fn handle_viewport_zoom_action(
-    action_state: Res<ActionState<Action>>,
-    mut camera: Query<&mut MainCamera>,
-) {
-    let mut main_camera = camera.single_mut();
-    if action_state.just_pressed(Action::ZoomOut) {
-        main_camera.target_scale *= 1.25;
-    }
-    if action_state.just_pressed(Action::ZoomIn) {
-        main_camera.target_scale /= 1.25;
-    }
 }
 
 pub fn handle_automatic_solution_action(
-    action_state: Res<ActionState<Action>>,
-    state: Res<State<AppState>>,
-    mut next_state: ResMut<NextState<AppState>>,
-    mut player_movement: ResMut<PlayerMovement>,
+    action_state: &ActionState<Action>,
+    state: &State<AppState>,
+    next_state: &mut ResMut<NextState<AppState>>,
+    player_movement: &mut ResMut<PlayerMovement>,
 ) {
     if action_state.just_pressed(Action::ToggleAutomaticSolution) {
         player_movement.directions.clear();
@@ -395,19 +251,6 @@ pub fn handle_automatic_solution_action(
             next_state.set(AppState::AutoSolve);
         } else {
             next_state.set(AppState::Main);
-        }
-    }
-}
-
-pub fn mouse_input_to_action(
-    mut mouse_wheel_events: EventReader<MouseWheel>,
-    mut action_state: ResMut<ActionState<Action>>,
-) {
-    for event in mouse_wheel_events.read() {
-        if event.y < 0.0 {
-            action_state.press(Action::ZoomOut);
-        } else {
-            action_state.press(Action::ZoomIn);
         }
     }
 }

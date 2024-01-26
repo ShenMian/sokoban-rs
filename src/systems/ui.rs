@@ -3,7 +3,7 @@ use leafwing_input_manager::prelude::*;
 
 use crate::components::*;
 use crate::resources::*;
-use crate::systems::input::Action;
+use crate::Action;
 
 pub fn setup_version_info(mut commands: Commands) {
     const ALPHA: f32 = 0.8;
@@ -64,27 +64,13 @@ const BUTTON_NORMAL_COLOR: Color = Color::rgba(0.7, 0.7, 0.7, 0.8);
 const BUTTON_HOVERED_COLOR: Color = Color::rgba(0.55, 0.55, 0.55, 0.8);
 const BUTTON_PRESSED_COLOR: Color = Color::rgba(0.35, 0.75, 0.35, 0.8);
 
-#[derive(Component, PartialEq)]
-pub enum MainButton {
-    InstantMove,
-    AutomaticSolution,
-    PreviousLevel,
-    NextLevel,
-}
-
 pub fn button_input_to_action(
-    buttons: Query<(&Interaction, &MainButton), (Changed<Interaction>, With<Button>)>,
+    buttons: Query<(&Interaction, &Action), (Changed<Interaction>, With<Button>)>,
     mut action_state: ResMut<ActionState<Action>>,
 ) {
-    for (interaction, button) in &buttons {
-        if *interaction != Interaction::Pressed {
-            continue;
-        }
-        match *button {
-            MainButton::InstantMove => action_state.press(Action::ToggleInstantMove),
-            MainButton::AutomaticSolution => action_state.press(Action::ToggleAutomaticSolution),
-            MainButton::PreviousLevel => action_state.press(Action::PreviousLevel),
-            MainButton::NextLevel => action_state.press(Action::NextLevel),
+    for (interaction, action) in &buttons {
+        if *interaction == Interaction::Pressed {
+            action_state.press(*action);
         }
     }
 }
@@ -104,7 +90,7 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
         .with_children(|parent| {
             parent
                 .spawn((
-                    MainButton::InstantMove,
+                    Action::ToggleInstantMove,
                     ButtonBundle {
                         style: Style {
                             width: Val::Px(64.0),
@@ -132,7 +118,7 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
                 });
             parent
                 .spawn((
-                    MainButton::AutomaticSolution,
+                    Action::ToggleAutomaticSolution,
                     ButtonBundle {
                         style: Style {
                             width: Val::Px(64.0),
@@ -160,7 +146,7 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
                 });
             parent
                 .spawn((
-                    MainButton::PreviousLevel,
+                    Action::PreviousLevel,
                     ButtonBundle {
                         style: Style {
                             width: Val::Px(64.0),
@@ -188,7 +174,7 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
                 });
             parent
                 .spawn((
-                    MainButton::NextLevel,
+                    Action::NextLevel,
                     ButtonBundle {
                         style: Style {
                             width: Val::Px(64.0),
@@ -218,7 +204,7 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 pub fn update_button_state(
-    mut buttons: Query<(&MainButton, &Children), With<Button>>,
+    mut buttons: Query<(&Action, &Children), With<Button>>,
     mut image: Query<&mut UiImage>,
     settings: Res<Settings>,
     asset_server: Res<AssetServer>,
@@ -227,7 +213,7 @@ pub fn update_button_state(
         return;
     }
     for (button, children) in &mut buttons {
-        if *button == MainButton::InstantMove {
+        if *button == Action::ToggleInstantMove {
             let mut image = image.get_mut(children[0]).unwrap();
             image.texture = if settings.instant_move {
                 asset_server.load("textures/instant_move_on.png").into()

@@ -143,12 +143,7 @@ pub fn auto_level_switch(
     mut board: Query<&mut Board>,
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
-    player_movement: Res<PlayerMovement>,
 ) {
-    if !player_movement.directions.is_empty() {
-        return;
-    }
-
     let database = database.lock().unwrap();
     let board = &mut board.single_mut().board;
     if board.is_solved() {
@@ -162,7 +157,7 @@ pub fn auto_level_switch(
     }
 }
 
-pub fn import_from_clipboard(level_id: &mut LevelId, database: &MutexGuard<database::Database>) {
+pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Database) {
     let mut clipboard = Clipboard::new().unwrap();
     match Level::load_from_memory(clipboard.get_text().unwrap()) {
         Ok(levels) => {
@@ -191,13 +186,13 @@ pub fn switch_to_next_unsolved_level(
     **level_id = next_unsolved_level_id;
 }
 
-pub fn switch_to_next_level(level_id: &mut LevelId, database: &MutexGuard<database::Database>) {
+pub fn switch_to_next_level(level_id: &mut LevelId, database: &database::Database) {
     if **level_id < database.max_level_id().unwrap() {
         **level_id += 1;
     }
 }
 
-pub fn switch_to_previous_level(level_id: &mut LevelId, database: &MutexGuard<database::Database>) {
+pub fn switch_to_previous_level(level_id: &mut LevelId, database: &database::Database) {
     if **level_id > database.min_level_id().unwrap() {
         **level_id -= 1;
     }
