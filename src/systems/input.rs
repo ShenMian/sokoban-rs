@@ -3,6 +3,7 @@ use bevy::prelude::*;
 use bevy::window::WindowMode;
 use leafwing_input_manager::{prelude::*, user_input::InputKind};
 use nalgebra::Vector2;
+use serde::{Deserialize, Serialize};
 
 use crate::components::*;
 use crate::direction::Direction;
@@ -13,7 +14,7 @@ use crate::solver::solver::*;
 use crate::systems::level::*;
 use crate::AppState;
 
-#[derive(Actionlike, Reflect, Clone, Hash, PartialEq, Eq)]
+#[derive(Actionlike, Reflect, Clone, Hash, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Action {
     MoveUp,
     MoveDown,
@@ -39,7 +40,7 @@ pub enum Action {
 }
 
 impl Action {
-    pub fn input_map() -> InputMap<Action> {
+    pub fn input_action_map() -> InputMap<Action> {
         InputMap::new([
             // Mouse
             (

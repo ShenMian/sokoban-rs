@@ -52,6 +52,14 @@ fn main() {
     let settings_toml = fs::read_to_string(SETTINGS_FILE_PATH).unwrap();
     let settings: Settings = toml::from_str(settings_toml.as_str()).unwrap();
 
+    const KEYMAP_FILE_PATH: &'static str = "keymap.toml";
+    if !Path::new(KEYMAP_FILE_PATH).is_file() {
+        let default_keymap_toml = toml::to_string(&Action::input_action_map()).unwrap();
+        fs::write(KEYMAP_FILE_PATH, default_keymap_toml);
+    }
+    let keymap_toml = fs::read_to_string(KEYMAP_FILE_PATH).unwrap();
+    let input_action_map: InputMap<Action> = toml::from_str(keymap_toml.as_str()).unwrap();
+
     let player_movement = PlayerMovement {
         directions: VecDeque::new(),
         timer: Timer::from_seconds(settings.player_move_speed, TimerMode::Repeating),
@@ -152,7 +160,7 @@ fn main() {
         );
 
     app.init_resource::<ActionState<Action>>()
-        .insert_resource(Action::input_map());
+        .insert_resource(input_action_map);
 
     app.insert_resource(settings)
         .insert_resource(player_movement)
