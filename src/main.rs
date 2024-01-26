@@ -2,6 +2,7 @@
 
 use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
+use bevy_kira_audio::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use std::collections::VecDeque;
@@ -15,6 +16,7 @@ mod level;
 use level::*;
 
 mod systems;
+use systems::audio::*;
 use systems::auto_crate_push::*;
 use systems::auto_solve::*;
 use systems::input::*;
@@ -72,6 +74,7 @@ fn main() {
 
     app.add_plugins((
         DefaultPlugins,
+        AudioPlugin,
         FrameTimeDiagnosticsPlugin,
         PerformanceMatrixPlugin,
         InputManagerPlugin::<Action>::default(),
@@ -95,6 +98,7 @@ fn main() {
         (
             button_visual_effect,
             update_button_state,
+            handle_audio_event,
             adjust_viewport,
             (button_input_to_action, handle_actions).chain(),
         ),
@@ -106,7 +110,7 @@ fn main() {
         (
             (
                 mouse_input,
-                auto_level_switch,
+                auto_switch_to_next_unsolved_level.run_if(on_event::<LevelSolved>()),
                 spawn_board.run_if(resource_changed_or_removed::<LevelId>()),
             )
                 .chain(),
@@ -162,7 +166,10 @@ fn main() {
         .insert_resource(player_movement)
         .insert_resource(AutoCratePushState::default());
 
-    app.add_event::<UpdateGridPositionEvent>();
+    app.add_event::<UpdateGridPositionEvent>()
+        .add_event::<CrateEnterTarget>()
+        .add_event::<CrateLeaveTarget>()
+        .add_event::<LevelSolved>();
 
     app.run();
 }

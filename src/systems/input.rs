@@ -230,12 +230,12 @@ fn handle_undo_redo_action(
     if action_state.just_pressed(Action::Undo) {
         player_movement.directions.clear();
         board.undo_push();
-        update_grid_position_events.send(UpdateGridPositionEvent);
+        update_grid_position_events.send_default();
     }
     if action_state.just_pressed(Action::Redo) {
         player_movement.directions.clear();
         board.redo_push();
-        update_grid_position_events.send(UpdateGridPositionEvent);
+        update_grid_position_events.send_default();
     }
 }
 

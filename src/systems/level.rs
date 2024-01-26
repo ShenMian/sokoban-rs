@@ -139,22 +139,20 @@ pub fn spawn_board(
         });
 }
 
-pub fn auto_level_switch(
+pub fn auto_switch_to_next_unsolved_level(
     mut board: Query<&mut Board>,
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
 ) {
     let database = database.lock().unwrap();
     let board = &mut board.single_mut().board;
-    if board.is_solved() {
-        info!("{}", "=".repeat(15));
-        info!("#{} Sloved!", **level_id);
-        info!("Moves   : {}", board.movements.move_count());
-        info!("Pushes  : {}", board.movements.push_count());
-        info!("Solution: {}", board.movements.lurd());
-        database.update_solution(**level_id, &board.movements);
-        switch_to_next_unsolved_level(&mut level_id, &database);
-    }
+    info!("{}", "=".repeat(15));
+    info!("#{} Sloved!", **level_id);
+    info!("Moves   : {}", board.movements.move_count());
+    info!("Pushes  : {}", board.movements.push_count());
+    info!("Solution: {}", board.movements.lurd());
+    database.update_solution(**level_id, &board.movements);
+    switch_to_next_unsolved_level(&mut level_id, &database);
 }
 
 pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Database) {

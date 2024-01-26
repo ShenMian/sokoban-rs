@@ -83,6 +83,9 @@ pub fn animate_player_movement(
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
     settings: Res<Settings>,
+    mut crate_enter_target_events: EventWriter<CrateEnterTarget>,
+    mut crate_leave_target_events: EventWriter<CrateLeaveTarget>,
+    mut level_solved_events: EventWriter<LevelSolved>,
 ) {
     let board = &mut board.single_mut().board;
 
@@ -93,7 +96,22 @@ pub fn animate_player_movement(
             return;
         }
         if let Some(direction) = player_movement.directions.pop_back() {
+            let occupied_targets_count = board
+                .level
+                .target_positions
+                .intersection(&board.level.crate_positions)
+                .count();
             board.move_or_push(direction);
+            let new_occupied_targets_count = board
+                .level
+                .target_positions
+                .intersection(&board.level.crate_positions)
+                .count();
+            if new_occupied_targets_count > occupied_targets_count {
+                crate_enter_target_events.send_default();
+            } else if new_occupied_targets_count < occupied_targets_count {
+                crate_leave_target_events.send_default();
+            }
 
             player_grid_position.x += direction.to_vector().x;
             player_grid_position.y += direction.to_vector().y;
@@ -127,6 +145,10 @@ pub fn animate_player_movement(
                 }
             }
         }
+    }
+
+    if board.is_solved() {
+        level_solved_events.send_default();
     }
 }
 
