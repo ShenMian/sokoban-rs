@@ -10,7 +10,7 @@ A sokoban with a solver.
 - Front-end and back-end separation.
 - Levels and solutions are stored in the database.
 
-### [Auto crate push](docs/auto_crate_push.md)
+### [Auto move](docs/auto_move.md)
 
 <p align="center"><img src="./docs/auto_crate_push.gif" width=50%></p>
 

@@ -58,13 +58,14 @@ pub fn spawn_auto_move_marks(
                 .for_each(|(_, mut sprite)| sprite.color = HIGHLIGHT_COLOR);
         }
         AutoMoveState::Player => {
-            let reachable_area =
+            let mut reachable_area =
                 board
                     .level
                     .reachable_area(&board.level.player_position, |position| {
                         board.level.get_unchecked(position).intersects(Tile::Wall)
                             || board.level.crate_positions.contains(position)
                     });
+            reachable_area.remove(&board.level.player_position);
 
             // spawn player movable marks
             for crate_position in reachable_area {
