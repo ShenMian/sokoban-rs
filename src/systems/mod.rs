@@ -1,5 +1,5 @@
 pub mod audio;
-pub mod auto_crate_push;
+pub mod auto_move;
 pub mod auto_solve;
 pub mod input;
 pub mod level;

@@ -36,6 +36,9 @@ pub struct AnimationState(benimator::State);
 pub struct Crate;
 
 #[derive(Component)]
+pub struct PlayerMovableMark;
+
+#[derive(Component)]
 pub struct CratePushableMark;
 
 #[derive(Component)]

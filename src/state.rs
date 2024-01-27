@@ -5,5 +5,5 @@ pub enum AppState {
     #[default]
     Main,
     AutoSolve,
-    AutoCratePush,
+    AutoMove,
 }

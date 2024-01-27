@@ -17,7 +17,7 @@ use level::*;
 
 mod systems;
 use systems::audio::*;
-use systems::auto_crate_push::*;
+use systems::auto_move::*;
 use systems::auto_solve::*;
 use systems::input::*;
 use systems::level::*;
@@ -161,22 +161,16 @@ fn main() {
     )
     .insert_resource(SolverState::default());
 
-    app.add_systems(OnEnter(AppState::AutoCratePush), spawn_crate_pushable_marks)
-        .add_systems(
-            Update,
-            mouse_input.run_if(in_state(AppState::AutoCratePush)),
-        )
-        .add_systems(
-            OnExit(AppState::AutoCratePush),
-            despawn_crate_pushable_marks,
-        );
+    app.add_systems(OnEnter(AppState::AutoMove), spawn_auto_move_marks)
+        .add_systems(Update, mouse_input.run_if(in_state(AppState::AutoMove)))
+        .add_systems(OnExit(AppState::AutoMove), despawn_auto_move_marks);
 
     app.init_resource::<ActionState<Action>>()
         .insert_resource(input_action_map);
 
     app.insert_resource(settings)
         .insert_resource(player_movement)
-        .insert_resource(AutoCratePushState::default());
+        .insert_resource(AutoMoveState::default());
 
     app.add_event::<UpdateGridPositionEvent>()
         .add_event::<CrateEnterTarget>()
