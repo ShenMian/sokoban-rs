@@ -178,12 +178,18 @@ fn handle_level_switch_action(
     if action_state.just_pressed(Action::ResetLevel) {
         player_movement.directions.clear();
         level_id.0 = level_id.0;
-    } else if action_state.just_pressed(Action::PreviousLevel) {
-        player_movement.directions.clear();
-        switch_to_previous_level(level_id, database);
     } else if action_state.just_pressed(Action::NextLevel) {
         player_movement.directions.clear();
         switch_to_next_level(level_id, database);
+    } else if action_state.just_pressed(Action::PreviousLevel) {
+        player_movement.directions.clear();
+        switch_to_previous_level(level_id, database);
+    } else if action_state.just_pressed(Action::NextUnsolvedLevel) {
+        player_movement.directions.clear();
+        switch_to_next_unsolved_level(level_id, database);
+    } else if action_state.just_pressed(Action::PreviousUnsolvedLevel) {
+        player_movement.directions.clear();
+        switch_to_previous_unsolved_level(level_id, database);
     }
 }
 

@@ -15,8 +15,10 @@ pub enum Action {
     Redo,
 
     ResetLevel,
-    PreviousLevel,
     NextLevel,
+    PreviousLevel,
+    NextUnsolvedLevel,
+    PreviousUnsolvedLevel,
 
     ZoomOut,
     ZoomIn,
@@ -101,12 +103,26 @@ pub fn default_input_action_map() -> InputMap<Action> {
             Action::ResetLevel,
         ),
         (
+            UserInput::Single(InputKind::Keyboard(KeyCode::BracketRight)),
+            Action::NextLevel,
+        ),
+        (
             UserInput::Single(InputKind::Keyboard(KeyCode::BracketLeft)),
             Action::PreviousLevel,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::BracketRight)),
-            Action::NextLevel,
+            UserInput::Chord(vec![
+                InputKind::Keyboard(KeyCode::ControlLeft),
+                InputKind::Keyboard(KeyCode::BracketRight),
+            ]),
+            Action::NextUnsolvedLevel,
+        ),
+        (
+            UserInput::Chord(vec![
+                InputKind::Keyboard(KeyCode::ControlLeft),
+                InputKind::Keyboard(KeyCode::BracketLeft),
+            ]),
+            Action::PreviousUnsolvedLevel,
         ),
         (
             UserInput::Single(InputKind::Keyboard(KeyCode::Minus)),
@@ -197,12 +213,12 @@ pub fn default_input_action_map() -> InputMap<Action> {
             Action::Redo,
         ),
         (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger)),
-            Action::PreviousLevel,
-        ),
-        (
             UserInput::Single(InputKind::GamepadButton(GamepadButtonType::RightTrigger)),
             Action::NextLevel,
+        ),
+        (
+            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger)),
+            Action::PreviousLevel,
         ),
         (
             UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger2)),

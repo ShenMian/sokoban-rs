@@ -12,7 +12,7 @@ use crate::resources::*;
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use std::sync::{Mutex, MutexGuard};
+use std::sync::Mutex;
 
 pub fn setup_database(mut commands: Commands) {
     let database = database::Database::from_file(Path::new("database.db"));
@@ -179,14 +179,18 @@ pub fn export_to_clipboard(board: &crate::board::Board) {
         .unwrap();
 }
 
-pub fn switch_to_next_unsolved_level(
-    level_id: &mut LevelId,
-    database: &MutexGuard<database::Database>,
-) {
+pub fn switch_to_next_unsolved_level(level_id: &mut LevelId, database: &database::Database) {
     let next_unsolved_level_id = database
-        .next_unsolved_level_id(**level_id)
-        .unwrap_or(database.max_level_id().unwrap());
-    **level_id = next_unsolved_level_id;
+        .next_unsolved_level_id(level_id.0)
+        .unwrap_or(level_id.0);
+    level_id.0 = next_unsolved_level_id;
+}
+
+pub fn switch_to_previous_unsolved_level(level_id: &mut LevelId, database: &database::Database) {
+    let next_unsolved_level_id = database
+        .previous_unsolved_level_id(level_id.0)
+        .unwrap_or(level_id.0);
+    level_id.0 = next_unsolved_level_id;
 }
 
 pub fn switch_to_next_level(level_id: &mut LevelId, database: &database::Database) {
