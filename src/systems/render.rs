@@ -76,7 +76,7 @@ pub fn animate_player(
     sprite.index = animation_state.frame_index();
 }
 
-pub fn animate_player_movement(
+pub fn handle_player_movement(
     mut player: Query<&mut GridPosition, With<Player>>,
     mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
     mut board: Query<&mut Board>,
@@ -156,7 +156,7 @@ pub fn animate_player_movement(
     }
 }
 
-pub fn animate_tiles_movement(
+pub fn smooth_tile_motion(
     mut tiles: Query<(&mut Transform, &GridPosition)>,
     board: Query<&Board>,
     settings: Res<Settings>,
@@ -188,7 +188,7 @@ pub fn animate_tiles_movement(
     }
 }
 
-pub fn animate_camera_zoom(
+pub fn smooth_camera_motion(
     camera: Query<&MainCamera>,
     mut projection: Query<&mut OrthographicProjection, With<MainCamera>>,
 ) {

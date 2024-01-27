@@ -81,15 +81,6 @@ pub fn reset_board(mut board: Query<&mut Board>, solver_state: Res<SolverState>)
     *board = crate::board::Board::with_level(solver_state.level.clone());
 }
 
-pub fn move_tiles(mut tiles: Query<(&mut Transform, &GridPosition)>, board: Query<&Board>) {
-    let Board { board, tile_size } = &board.single();
-    for (mut transform, grid_position) in tiles.iter_mut() {
-        transform.translation.x = grid_position.x as f32 * tile_size.x;
-        transform.translation.y =
-            board.level.dimensions.y as f32 * tile_size.y - grid_position.y as f32 * tile_size.y;
-    }
-}
-
 pub fn update_solver(
     mut solver_state: ResMut<SolverState>,
     mut board: Query<&mut Board>,
@@ -161,7 +152,19 @@ pub fn update_solver(
     }
 }
 
-pub fn update_grid_position(
+pub fn update_tile_translation(
+    mut tiles: Query<(&mut Transform, &GridPosition)>,
+    board: Query<&Board>,
+) {
+    let Board { board, tile_size } = &board.single();
+    for (mut transform, grid_position) in tiles.iter_mut() {
+        transform.translation.x = grid_position.x as f32 * tile_size.x;
+        transform.translation.y =
+            board.level.dimensions.y as f32 * tile_size.y - grid_position.y as f32 * tile_size.y;
+    }
+}
+
+pub fn update_tile_grid_position(
     mut player_grid_positions: Query<&mut GridPosition, With<Player>>,
     mut crate_grid_positions: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
     board: Query<&Board>,

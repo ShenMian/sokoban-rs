@@ -110,7 +110,7 @@ fn main() {
             (button_input_to_action, handle_actions).chain(),
         ),
     )
-    .add_systems(FixedUpdate, (animate_camera_zoom, animate_player));
+    .add_systems(FixedUpdate, (smooth_camera_motion, animate_player));
 
     app.add_systems(
         Update,
@@ -129,7 +129,7 @@ fn main() {
     )
     .add_systems(
         FixedUpdate,
-        (animate_player_movement, animate_tiles_movement).run_if(in_state(AppState::Main)),
+        (handle_player_movement, smooth_tile_motion).run_if(in_state(AppState::Main)),
     );
 
     app.add_systems(
@@ -141,14 +141,19 @@ fn main() {
     )
     .add_systems(
         Update,
-        (update_solver, update_grid_position, move_tiles).run_if(in_state(AppState::AutoSolve)),
+        (
+            update_solver,
+            update_tile_grid_position,
+            update_tile_translation,
+        )
+            .run_if(in_state(AppState::AutoSolve)),
     )
     .add_systems(
         OnExit(AppState::AutoSolve),
         (
             reset_board,
-            update_grid_position,
-            move_tiles,
+            update_tile_grid_position,
+            update_tile_translation,
             unload_solver,
             despawn_lowerbound_marks,
         )
