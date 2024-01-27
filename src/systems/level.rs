@@ -64,9 +64,9 @@ pub fn spawn_board(
     let texture_atlas = TextureAtlas::from_grid(
         spritesheet_handle,
         Vec2::new(tile_size.x, tile_size.y),
-        13,
-        8,
-        None,
+        6,
+        3,
+        Some(Vec2::new(1.0, 1.0)),
         None,
     );
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
@@ -103,10 +103,10 @@ pub fn spawn_board(
                         continue;
                     }
                     let tiles = HashMap::from([
-                        (Tile::Floor, (89, 0.0)),
-                        (Tile::Wall, (84, 1.0)),
+                        (Tile::Floor, (0, 0.0)),
+                        (Tile::Wall, (3, 1.0)),
                         (Tile::Crate, (1, 2.0)),
-                        (Tile::Target, (39, 3.0)),
+                        (Tile::Target, (2, 3.0)),
                         (Tile::Player, (0, 4.0)),
                     ]);
                     for (tile, (sprite_index, z_order)) in tiles.into_iter() {

@@ -139,7 +139,7 @@ impl Database {
         Some(row.get(0).unwrap())
     }
 
-    /// Returns the ID of the next unsolved level after the provided ID.
+    /// Returns the ID of the previous unsolved level before the provided ID.
     pub fn previous_unsolved_level_id(&self, id: u64) -> Option<u64> {
         let mut statement = self.connection.prepare(
             "SELECT id FROM tb_level WHERE id < ? AND id NOT IN (SELECT level_id FROM tb_solution) ORDER BY id ASC LIMIT 1",

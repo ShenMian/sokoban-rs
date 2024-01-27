@@ -45,15 +45,15 @@ pub fn animate_player(
     // TODO: 仅进行推动撤回时角色的朝向正确, 但看上去有点怪. 支持操作撤回应该可以解决该问题
     let player_orientation = board.player_orientation();
 
-    let face_up = Animation::from_indices([55], FrameRate::from_frame_duration(Duration::MAX));
-    let face_down = Animation::from_indices([52], FrameRate::from_frame_duration(Duration::MAX));
-    let face_left = Animation::from_indices([81], FrameRate::from_frame_duration(Duration::MAX));
-    let face_right = Animation::from_indices([78], FrameRate::from_frame_duration(Duration::MAX));
+    let face_up = Animation::from_indices([9], FrameRate::from_frame_duration(Duration::MAX));
+    let face_down = Animation::from_indices([6], FrameRate::from_frame_duration(Duration::MAX));
+    let face_left = Animation::from_indices([15], FrameRate::from_frame_duration(Duration::MAX));
+    let face_right = Animation::from_indices([12], FrameRate::from_frame_duration(Duration::MAX));
 
-    let move_up = Animation::from_indices(55..=57, FrameRate::from_fps(6.0));
-    let move_down = Animation::from_indices(52..=54, FrameRate::from_fps(6.0));
-    let move_left = Animation::from_indices(81..=83, FrameRate::from_fps(6.0));
-    let move_right = Animation::from_indices(78..=80, FrameRate::from_fps(6.0));
+    let move_up = Animation::from_indices(9..=9 + 2, FrameRate::from_fps(6.0));
+    let move_down = Animation::from_indices(6..=6 + 2, FrameRate::from_fps(6.0));
+    let move_left = Animation::from_indices(15..=15 + 2, FrameRate::from_fps(6.0));
+    let move_right = Animation::from_indices(12..=12 + 2, FrameRate::from_fps(6.0));
 
     let animation;
     if player_movement.directions.is_empty() {

@@ -142,10 +142,10 @@ pub fn handle_actions(
 }
 
 fn handle_viewport_zoom_action(action_state: &ActionState<Action>, main_camera: &mut MainCamera) {
-    if action_state.just_pressed(Action::ZoomOut) {
-        main_camera.target_scale *= 1.25;
-    } else if action_state.just_pressed(Action::ZoomIn) {
+    if action_state.just_pressed(Action::ZoomIn) {
         main_camera.target_scale /= 1.25;
+    } else if action_state.just_pressed(Action::ZoomOut) {
+        main_camera.target_scale *= 1.25;
     }
 }
 

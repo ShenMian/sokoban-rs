@@ -20,8 +20,8 @@ pub enum Action {
     NextUnsolvedLevel,
     PreviousUnsolvedLevel,
 
-    ZoomOut,
     ZoomIn,
+    ZoomOut,
 
     ToggleInstantMove,
     ToggleAutomaticSolution,
@@ -125,12 +125,12 @@ pub fn default_input_action_map() -> InputMap<Action> {
             Action::PreviousUnsolvedLevel,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::Minus)),
-            Action::ZoomOut,
-        ),
-        (
             UserInput::Single(InputKind::Keyboard(KeyCode::Equals)),
             Action::ZoomIn,
+        ),
+        (
+            UserInput::Single(InputKind::Keyboard(KeyCode::Minus)),
+            Action::ZoomOut,
         ),
         (
             UserInput::Single(InputKind::Keyboard(KeyCode::I)),
@@ -221,12 +221,12 @@ pub fn default_input_action_map() -> InputMap<Action> {
             Action::PreviousLevel,
         ),
         (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger2)),
-            Action::ZoomOut,
-        ),
-        (
             UserInput::Single(InputKind::GamepadButton(GamepadButtonType::RightTrigger2)),
             Action::ZoomIn,
+        ),
+        (
+            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger2)),
+            Action::ZoomOut,
         ),
         (
             UserInput::Single(InputKind::GamepadButton(GamepadButtonType::West)),
