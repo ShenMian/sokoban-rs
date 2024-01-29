@@ -52,7 +52,7 @@
 
 | Feature                          | Support                  |
 | -------------------------------- | ------------------------ |
-| show player's reachable squares  | :heavy_multiplication_x: |
+| show player's reachable squares  | :heavy_check_mark:       |
 | show box's reachable squares     | :heavy_check_mark:       |
 | show pushable boxes              | :heavy_multiplication_x: |
 | simple deadlock detection [^3]   | :heavy_multiplication_x: |
