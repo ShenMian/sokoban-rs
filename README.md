@@ -1,6 +1,6 @@
 # sokoban-rs
 
-A sokoban with a solver.
+A sokoban with solver.
 
 ## Features
 

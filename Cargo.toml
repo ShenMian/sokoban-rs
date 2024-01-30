@@ -5,6 +5,10 @@ edition = "2021"
 
 authors = ["ShenMian <sms_school@outlook.com>"]
 license = "MIT OR Apache-2.0"
+description = "A sokoban with solver."
+repository = "https://github.com/ShenMian/sokoban-rs"
+keywords = ["sokoban", "sokoban-solver"]
+categories = ["games"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
