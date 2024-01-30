@@ -1,5 +1,5 @@
 [package]
-name = "sokoban-rs"
+name = "soukoban-rs"
 version = "0.1.7"
 edition = "2021"
 
