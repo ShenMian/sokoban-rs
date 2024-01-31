@@ -5,7 +5,8 @@ pub struct PerformanceMatrixPlugin;
 
 impl Plugin for PerformanceMatrixPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_performance_matrix)
+        app.add_plugins(FrameTimeDiagnosticsPlugin)
+            .add_systems(Startup, setup_performance_matrix)
             .add_systems(Update, display_performance_matrix);
     }
 }
@@ -61,7 +62,6 @@ fn display_performance_matrix(
     mut query: Query<&mut Text, With<PerformanceCounter>>,
 ) {
     let mut text = query.single_mut();
-
     if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(raw) = fps.value() {
             text.sections[1].value = format!("{raw:.2}");
@@ -72,5 +72,5 @@ fn display_performance_matrix(
         if let Some(ema) = fps.smoothed() {
             text.sections[5].value = format!("{ema:.2}");
         }
-    };
+    }
 }

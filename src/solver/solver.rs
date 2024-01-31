@@ -13,9 +13,10 @@ use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::hash::Hash;
 use std::time::{Duration, Instant};
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum Strategy {
     /// Speed priority
+    #[default]
     Fast,
 
     /// Balanced speed and steps
@@ -29,12 +30,13 @@ pub enum Strategy {
     OptimalPushMove,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, Debug, Serialize, Deserialize)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum LowerBoundMethod {
     /// Minimum push count to nearest target
     MinimumPush,
 
     /// Minimum move count to nearest target
+    #[default]
     MinimumMove,
 
     /// Manhattan distance to nearest target

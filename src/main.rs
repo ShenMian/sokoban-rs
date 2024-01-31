@@ -1,6 +1,5 @@
 // #![feature(test)]
 
-use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 use leafwing_input_manager::prelude::*;
@@ -81,7 +80,6 @@ fn main() {
     app.add_plugins((
         DefaultPlugins,
         AudioPlugin,
-        FrameTimeDiagnosticsPlugin,
         PerformanceMatrixPlugin,
         InputManagerPlugin::<Action>::default(),
         // EditorPlugin::default(),

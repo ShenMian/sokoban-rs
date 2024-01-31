@@ -267,7 +267,7 @@ pub fn mouse_input(
     mouse_buttons: Res<Input<MouseButton>>,
     mut board: Query<&mut Board>,
     windows: Query<&Window>,
-    mut camera: Query<(&Camera, &GlobalTransform)>,
+    mut camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
 
     state: Res<State<AppState>>,
     mut next_state: ResMut<NextState<AppState>>,

@@ -39,19 +39,10 @@ impl Default for Settings {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Default)]
 pub struct SolverSettings {
     pub strategy: Strategy,
     pub lower_bound_method: LowerBoundMethod,
-}
-
-impl Default for SolverSettings {
-    fn default() -> Self {
-        Self {
-            strategy: Strategy::Fast,
-            lower_bound_method: LowerBoundMethod::MinimumPush,
-        }
-    }
 }
 
 #[derive(Resource, Deref)]
@@ -66,19 +57,14 @@ pub struct PlayerMovement {
     pub timer: Timer,
 }
 
-#[derive(Resource)]
+#[derive(Resource, Default)]
 pub enum AutoMoveState {
+    #[default]
+    Player,
     Crate {
         crate_position: Vector2<i32>,
         paths: HashMap<PushState, Vec<Vector2<i32>>>,
     },
-    Player,
-}
-
-impl Default for AutoMoveState {
-    fn default() -> Self {
-        Self::Player
-    }
 }
 
 #[derive(Resource)]
@@ -93,8 +79,8 @@ impl Default for SolverState {
         Self {
             solver: Mutex::new(Solver::new(
                 Level::empty(),
-                Strategy::Fast,
-                LowerBoundMethod::MinimumPush,
+                Strategy::default(),
+                LowerBoundMethod::default(),
             )),
             level: Level::empty(),
             stopwatch: Stopwatch::new(),
