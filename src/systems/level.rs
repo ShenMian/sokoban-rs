@@ -71,7 +71,7 @@ pub fn spawn_board(
     );
     let texture_atlas_handle = texture_atlases.add(texture_atlas);
 
-    let board_size = tile_size.x * level.dimensions.map(|x| x as f32);
+    let board_size = tile_size.x * level.dimensions().map(|x| x as f32);
 
     // move the camera to the center of the board
     let (mut transform, mut main_camera) = camera.single_mut();
@@ -96,8 +96,8 @@ pub fn spawn_board(
     commands
         .spawn((Board { board, tile_size }, SpatialBundle::default()))
         .with_children(|parent| {
-            for y in 0..level.dimensions.y {
-                for x in 0..level.dimensions.x {
+            for y in 0..level.dimensions().y {
+                for x in 0..level.dimensions().x {
                     let position = Vector2::<i32>::new(x, y);
                     if level.get_unchecked(&position) == Tile::Void {
                         continue;
@@ -153,10 +153,10 @@ pub fn auto_switch_to_next_unsolved_level(
     debug_assert!(board.is_solved());
     info!("{}", "=".repeat(15));
     info!("#{} Sloved!", **level_id);
-    info!("Moves   : {}", board.movements.move_count());
-    info!("Pushes  : {}", board.movements.push_count());
-    info!("Solution: {}", board.movements.lurd());
-    database.update_solution(**level_id, &board.movements);
+    info!("Moves   : {}", board.movements().move_count());
+    info!("Pushes  : {}", board.movements().push_count());
+    info!("Solution: {}", board.movements().lurd());
+    database.update_solution(**level_id, board.movements());
     switch_to_next_unsolved_level(&mut level_id, &database);
 }
 

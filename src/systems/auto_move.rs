@@ -37,7 +37,7 @@ pub fn spawn_auto_move_marks(
                         },
                         transform: Transform::from_xyz(
                             crate_position.x as f32 * tile_size.x,
-                            (board.level.dimensions.y - crate_position.y) as f32 * tile_size.y,
+                            (board.level.dimensions().y - crate_position.y) as f32 * tile_size.y,
                             10.0,
                         ),
                         ..default()
@@ -78,7 +78,7 @@ pub fn spawn_auto_move_marks(
                         },
                         transform: Transform::from_xyz(
                             crate_position.x as f32 * tile_size.x,
-                            (board.level.dimensions.y - crate_position.y) as f32 * tile_size.y,
+                            (board.level.dimensions().y - crate_position.y) as f32 * tile_size.y,
                             10.0,
                         ),
                         ..default()

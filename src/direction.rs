@@ -1,5 +1,4 @@
 use nalgebra::Vector2;
-use std::ops::Neg;
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
 pub enum Direction {
@@ -7,19 +6,6 @@ pub enum Direction {
     Down,
     Left,
     Right,
-}
-
-impl Neg for Direction {
-    type Output = Self;
-
-    fn neg(self) -> Self::Output {
-        match self {
-            Direction::Up => Direction::Down,
-            Direction::Down => Direction::Up,
-            Direction::Left => Direction::Right,
-            Direction::Right => Direction::Left,
-        }
-    }
 }
 
 impl Direction {

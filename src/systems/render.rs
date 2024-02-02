@@ -10,11 +10,7 @@ use crate::resources::*;
 use std::collections::HashSet;
 use std::time::Duration;
 
-pub fn setup_window(mut window: Query<&mut Window>, winit_windows: NonSend<WinitWindows>) {
-    let mut window = window.single_mut();
-    window.title = "Sokoban".to_string();
-
-    // set window icon
+pub fn set_window_icon(winit_windows: NonSend<WinitWindows>) {
     let (icon_rgba, icon_width, icon_height) = {
         let image = image::open("assets/textures/crate.png")
             .expect("failed to open icon path")
@@ -167,7 +163,7 @@ pub fn smooth_tile_motion(
             let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
 
             let target_x = grid_position.x as f32 * tile_size.x;
-            let target_y = board.level.dimensions.y as f32 * tile_size.y
+            let target_y = board.level.dimensions().y as f32 * tile_size.y
                 - grid_position.y as f32 * tile_size.y;
 
             if (transform.translation.x - target_x).abs() > 0.001 {
@@ -182,7 +178,7 @@ pub fn smooth_tile_motion(
             }
         } else {
             transform.translation.x = grid_position.x as f32 * tile_size.x;
-            transform.translation.y = board.level.dimensions.y as f32 * tile_size.y
+            transform.translation.y = board.level.dimensions().y as f32 * tile_size.y
                 - grid_position.y as f32 * tile_size.y;
         }
     }

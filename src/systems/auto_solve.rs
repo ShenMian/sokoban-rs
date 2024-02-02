@@ -59,7 +59,7 @@ pub fn spawn_lowerbound_marks(
                 },
                 transform: Transform::from_xyz(
                     position.x as f32 * tile_size.x,
-                    (board.level.dimensions.y - position.y) as f32 * tile_size.y,
+                    (board.level.dimensions().y - position.y) as f32 * tile_size.y,
                     10.0,
                 ),
                 ..default()
@@ -160,7 +160,7 @@ pub fn update_tile_translation(
     for (mut transform, grid_position) in tiles.iter_mut() {
         transform.translation.x = grid_position.x as f32 * tile_size.x;
         transform.translation.y =
-            board.level.dimensions.y as f32 * tile_size.y - grid_position.y as f32 * tile_size.y;
+            board.level.dimensions().y as f32 * tile_size.y - grid_position.y as f32 * tile_size.y;
     }
 }
 

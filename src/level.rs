@@ -33,7 +33,7 @@ bitflags! {
 #[derive(Clone)]
 pub struct Level {
     data: Vec<Tile>,
-    pub dimensions: Vector2<i32>,
+    dimensions: Vector2<i32>,
     pub metadata: HashMap<String, String>,
 
     pub player_position: Vector2<i32>,
@@ -228,6 +228,10 @@ impl Level {
 
     pub fn load_from_file(file_path: &Path) -> Result<Vec<Level>> {
         Self::load_from_memory(fs::read_to_string(file_path).unwrap())
+    }
+
+    pub fn dimensions(&self) -> &Vector2<i32> {
+        &self.dimensions
     }
 
     #[allow(dead_code)]

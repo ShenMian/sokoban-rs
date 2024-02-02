@@ -256,6 +256,6 @@ pub fn update_hud(
         hud.sections[9].value = format!("{}", database.best_push_count(**level_id).unwrap_or(0));
     }
 
-    hud.sections[3].value = format!("{}", board.movements.move_count());
-    hud.sections[5].value = format!("{}", board.movements.push_count());
+    hud.sections[3].value = format!("{}", board.movements().move_count());
+    hud.sections[5].value = format!("{}", board.movements().push_count());
 }

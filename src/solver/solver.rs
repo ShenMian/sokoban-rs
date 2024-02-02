@@ -126,8 +126,8 @@ impl Solver {
     /// Calculates and returns the set of tunnels in the level.
     fn calculate_tunnels(&self) -> HashSet<(Vector2<i32>, Direction)> {
         let mut tunnels = HashSet::new();
-        for x in 1..self.level.dimensions.x - 1 {
-            for y in 1..self.level.dimensions.y - 1 {
+        for x in 1..self.level.dimensions().x - 1 {
+            for y in 1..self.level.dimensions().y - 1 {
                 let player_position = Vector2::new(x, y);
                 if !self
                     .level
@@ -346,8 +346,8 @@ impl Solver {
     /// Calculates and returns the lower bounds using the minimum move method.
     fn minimum_move_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
-        for x in 1..self.level.dimensions.x - 1 {
-            for y in 1..self.level.dimensions.y - 1 {
+        for x in 1..self.level.dimensions().x - 1 {
+            for y in 1..self.level.dimensions().y - 1 {
                 let position = Vector2::new(x, y);
                 // 关卡可能存在装饰性的目标, 箱子已经位于目标上且玩家无法到达(所以没有地板)
                 if self.level.get_unchecked(&position).intersects(Tile::Target) {
@@ -386,8 +386,8 @@ impl Solver {
     /// Calculates and returns the lower bounds using the Manhattan distance method.
     fn manhattan_distance_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
-        for x in 1..self.level.dimensions.x - 1 {
-            for y in 1..self.level.dimensions.y - 1 {
+        for x in 1..self.level.dimensions().x - 1 {
+            for y in 1..self.level.dimensions().y - 1 {
                 let position = Vector2::new(x, y);
                 // 关卡可能存在装饰性的目标, 箱子已经位于目标上且玩家无法到达(所以没有地板)
                 if self.level.get_unchecked(&position).intersects(Tile::Target) {
@@ -432,8 +432,8 @@ impl Solver {
     /// Prints the lower bounds for each position in the level.
     #[allow(dead_code)]
     pub fn print_lower_bounds(&self) {
-        for y in 0..self.level.dimensions.y {
-            for x in 0..self.level.dimensions.x {
+        for y in 0..self.level.dimensions().y {
+            for x in 0..self.level.dimensions().x {
                 let position = Vector2::new(x, y);
                 if let Some(lower_bound) = self.lower_bounds().get(&position) {
                     print!("{:3} ", lower_bound);

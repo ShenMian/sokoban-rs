@@ -8,7 +8,7 @@ use nalgebra::Vector2;
 #[derive(Clone)]
 pub struct Board {
     pub level: Level,
-    pub movements: Movements,
+    movements: Movements,
     undone_movements: Movements,
 }
 
@@ -131,6 +131,10 @@ impl Board {
     /// Checks if the level is solved.
     pub fn is_solved(&self) -> bool {
         self.level.crate_positions == self.level.target_positions
+    }
+
+    pub fn movements(&self) -> &Movements {
+        &self.movements
     }
 
     /// Returns the player's current orientation.

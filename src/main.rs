@@ -78,7 +78,13 @@ fn main() {
     let mut app = App::new();
 
     app.add_plugins((
-        DefaultPlugins,
+        DefaultPlugins.set(WindowPlugin {
+            primary_window: Some(Window {
+                title: "Sokoban".to_string(),
+                ..default()
+            }),
+            ..default()
+        }),
         AudioPlugin,
         PerformanceMatrixPlugin,
         InputManagerPlugin::<Action>::default(),
@@ -89,7 +95,7 @@ fn main() {
     .add_systems(
         Startup,
         (
-            setup_window,
+            set_window_icon,
             setup_version_info,
             setup_button,
             setup_hud,

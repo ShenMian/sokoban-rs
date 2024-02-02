@@ -84,7 +84,7 @@ impl Database {
 
         let _ = self.connection.execute(
             "INSERT INTO tb_level(title, author, map, width, height, hash, date) VALUES (?, ?, ?, ?, ?, ?, DATE('now'))",
-            (&title, &author, &level.export_map(), level.dimensions.x, level.dimensions.y, hash),
+            (&title, &author, &level.export_map(), level.dimensions().x, level.dimensions().y, hash),
         );
     }
 
