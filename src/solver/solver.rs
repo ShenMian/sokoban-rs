@@ -23,7 +23,6 @@ pub enum Strategy {
     Mixed,
 
     /// Find move optimal solutions with best pushes
-    // FIXME: 结果非最优解, 可能是由于遇到答案就直接返回忽略剩余状态导致的
     OptimalMovePush,
 
     /// Find push optimal solutions with best moves
@@ -349,7 +348,8 @@ impl Solver {
         for x in 1..self.level.dimensions().x - 1 {
             for y in 1..self.level.dimensions().y - 1 {
                 let position = Vector2::new(x, y);
-                // 关卡可能存在装饰性的目标, 箱子已经位于目标上且玩家无法到达(所以没有地板)
+                // There may be situations in the level where the box is
+                // already on the target and cannot be reached by the player.
                 if self.level.get_unchecked(&position).intersects(Tile::Target) {
                     lower_bounds.insert(position, 0);
                     continue;
@@ -389,7 +389,8 @@ impl Solver {
         for x in 1..self.level.dimensions().x - 1 {
             for y in 1..self.level.dimensions().y - 1 {
                 let position = Vector2::new(x, y);
-                // 关卡可能存在装饰性的目标, 箱子已经位于目标上且玩家无法到达(所以没有地板)
+                // There may be situations in the level where the box is
+                // already on the target and cannot be reached by the player.
                 if self.level.get_unchecked(&position).intersects(Tile::Target) {
                     lower_bounds.insert(position, 0);
                     continue;
@@ -520,6 +521,7 @@ pub fn find_path(
     None
 }
 
+/// Calculates the Manhattan distance between two 2D vectors.
 fn manhattan_distance(a: &Vector2<i32>, b: &Vector2<i32>) -> i32 {
     (a.x - b.x).abs() + (a.y - b.y).abs()
 }

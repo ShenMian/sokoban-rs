@@ -95,7 +95,7 @@ fn main() {
     .add_systems(
         Startup,
         (
-            set_window_icon,
+            set_windows_icon,
             setup_version_info,
             setup_button,
             setup_hud,

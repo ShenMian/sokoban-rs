@@ -14,6 +14,7 @@ use std::fs;
 use std::path::Path;
 use std::sync::Mutex;
 
+/// Sets up the database, initializes it, and loads levels from files into the database.
 pub fn setup_database(mut commands: Commands) {
     let database = database::Database::from_file(Path::new("database.db"));
     database.initialize();
@@ -160,6 +161,7 @@ pub fn auto_switch_to_next_unsolved_level(
     switch_to_next_unsolved_level(&mut level_id, &database);
 }
 
+/// Imports levels from the system clipboard.
 pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Database) {
     let mut clipboard = Clipboard::new().unwrap();
     match Level::load_from_memory(clipboard.get_text().unwrap()) {
@@ -179,6 +181,7 @@ pub fn export_to_clipboard(board: &crate::board::Board) {
         .unwrap();
 }
 
+/// Switches to the next unsolved level based on the current level ID.
 pub fn switch_to_next_unsolved_level(level_id: &mut LevelId, database: &database::Database) {
     let next_unsolved_level_id = database
         .next_unsolved_level_id(level_id.0)
@@ -186,6 +189,7 @@ pub fn switch_to_next_unsolved_level(level_id: &mut LevelId, database: &database
     level_id.0 = next_unsolved_level_id;
 }
 
+/// Switches to the previous unsolved level based on the current level ID.
 pub fn switch_to_previous_unsolved_level(level_id: &mut LevelId, database: &database::Database) {
     let next_unsolved_level_id = database
         .previous_unsolved_level_id(level_id.0)
@@ -193,12 +197,14 @@ pub fn switch_to_previous_unsolved_level(level_id: &mut LevelId, database: &data
     level_id.0 = next_unsolved_level_id;
 }
 
+/// Switches to the next level based on the current level ID.
 pub fn switch_to_next_level(level_id: &mut LevelId, database: &database::Database) {
     if **level_id < database.max_level_id().unwrap() {
         **level_id += 1;
     }
 }
 
+/// Switches to the previous level based on the current level ID.
 pub fn switch_to_previous_level(level_id: &mut LevelId, database: &database::Database) {
     if **level_id > database.min_level_id().unwrap() {
         **level_id -= 1;

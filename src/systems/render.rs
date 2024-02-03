@@ -10,7 +10,8 @@ use crate::resources::*;
 use std::collections::HashSet;
 use std::time::Duration;
 
-pub fn set_window_icon(winit_windows: NonSend<WinitWindows>) {
+/// Sets the window icon for all windows
+pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
     let (icon_rgba, icon_width, icon_height) = {
         let image = image::open("assets/textures/crate.png")
             .expect("failed to open icon path")
@@ -25,10 +26,12 @@ pub fn set_window_icon(winit_windows: NonSend<WinitWindows>) {
     }
 }
 
+/// Sets up the main 2D camera.
 pub fn setup_camera(mut commands: Commands) {
     commands.spawn((Camera2dBundle::default(), MainCamera::default()));
 }
 
+/// Animates the player character based on the player's movement and orientation.
 pub fn animate_player(
     mut player: Query<(&mut AnimationState, &mut TextureAtlasSprite), With<Player>>,
     mut board: Query<&mut Board>,
@@ -38,7 +41,8 @@ pub fn animate_player(
     let board = &mut board.single_mut().board;
     let (animation_state, sprite) = &mut player.single_mut();
 
-    // TODO: 仅进行推动撤回时角色的朝向正确, 但看上去有点怪. 支持操作撤回应该可以解决该问题
+    // TODO: The character's orientation looks a bit weird when just doing
+    // push-undo. Supporting action-undo should fix that.
     let player_orientation = board.player_orientation();
 
     let face_up = Animation::from_indices([9], FrameRate::from_frame_duration(Duration::MAX));
@@ -72,6 +76,7 @@ pub fn animate_player(
     sprite.index = animation_state.frame_index();
 }
 
+/// Handles player movement and interacts with crates on the board.
 pub fn handle_player_movement(
     mut player: Query<&mut GridPosition, With<Player>>,
     mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
@@ -152,6 +157,7 @@ pub fn handle_player_movement(
     }
 }
 
+/// Applies smooth motion to tiles based on their grid positions.
 pub fn smooth_tile_motion(
     mut tiles: Query<(&mut Transform, &GridPosition)>,
     board: Query<&Board>,
@@ -184,6 +190,7 @@ pub fn smooth_tile_motion(
     }
 }
 
+/// Applies smooth motion to the main camera.
 pub fn smooth_camera_motion(
     camera: Query<&MainCamera>,
     mut projection: Query<&mut OrthographicProjection, With<MainCamera>>,
@@ -199,6 +206,7 @@ pub fn smooth_camera_motion(
     }
 }
 
+/// Updates grid positions of entities based on the board.
 pub fn update_grid_position_from_board(
     mut update_grid_position_events: EventReader<UpdateGridPositionEvent>,
     mut player: Query<&mut GridPosition, With<Player>>,

@@ -6,6 +6,7 @@ use crate::level::Tile;
 use crate::resources::*;
 use crate::AppState;
 
+/// Spawns auto-move reachable marks for crates or the player.
 pub fn spawn_auto_move_marks(
     mut commands: Commands,
     mut auto_move_state: ResMut<AutoMoveState>,
@@ -94,6 +95,7 @@ pub fn spawn_auto_move_marks(
     }
 }
 
+/// Despawns the auto-move reachable marks on the board.
 pub fn despawn_auto_move_marks(
     mut commands: Commands,
     mut crates: Query<(&GridPosition, &mut TextureAtlasSprite), (With<Crate>, Without<Player>)>,

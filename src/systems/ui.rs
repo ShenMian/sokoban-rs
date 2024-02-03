@@ -5,6 +5,7 @@ use crate::components::*;
 use crate::resources::*;
 use crate::Action;
 
+/// Sets up the version information text on the screen.
 pub fn setup_version_info(mut commands: Commands) {
     const ALPHA: f32 = 0.8;
     commands.spawn(
@@ -25,6 +26,7 @@ pub fn setup_version_info(mut commands: Commands) {
     );
 }
 
+/// Sets up the heads-up display (HUD) on the screen.
 pub fn setup_hud(mut commands: Commands) {
     const ALPHA: f32 = 0.8;
     let text_section = move |color, value: &str| {
@@ -60,21 +62,29 @@ pub fn setup_hud(mut commands: Commands) {
     ));
 }
 
-const BUTTON_NORMAL_COLOR: Color = Color::rgba(0.7, 0.7, 0.7, 0.8);
-const BUTTON_HOVERED_COLOR: Color = Color::rgba(0.55, 0.55, 0.55, 0.8);
-const BUTTON_PRESSED_COLOR: Color = Color::rgba(0.35, 0.75, 0.35, 0.8);
-
-pub fn button_input_to_action(
-    buttons: Query<(&Interaction, &Action), (Changed<Interaction>, With<Button>)>,
-    mut action_state: ResMut<ActionState<Action>>,
+/// Updates the heads-up display (HUD).
+pub fn update_hud(
+    mut hud: Query<&mut Text, With<HUD>>,
+    board: Query<&Board>,
+    level_id: Res<LevelId>,
+    database: Res<Database>,
 ) {
-    for (interaction, action) in &buttons {
-        if *interaction == Interaction::Pressed {
-            action_state.press(*action);
-        }
+    let mut hud = hud.single_mut();
+    let board = &board.single().board;
+
+    if level_id.is_changed() {
+        hud.sections[1].value = format!("#{}", **level_id);
+
+        let database = database.lock().unwrap();
+        hud.sections[7].value = format!("{}", database.best_move_count(**level_id).unwrap_or(0));
+        hud.sections[9].value = format!("{}", database.best_push_count(**level_id).unwrap_or(0));
     }
+
+    hud.sections[3].value = format!("{}", board.movements().move_count());
+    hud.sections[5].value = format!("{}", board.movements().push_count());
 }
 
+/// Sets up buttons on the screen.
 pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn(NodeBundle {
@@ -203,6 +213,7 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
+/// Updates the state of buttons based on settings.
 pub fn update_button_state(
     mut buttons: Query<(&Action, &Children), With<Button>>,
     mut image: Query<&mut UiImage>,
@@ -224,6 +235,11 @@ pub fn update_button_state(
     }
 }
 
+const BUTTON_NORMAL_COLOR: Color = Color::rgba(0.7, 0.7, 0.7, 0.8);
+const BUTTON_HOVERED_COLOR: Color = Color::rgba(0.55, 0.55, 0.55, 0.8);
+const BUTTON_PRESSED_COLOR: Color = Color::rgba(0.35, 0.75, 0.35, 0.8);
+
+/// Applies visual effects to buttons based on user interaction.
 pub fn button_visual_effect(
     mut interaction_query: Query<
         (&Interaction, &mut BackgroundColor),
@@ -239,23 +255,14 @@ pub fn button_visual_effect(
     }
 }
 
-pub fn update_hud(
-    mut hud: Query<&mut Text, With<HUD>>,
-    board: Query<&Board>,
-    level_id: Res<LevelId>,
-    database: Res<Database>,
+/// Converts button interactions to input actions.
+pub fn button_input_to_action(
+    buttons: Query<(&Interaction, &Action), (Changed<Interaction>, With<Button>)>,
+    mut action_state: ResMut<ActionState<Action>>,
 ) {
-    let mut hud = hud.single_mut();
-    let board = &board.single().board;
-
-    if level_id.is_changed() {
-        hud.sections[1].value = format!("#{}", **level_id);
-
-        let database = database.lock().unwrap();
-        hud.sections[7].value = format!("{}", database.best_move_count(**level_id).unwrap_or(0));
-        hud.sections[9].value = format!("{}", database.best_push_count(**level_id).unwrap_or(0));
+    for (interaction, action) in &buttons {
+        if *interaction == Interaction::Pressed {
+            action_state.press(*action);
+        }
     }
-
-    hud.sections[3].value = format!("{}", board.movements().move_count());
-    hud.sections[5].value = format!("{}", board.movements().push_count());
 }

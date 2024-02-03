@@ -15,6 +15,7 @@ use crate::systems::level::*;
 use crate::AppState;
 use crate::{components::*, Action};
 
+/// Moves the player to the specified target position on the board.
 pub fn player_move_to(
     target: &Vector2<i32>,
     player_movement: &mut PlayerMovement,
@@ -30,16 +31,18 @@ pub fn player_move_to(
             .windows(2)
             .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
         for direction in directions {
-            player_move(direction, player_movement);
+            player_move_unchecked(direction, player_movement);
         }
     }
 }
 
-pub fn player_move(direction: Direction, player_movement: &mut PlayerMovement) {
+/// Adds movement without checking for moveability.
+pub fn player_move_unchecked(direction: Direction, player_movement: &mut PlayerMovement) {
     player_movement.directions.push_front(direction);
 }
 
-pub fn player_move_with_check(
+/// Adds movement if the move is valid.
+pub fn player_move(
     direction: Direction,
     player_movement: &mut PlayerMovement,
     board: &crate::board::Board,
@@ -79,6 +82,7 @@ pub fn instant_player_move(
     player_movement.directions.push_front(direction);
 }
 
+/// Clears the action state by consuming all stored actions.
 pub fn clear_action_state(mut action_state: ResMut<ActionState<Action>>) {
     action_state.consume_all();
 }
@@ -154,18 +158,19 @@ fn handle_player_movement_action(
     player_movement: &mut ResMut<PlayerMovement>,
     board: &crate::board::Board,
 ) {
-    // TODO: 通过 PlayerMovement 移动角色受角色移动速度限制, 会给玩家带来输入的迟滞感
+    // TODO: If you move the character through PlayerMovement, the character's
+    // movement speed will be limited, giving the player a sense of input lag.
     if action_state.just_pressed(Action::MoveUp) {
-        player_move_with_check(Direction::Up, player_movement, board);
+        player_move(Direction::Up, player_movement, board);
     }
     if action_state.just_pressed(Action::MoveDown) {
-        player_move_with_check(Direction::Down, player_movement, board);
+        player_move(Direction::Down, player_movement, board);
     }
     if action_state.just_pressed(Action::MoveLeft) {
-        player_move_with_check(Direction::Left, player_movement, board);
+        player_move(Direction::Left, player_movement, board);
     }
     if action_state.just_pressed(Action::MoveRight) {
-        player_move_with_check(Direction::Right, player_movement, board);
+        player_move(Direction::Right, player_movement, board);
     }
 }
 
@@ -263,6 +268,7 @@ pub fn handle_automatic_solution_action(
     }
 }
 
+/// Handles mouse input events.
 pub fn mouse_input(
     mouse_buttons: Res<Input<MouseButton>>,
     mut board: Query<&mut Board>,
@@ -383,6 +389,7 @@ pub fn mouse_input(
     }
 }
 
+/// Adjusts the viewport based on various input events.
 pub fn adjust_viewport(
     mouse_buttons: Res<Input<MouseButton>>,
     gamepads: Res<Gamepads>,
@@ -414,6 +421,7 @@ pub fn adjust_viewport(
     }
 }
 
+/// Handles file drag-and-drop events.
 pub fn file_drag_and_drop(
     mut events: EventReader<FileDragAndDrop>,
     mut level_id: ResMut<LevelId>,

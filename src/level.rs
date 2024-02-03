@@ -155,6 +155,7 @@ impl Level {
         }
     }
 
+    /// Loads levels from string.
     pub fn load_from_memory(buffer: String) -> Result<Vec<Level>> {
         let buffer = buffer.replace("\r", "") + "\n";
 
@@ -226,37 +227,23 @@ impl Level {
         Ok(levels)
     }
 
+    /// Loads levels from file.
     pub fn load_from_file(file_path: &Path) -> Result<Vec<Level>> {
         Self::load_from_memory(fs::read_to_string(file_path).unwrap())
     }
 
+    /// Returns the dimensions of the level.
     pub fn dimensions(&self) -> &Vector2<i32> {
         &self.dimensions
     }
 
-    #[allow(dead_code)]
-    pub fn get(&self, position: &Vector2<i32>) -> Option<Tile> {
-        if self.in_bounds(position) {
-            Some(self.data[(position.y * self.dimensions.x + position.x) as usize])
-        } else {
-            None
-        }
-    }
-
-    #[allow(dead_code)]
-    pub fn get_mut(&mut self, position: &Vector2<i32>) -> Option<&mut Tile> {
-        if self.in_bounds(position) {
-            Some(&mut self.data[(position.y * self.dimensions.x + position.x) as usize])
-        } else {
-            None
-        }
-    }
-
+    /// Returns the tile at the specified position without bounds checking.
     pub fn get_unchecked(&self, position: &Vector2<i32>) -> Tile {
         debug_assert!(self.in_bounds(position));
         self.data[(position.y * self.dimensions.x + position.x) as usize]
     }
 
+    /// Returns a mutable reference to the tile at the specified position without bounds checking.
     pub fn get_unchecked_mut(&mut self, position: &Vector2<i32>) -> &mut Tile {
         debug_assert!(self.in_bounds(position));
         &mut self.data[(position.y * self.dimensions.x + position.x) as usize]
@@ -377,6 +364,7 @@ impl Level {
         unreachable!();
     }
 
+    /// Calculates dead square positions
     fn calculate_dead_positions(&mut self) {
         for x in 1..self.dimensions.x - 1 {
             for y in 1..self.dimensions.y - 1 {
@@ -458,12 +446,12 @@ impl Level {
 
     pub fn reachable_area(
         &self,
-        player_position: &Vector2<i32>,
+        position: &Vector2<i32>,
         is_block: impl Fn(&Vector2<i32>) -> bool,
     ) -> HashSet<Vector2<i32>> {
         let mut reachable = HashSet::new();
         let mut queue = VecDeque::<Vector2<i32>>::new();
-        queue.push_back(*player_position);
+        queue.push_back(*position);
 
         while let Some(position) = queue.pop_front() {
             if !reachable.insert(position) {
@@ -579,6 +567,7 @@ impl Level {
         paths
     }
 
+    /// Finds paths for pushing a crate from `crate_position` to other positions.
     pub fn crate_pushable_paths(
         &self,
         crate_position: &Vector2<i32>,
@@ -595,6 +584,7 @@ impl Level {
             .insert(Tile::Player);
     }
 
+    /// Rotates the level 90° clockwise.
     fn rotate(&mut self) {
         let rotate_position =
             |position: &Vector2<i32>| Vector2::new(position.y, self.dimensions.x - 1 - position.x);
@@ -620,6 +610,7 @@ impl Level {
         self.dimensions = self.dimensions.yx();
     }
 
+    /// Flips the level horizontally.
     fn flip(&mut self) {
         let flip_position =
             |position: &Vector2<i32>| Vector2::new(self.dimensions.x - 1 - position.x, position.y);
@@ -707,6 +698,7 @@ impl Level {
     }
 }
 
+/// Encodes a string using run-length encoding (RLE).
 #[allow(dead_code)]
 fn rle_encode(data: &str) -> String {
     let mut result = String::new();
@@ -725,6 +717,7 @@ fn rle_encode(data: &str) -> String {
     result
 }
 
+/// Decodes a string encoded with run-length encoding (RLE).
 fn rle_decode(data: &str) -> String {
     let mut result = String::new();
     let mut length_str = String::new();

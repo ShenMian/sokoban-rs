@@ -8,6 +8,7 @@ use crate::AppState;
 
 use std::time::{Duration, Instant};
 
+/// Loads the solver state with the current board data and initializes a new solver.
 pub fn load_solver(
     mut solver_state: ResMut<SolverState>,
     board: Query<&Board>,
@@ -29,10 +30,12 @@ pub fn load_solver(
     stopwatch.reset();
 }
 
+/// Unloads the solver state by resetting it to default values.
 pub fn unload_solver(mut solver_state: ResMut<SolverState>) {
     *solver_state = SolverState::default();
 }
 
+/// Spawns lower bound marks on the board based on the solver's lower bounds.
 pub fn spawn_lowerbound_marks(
     solver_state: Res<SolverState>,
     mut commands: Commands,
@@ -69,6 +72,7 @@ pub fn spawn_lowerbound_marks(
     }
 }
 
+/// Despawns lower bound marks on the board.
 pub fn despawn_lowerbound_marks(
     mut commands: Commands,
     marks: Query<Entity, With<LowerBoundMark>>,
@@ -76,6 +80,7 @@ pub fn despawn_lowerbound_marks(
     marks.for_each(|entity| commands.entity(entity).despawn());
 }
 
+/// Resets the board to the state before automatic solution
 pub fn reset_board(mut board: Query<&mut Board>, solver_state: Res<SolverState>) {
     let board = &mut board.single_mut().board;
     *board = crate::board::Board::with_level(solver_state.level.clone());
@@ -121,7 +126,7 @@ pub fn update_solver(
             info!("    Solution: {}", solution.lurd());
 
             for movement in &*solution {
-                player_move(movement.direction, &mut player_movement);
+                player_move_unchecked(movement.direction, &mut player_movement);
             }
             next_state.set(AppState::Main);
             return;
