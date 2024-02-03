@@ -164,6 +164,7 @@ impl Level {
         let mut map_data = Vec::<String>::new();
         let mut map_dimensions = Vector2::<i32>::zeros();
         let mut metadata = HashMap::<String, String>::new();
+        let mut comments = String::new();
 
         let mut in_comment_block = false;
         for line in buffer.split(&['\n', '|']) {
@@ -175,19 +176,28 @@ impl Level {
                     || trimmed_line.to_lowercase().starts_with("comment_end")
                 {
                     in_comment_block = false;
+                    continue;
                 }
+                comments += &(trimmed_line.to_string() + "\n");
                 continue;
             }
             if trimmed_line.starts_with(";") {
+                comments += &(trimmed_line[1..].trim().to_string() + "\n");
                 continue;
             }
 
             if trimmed_line.is_empty() {
                 // multiple empty lines
                 if map_data.is_empty() {
+                    metadata.clear();
+                    comments.clear();
                     continue;
                 }
 
+                debug_assert!(metadata.get("comments") == None);
+                if !comments.is_empty() {
+                    metadata.insert("comments".to_string(), comments.clone());
+                }
                 levels.push(Level::new(
                     map_data.clone(),
                     map_dimensions,
@@ -196,6 +206,7 @@ impl Level {
                 map_data.clear();
                 map_dimensions = Vector2::<i32>::zeros();
                 metadata.clear();
+                comments.clear();
                 continue;
             }
 
@@ -210,13 +221,18 @@ impl Level {
             if trimmed_line.contains(":") {
                 let (key, value) = trimmed_line.split_once(":").unwrap();
                 let key = key.trim().to_lowercase();
+                let value = value.trim();
 
                 if key == "comment" {
-                    in_comment_block = true;
+                    if value.is_empty() {
+                        in_comment_block = true;
+                    } else {
+                        comments += &(value.to_string() + "\n");
+                    }
                     continue;
                 }
 
-                metadata.insert(key, value.trim().to_string());
+                metadata.insert(key, value.to_string());
                 continue;
             }
 
@@ -297,6 +313,15 @@ impl Level {
     pub fn export_metadata(&self) -> String {
         let mut result = String::new();
         for (key, value) in self.metadata.iter() {
+            if key == "comments" {
+                result.push_str("comment:\n");
+                for line in value.lines() {
+                    result.push_str(&format!("{}\n", line));
+                }
+                result.push_str("comment-end:\n");
+                continue;
+            }
+            debug_assert!(!value.contains("\n"));
             result.push_str(&format!("{}: {}\n", key, value));
         }
         result

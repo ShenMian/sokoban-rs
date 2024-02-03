@@ -36,6 +36,7 @@ impl Database {
                 id       INTEGER PRIMARY KEY AUTOINCREMENT,
                 title    TEXT,
                 author   TEXT,
+                comments TEXT,
                 map      TEXT NOT NULL,
                 width    INTEGER NOT NULL,
                 height   INTEGER NOT NULL,
@@ -80,11 +81,12 @@ impl Database {
     pub fn import_level(&self, level: &Level) {
         let title = level.metadata.get("title");
         let author = level.metadata.get("author");
+        let comments = level.metadata.get("comments");
         let hash = Database::normalized_hash(level);
 
         let _ = self.connection.execute(
-            "INSERT INTO tb_level(title, author, map, width, height, hash, date) VALUES (?, ?, ?, ?, ?, ?, DATE('now'))",
-            (&title, &author, &level.export_map(), level.dimensions().x, level.dimensions().y, hash),
+            "INSERT INTO tb_level(title, author, comments, map, width, height, hash, date) VALUES (?, ?, ?, ?, ?, ?, ?, DATE('now'))",
+            (title, author, comments, level.export_map(), level.dimensions().x, level.dimensions().y, hash),
         );
     }
 
@@ -105,7 +107,9 @@ impl Database {
     pub fn get_level_by_id(&self, id: u64) -> Option<Level> {
         let mut statement = self
             .connection
-            .prepare("SELECT map, width, height, title, author FROM tb_level WHERE id = ?")
+            .prepare(
+                "SELECT map, width, height, title, author, comments FROM tb_level WHERE id = ?",
+            )
             .unwrap();
         let mut rows = statement.query([id]).unwrap();
         let row = rows.next().unwrap()?;
@@ -123,6 +127,9 @@ impl Database {
         }
         if let Ok(author) = row.get(4) {
             metadata.insert("author".to_string(), author);
+        }
+        if let Ok(comments) = row.get(5) {
+            metadata.insert("comments".to_string(), comments);
         }
         let level = Level::new(map, size, metadata).unwrap();
         Some(level)
