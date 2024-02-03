@@ -178,7 +178,7 @@ impl Level {
                 }
                 continue;
             }
-            if trimmed_line.starts_with(";") || trimmed_line.starts_with("'") {
+            if trimmed_line.starts_with(";") {
                 continue;
             }
 
@@ -200,6 +200,13 @@ impl Level {
             }
 
             // metadata
+            if trimmed_line.starts_with("'") {
+                metadata.insert(
+                    "title".to_string(),
+                    trimmed_line[1..trimmed_line.len() - 1].to_string(),
+                );
+                continue;
+            }
             if trimmed_line.contains(":") {
                 let (key, value) = trimmed_line.split_once(":").unwrap();
                 let key = key.trim().to_lowercase();
@@ -210,6 +217,16 @@ impl Level {
                 }
 
                 metadata.insert(key, value.trim().to_string());
+                continue;
+            }
+
+            // if line is not map data, discard
+            if !line.chars().all(|c| {
+                matches!(
+                    c,
+                    '0'..='9' | ' ' | '-' | '_' | '#' | '$' | '.' | '@' | '*' | '+'
+                )
+            }) {
                 continue;
             }
 
