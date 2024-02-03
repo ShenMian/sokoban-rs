@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use leafwing_input_manager::{prelude::*, user_input::InputKind};
+use leafwing_input_manager::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(
@@ -32,209 +32,161 @@ pub enum Action {
 }
 
 pub fn default_input_action_map() -> InputMap<Action> {
-    InputMap::new([
-        // Mouse
+    use leafwing_input_manager::user_input::InputKind::*;
+    let mouse_input_map = InputMap::new([
         (
-            UserInput::Single(InputKind::Mouse(MouseButton::Other(1))),
+            UserInput::Single(Mouse(MouseButton::Other(1))),
             Action::Undo,
         ),
         (
-            UserInput::Single(InputKind::Mouse(MouseButton::Other(2))),
+            UserInput::Single(Mouse(MouseButton::Other(2))),
             Action::Redo,
         ),
         (
-            UserInput::Single(InputKind::MouseWheel(MouseWheelDirection::Down)),
+            UserInput::Single(MouseWheel(MouseWheelDirection::Down)),
             Action::ZoomOut,
         ),
         (
-            UserInput::Single(InputKind::MouseWheel(MouseWheelDirection::Up)),
+            UserInput::Single(MouseWheel(MouseWheelDirection::Up)),
             Action::ZoomIn,
         ),
-        // Keyboard
+    ]);
+    let keyboard_input_map = InputMap::new([
+        (UserInput::Single(Keyboard(KeyCode::W)), Action::MoveUp),
+        (UserInput::Single(Keyboard(KeyCode::S)), Action::MoveDown),
+        (UserInput::Single(Keyboard(KeyCode::A)), Action::MoveLeft),
+        (UserInput::Single(Keyboard(KeyCode::D)), Action::MoveRight),
+        (UserInput::Single(Keyboard(KeyCode::Up)), Action::MoveUp),
+        (UserInput::Single(Keyboard(KeyCode::Down)), Action::MoveDown),
+        (UserInput::Single(Keyboard(KeyCode::Left)), Action::MoveLeft),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::W)),
-            Action::MoveUp,
-        ),
-        (
-            UserInput::Single(InputKind::Keyboard(KeyCode::S)),
-            Action::MoveDown,
-        ),
-        (
-            UserInput::Single(InputKind::Keyboard(KeyCode::A)),
-            Action::MoveLeft,
-        ),
-        (
-            UserInput::Single(InputKind::Keyboard(KeyCode::D)),
+            UserInput::Single(Keyboard(KeyCode::Right)),
             Action::MoveRight,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::Up)),
-            Action::MoveUp,
-        ),
-        (
-            UserInput::Single(InputKind::Keyboard(KeyCode::Down)),
-            Action::MoveDown,
-        ),
-        (
-            UserInput::Single(InputKind::Keyboard(KeyCode::Left)),
-            Action::MoveLeft,
-        ),
-        (
-            UserInput::Single(InputKind::Keyboard(KeyCode::Right)),
-            Action::MoveRight,
-        ),
-        (
-            UserInput::Chord(vec![
-                InputKind::Keyboard(KeyCode::ControlLeft),
-                InputKind::Keyboard(KeyCode::Z),
-            ]),
+            UserInput::Chord(vec![Keyboard(KeyCode::ControlLeft), Keyboard(KeyCode::Z)]),
             Action::Undo,
         ),
         (
             UserInput::Chord(vec![
-                InputKind::Keyboard(KeyCode::ControlLeft),
-                InputKind::Keyboard(KeyCode::ShiftLeft),
-                InputKind::Keyboard(KeyCode::Z),
+                Keyboard(KeyCode::ControlLeft),
+                Keyboard(KeyCode::ShiftLeft),
+                Keyboard(KeyCode::Z),
             ]),
             Action::Redo,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::Escape)),
+            UserInput::Single(Keyboard(KeyCode::Escape)),
             Action::ResetLevel,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::BracketRight)),
+            UserInput::Single(Keyboard(KeyCode::BracketRight)),
             Action::NextLevel,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::BracketLeft)),
+            UserInput::Single(Keyboard(KeyCode::BracketLeft)),
             Action::PreviousLevel,
         ),
         (
             UserInput::Chord(vec![
-                InputKind::Keyboard(KeyCode::ControlLeft),
-                InputKind::Keyboard(KeyCode::BracketRight),
+                Keyboard(KeyCode::ControlLeft),
+                Keyboard(KeyCode::BracketRight),
             ]),
             Action::NextUnsolvedLevel,
         ),
         (
             UserInput::Chord(vec![
-                InputKind::Keyboard(KeyCode::ControlLeft),
-                InputKind::Keyboard(KeyCode::BracketLeft),
+                Keyboard(KeyCode::ControlLeft),
+                Keyboard(KeyCode::BracketLeft),
             ]),
             Action::PreviousUnsolvedLevel,
         ),
+        (UserInput::Single(Keyboard(KeyCode::Equals)), Action::ZoomIn),
+        (UserInput::Single(Keyboard(KeyCode::Minus)), Action::ZoomOut),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::Equals)),
-            Action::ZoomIn,
-        ),
-        (
-            UserInput::Single(InputKind::Keyboard(KeyCode::Minus)),
-            Action::ZoomOut,
-        ),
-        (
-            UserInput::Single(InputKind::Keyboard(KeyCode::I)),
+            UserInput::Single(Keyboard(KeyCode::I)),
             Action::ToggleInstantMove,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::P)),
+            UserInput::Single(Keyboard(KeyCode::P)),
             Action::ToggleAutomaticSolution,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::F11)),
+            UserInput::Single(Keyboard(KeyCode::F11)),
             Action::ToggleFullscreen,
         ),
         (
-            UserInput::Chord(vec![
-                InputKind::Keyboard(KeyCode::ControlLeft),
-                InputKind::Keyboard(KeyCode::V),
-            ]),
+            UserInput::Chord(vec![Keyboard(KeyCode::ControlLeft), Keyboard(KeyCode::V)]),
             Action::ImportLevelsFromClipboard,
         ),
         (
-            UserInput::Chord(vec![
-                InputKind::Keyboard(KeyCode::ControlLeft),
-                InputKind::Keyboard(KeyCode::ShiftLeft),
-                InputKind::Keyboard(KeyCode::C),
-            ]),
+            UserInput::Chord(vec![Keyboard(KeyCode::ControlLeft), Keyboard(KeyCode::C)]),
             Action::ExportLevelToClipboard,
         ),
         // Keyboard (Vim)
+        (UserInput::Single(Keyboard(KeyCode::K)), Action::MoveUp),
+        (UserInput::Single(Keyboard(KeyCode::J)), Action::MoveDown),
+        (UserInput::Single(Keyboard(KeyCode::H)), Action::MoveLeft),
+        (UserInput::Single(Keyboard(KeyCode::L)), Action::MoveRight),
+        (UserInput::Single(Keyboard(KeyCode::U)), Action::Undo),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::K)),
+            UserInput::Chord(vec![Keyboard(KeyCode::ControlLeft), Keyboard(KeyCode::R)]),
+            Action::Redo,
+        ),
+    ]);
+    let gamepad_input_map = InputMap::new([
+        (
+            UserInput::Single(GamepadButton(GamepadButtonType::DPadUp)),
             Action::MoveUp,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::J)),
+            UserInput::Single(GamepadButton(GamepadButtonType::DPadDown)),
             Action::MoveDown,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::H)),
+            UserInput::Single(GamepadButton(GamepadButtonType::DPadLeft)),
             Action::MoveLeft,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::L)),
+            UserInput::Single(GamepadButton(GamepadButtonType::DPadRight)),
             Action::MoveRight,
         ),
         (
-            UserInput::Single(InputKind::Keyboard(KeyCode::U)),
+            UserInput::Single(GamepadButton(GamepadButtonType::East)),
             Action::Undo,
         ),
         (
-            UserInput::Chord(vec![
-                InputKind::Keyboard(KeyCode::ControlLeft),
-                InputKind::Keyboard(KeyCode::R),
-            ]),
-            Action::Redo,
-        ),
-        // Gamepad
-        (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadUp)),
-            Action::MoveUp,
-        ),
-        (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadDown)),
-            Action::MoveDown,
-        ),
-        (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadLeft)),
-            Action::MoveLeft,
-        ),
-        (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::DPadRight)),
-            Action::MoveRight,
-        ),
-        (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::East)),
-            Action::Undo,
-        ),
-        (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::South)),
+            UserInput::Single(GamepadButton(GamepadButtonType::South)),
             Action::Redo,
         ),
         (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::RightTrigger)),
+            UserInput::Single(GamepadButton(GamepadButtonType::RightTrigger)),
             Action::NextLevel,
         ),
         (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger)),
+            UserInput::Single(GamepadButton(GamepadButtonType::LeftTrigger)),
             Action::PreviousLevel,
         ),
         (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::RightTrigger2)),
+            UserInput::Single(GamepadButton(GamepadButtonType::RightTrigger2)),
             Action::ZoomIn,
         ),
         (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::LeftTrigger2)),
+            UserInput::Single(GamepadButton(GamepadButtonType::LeftTrigger2)),
             Action::ZoomOut,
         ),
         (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::West)),
+            UserInput::Single(GamepadButton(GamepadButtonType::West)),
             Action::ToggleInstantMove,
         ),
         (
-            UserInput::Single(InputKind::GamepadButton(GamepadButtonType::North)),
+            UserInput::Single(GamepadButton(GamepadButtonType::North)),
             Action::ToggleAutomaticSolution,
         ),
-    ])
+    ]);
+    InputMap::default()
+        .merge(&mouse_input_map)
+        .merge(&keyboard_input_map)
+        .merge(&gamepad_input_map)
+        .clone()
 }

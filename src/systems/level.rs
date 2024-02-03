@@ -166,6 +166,10 @@ pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Databa
     let mut clipboard = Clipboard::new().unwrap();
     match Level::load_from_memory(clipboard.get_text().unwrap()) {
         Ok(levels) => {
+            if levels.is_empty() {
+                error!("failed to import any level from clipboard");
+                return;
+            }
             info!("import {} levels from clipboard", levels.len());
             database.import_levels(&levels);
             **level_id = database.get_level_id(&levels[0]).unwrap();
