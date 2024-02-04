@@ -213,20 +213,20 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
         });
 }
 
-/// Updates the state of buttons based on settings.
+/// Updates the state of buttons based on config.
 pub fn update_button_state(
     mut buttons: Query<(&Action, &Children), With<Button>>,
     mut image: Query<&mut UiImage>,
-    settings: Res<Settings>,
+    config: Res<Config>,
     asset_server: Res<AssetServer>,
 ) {
-    if !settings.is_changed() {
+    if !config.is_changed() {
         return;
     }
     for (button, children) in &mut buttons {
         if *button == Action::ToggleInstantMove {
             let mut image = image.get_mut(children[0]).unwrap();
-            image.texture = if settings.instant_move {
+            image.texture = if config.instant_move {
                 asset_server.load("textures/instant_move_on.png").into()
             } else {
                 asset_server.load("textures/instant_move_off.png").into()

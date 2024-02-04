@@ -46,22 +46,22 @@ mod test;
 #[allow(unused_imports)]
 use bevy_editor_pls::prelude::*;
 
-const SETTINGS_FILE_PATH: &'static str = "settings.toml";
+const CONFIG_FILE_PATH: &'static str = "config.toml";
 const KEYMAP_FILE_PATH: &'static str = "keymap.toml";
 
-fn save_settings(settings: Res<Settings>) {
-    let settings_toml = toml::to_string(&*settings).unwrap();
-    fs::write(SETTINGS_FILE_PATH, settings_toml).unwrap();
+fn save_config(config: Res<Config>) {
+    let config_toml = toml::to_string(&*config).unwrap();
+    fs::write(CONFIG_FILE_PATH, config_toml).unwrap();
 }
 
 #[bevy_main]
 fn main() {
-    if !Path::new(SETTINGS_FILE_PATH).is_file() {
-        let default_settings_toml = toml::to_string(&Settings::default()).unwrap();
-        fs::write(SETTINGS_FILE_PATH, default_settings_toml).unwrap();
+    if !Path::new(CONFIG_FILE_PATH).is_file() {
+        let default_config_toml = toml::to_string(&Config::default()).unwrap();
+        fs::write(CONFIG_FILE_PATH, default_config_toml).unwrap();
     }
-    let settings_toml = fs::read_to_string(SETTINGS_FILE_PATH).unwrap();
-    let settings: Settings = toml::from_str(settings_toml.as_str()).unwrap();
+    let config_toml = fs::read_to_string(CONFIG_FILE_PATH).unwrap();
+    let config: Config = toml::from_str(config_toml.as_str()).unwrap();
 
     if !Path::new(KEYMAP_FILE_PATH).is_file() {
         let default_keymap_toml = toml::to_string(&default_input_action_map()).unwrap();
@@ -72,7 +72,7 @@ fn main() {
 
     let player_movement = PlayerMovement {
         directions: VecDeque::new(),
-        timer: Timer::from_seconds(settings.player_move_speed, TimerMode::Repeating),
+        timer: Timer::from_seconds(config.player_move_speed, TimerMode::Repeating),
     };
 
     let mut app = App::new();
@@ -110,7 +110,7 @@ fn main() {
             update_button_state,
             handle_audio_event,
             adjust_viewport,
-            save_settings.run_if(resource_changed_or_removed::<Settings>()),
+            save_config.run_if(resource_changed_or_removed::<Config>()),
             (button_input_to_action, handle_actions).chain(),
         ),
     )
@@ -172,7 +172,7 @@ fn main() {
     app.init_resource::<ActionState<Action>>()
         .insert_resource(input_action_map);
 
-    app.insert_resource(settings)
+    app.insert_resource(config)
         .insert_resource(player_movement)
         .insert_resource(AutoMoveState::default());
 

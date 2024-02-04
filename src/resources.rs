@@ -12,35 +12,35 @@ use std::collections::{HashMap, VecDeque};
 use std::sync::Mutex;
 
 #[derive(Resource, Serialize, Deserialize)]
-pub struct Settings {
-    /// Disable player movement animation.
-    pub instant_move: bool,
+pub struct Config {
     /// Player movement animation speed, seconds per step.
     pub player_move_speed: f32,
     /// Make the floor look like a chessboard with alternating light square and dark square.
     pub even_square_shades: f32,
-    /// Audio volume
+    /// Audio volume.
     pub volume: f64,
+    /// Disable player movement animation.
+    pub instant_move: bool,
     /// Enable auto switch to next unsolved level when the current level is solved.
     pub auto_switch_to_next_unsolved_level: bool,
-    pub solver: SolverSettings,
+    pub solver: SolverConfig,
 }
 
-impl Default for Settings {
+impl Default for Config {
     fn default() -> Self {
         Self {
-            instant_move: false,
             player_move_speed: 0.1,
             even_square_shades: 0.1,
             volume: 0.5,
+            instant_move: false,
             auto_switch_to_next_unsolved_level: true,
-            solver: SolverSettings::default(),
+            solver: SolverConfig::default(),
         }
     }
 }
 
 #[derive(Serialize, Deserialize, Default)]
-pub struct SolverSettings {
+pub struct SolverConfig {
     pub strategy: Strategy,
     pub lower_bound_method: LowerBoundMethod,
 }

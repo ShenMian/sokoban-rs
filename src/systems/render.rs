@@ -83,7 +83,7 @@ pub fn handle_player_movement(
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
-    settings: Res<Settings>,
+    config: Res<Config>,
     mut crate_enter_target_events: EventWriter<CrateEnterTarget>,
     mut crate_leave_target_events: EventWriter<CrateLeaveTarget>,
     mut level_solved_events: EventWriter<LevelSolved>,
@@ -95,7 +95,7 @@ pub fn handle_player_movement(
     let board = &mut board.single_mut().board;
 
     let player_grid_position = &mut **player.single_mut();
-    if !settings.instant_move {
+    if !config.instant_move {
         player_movement.timer.tick(time.delta());
         if !player_movement.timer.just_finished() {
             return;
@@ -161,11 +161,11 @@ pub fn handle_player_movement(
 pub fn smooth_tile_motion(
     mut tiles: Query<(&mut Transform, &GridPosition)>,
     board: Query<&Board>,
-    settings: Res<Settings>,
+    config: Res<Config>,
 ) {
     let Board { board, tile_size } = &board.single();
     for (mut transform, grid_position) in tiles.iter_mut() {
-        if !settings.instant_move {
+        if !config.instant_move {
             let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
 
             let target_x = grid_position.x as f32 * tile_size.x;

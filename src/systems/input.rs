@@ -100,7 +100,7 @@ pub fn handle_actions(
     mut player_movement: ResMut<PlayerMovement>,
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
-    mut settings: ResMut<Settings>,
+    mut config: ResMut<Config>,
 
     mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
 ) {
@@ -125,7 +125,7 @@ pub fn handle_actions(
                 &database,
                 board,
             );
-            handle_toggle_instant_move_action(&action_state, &mut settings);
+            handle_toggle_instant_move_action(&action_state, &mut config);
             handle_toggle_toggle_fullscreen_action(&action_state, window);
             handle_undo_redo_action(
                 &action_state,
@@ -217,10 +217,10 @@ fn handle_clipboard_action(
 
 fn handle_toggle_instant_move_action(
     action_state: &ActionState<Action>,
-    settings: &mut ResMut<Settings>,
+    config: &mut ResMut<Config>,
 ) {
     if action_state.just_pressed(Action::ToggleInstantMove) {
-        settings.instant_move = !settings.instant_move;
+        config.instant_move = !config.instant_move;
     }
 }
 

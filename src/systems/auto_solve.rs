@@ -12,7 +12,7 @@ use std::time::{Duration, Instant};
 pub fn load_solver(
     mut solver_state: ResMut<SolverState>,
     board: Query<&Board>,
-    settings: Res<Settings>,
+    config: Res<Config>,
 ) {
     let board = &board.single().board;
     let SolverState {
@@ -24,8 +24,8 @@ pub fn load_solver(
     let mut solver = solver.lock().unwrap();
     *solver = Solver::new(
         level.clone(),
-        settings.solver.strategy,
-        settings.solver.lower_bound_method,
+        config.solver.strategy,
+        config.solver.lower_bound_method,
     );
     stopwatch.reset();
 }

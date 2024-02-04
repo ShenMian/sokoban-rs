@@ -53,7 +53,7 @@ pub fn spawn_board(
     window: Query<&Window>,
     board: Query<Entity, With<Board>>,
     level_id: Res<LevelId>,
-    settings: Res<Settings>,
+    config: Res<Config>,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
@@ -113,11 +113,11 @@ pub fn spawn_board(
                     for (tile, (sprite_index, z_order)) in tiles.into_iter() {
                         if level.get_unchecked(&position).intersects(tile) {
                             let mut sprite = TextureAtlasSprite::new(sprite_index);
-                            if settings.even_square_shades > 0.0
+                            if config.even_square_shades > 0.0
                                 && tile == Tile::Floor
                                 && (x + y) % 2 == 0
                             {
-                                sprite.color = Color::WHITE * (1.0 - settings.even_square_shades);
+                                sprite.color = Color::WHITE * (1.0 - config.even_square_shades);
                             }
                             let mut entity = parent.spawn((
                                 SpriteSheetBundle {
@@ -144,9 +144,9 @@ pub fn auto_switch_to_next_unsolved_level(
     mut board: Query<&mut Board>,
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
-    settings: Res<Settings>,
+    config: Res<Config>,
 ) {
-    if !settings.auto_switch_to_next_unsolved_level {
+    if !config.auto_switch_to_next_unsolved_level {
         return;
     }
     let database = database.lock().unwrap();
