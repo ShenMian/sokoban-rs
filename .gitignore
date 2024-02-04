@@ -2,6 +2,6 @@
 /.vscode
 /.fleet
 /.idea
-database.db
-settings.toml
+config.toml
 keymap.toml
+database.db

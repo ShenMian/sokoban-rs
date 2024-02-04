@@ -4,19 +4,20 @@ A sokoban with solver.
 
 ## Features
 
-- Integrated solver.
-- Full mouse control.
-- Player animation.
+- [Integrated solver.](docs/solver.md)
+- [Full mouse control.](docs/auto_move.md)
 - Front-end and back-end separation.
-- Levels and solutions are stored in the database.
+- [Levels and solutions are stored in the database.](docs/database.md)
+- [Custom settings via configuration file.](docs/configuration.md)
+- Player animation.
 
 ### [Auto move](docs/auto_move.md)
 
-<p align="center"><img src="./docs/auto_crate_push.gif" width=50%></p>
+<p align="center"><img src="./docs/assets/auto_crate_push.gif" width=50%></p>
 
 ### [Solver](docs/solver.md)
 
-<p align="center"><img src="./docs/auto_solve.gif" width=50%></p>
+<p align="center"><img src="./docs/assets/auto_solve.gif" width=50%></p>
 
 ## Keymap
 

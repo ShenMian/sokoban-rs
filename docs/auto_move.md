@@ -2,7 +2,7 @@
 
 ## Auto crate push
 
-<p align="center"><img src="auto_crate_push.gif" width=70%></p>
+<p align="center"><img src="assets/auto_crate_push.gif" width=70%></p>
 
 This feature can provide good assistance when users play larger levels.  
 At the same time, it also retains the traditional control method.
@@ -11,7 +11,7 @@ Clicking on a crate will display all the points that the crate can reach (withou
 
 Take Microban #155 as an example:
 
-<p align="center"><img src="auto_crate_push_1.png" width=70%></p>
+<p align="center"><img src="assets/auto_crate_push_1.png" width=70%></p>
 
 Clicking on one of the points will automatically push the selected crate to that position.
 
@@ -19,13 +19,13 @@ In this case, user can click on the target, and the character will automatically
 
 Some areas where the crates are reachable do not display points. This is because pushing the crate to those positions will lead to a deadlock and the player will be unable to continue completing the level.
 
-<p align="center"><img src="auto_crate_push_2.png" width=70%></p>
+<p align="center"><img src="assets/auto_crate_push_2.png" width=70%></p>
 
 ## Auto player move
 
 Click to select the player and display the player's reachable area. Click on a position in the area and the player will automatically move to that position.
 
-<p align="center"><img src="auto_player_move.png" width=70%></p>
+<p align="center"><img src="assets/auto_player_move.png" width=70%></p>
 
 User can also directly click on the player's reachable area without selecting the player, and the player will automatically move to that position.
 

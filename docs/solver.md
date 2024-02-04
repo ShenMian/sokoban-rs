@@ -1,6 +1,6 @@
 # Solver
 
-<p align="center"><img src="auto_solve.gif" width=70%></p>
+<p align="center"><img src="assets/auto_solve.gif" width=70%></p>
 
 The solver can automatically solve simple levels.
 
@@ -43,4 +43,4 @@ Supports visualization of the automatic solution process. This feature can be us
 - Displays the optimal state obtained by the current solver.
 - Display the lower bound as a heat map.
 
-<p align="center"><img src="solver_visualization.png" width=70%></p>
+<p align="center"><img src="assets/solver_visualization.png" width=70%></p>
