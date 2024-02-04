@@ -1,4 +1,6 @@
-# Config
+# Customizing
+
+## Configuration
 
 User can configure settings by editing `config.toml` in the same directory. If the file does not exist, a default configuration file will be automatically generated when the program is run.
 
@@ -20,3 +22,7 @@ lower_bound_method = "MinimumMove"
 ```
 
 For `solver` related configuration options, please refer to [Solver](./solver.md).
+
+## Keymap
+
+User can configure keymap by editing `keymap.toml` in the same directory. If the file does not exist, a default keymap configuration file will be automatically generated when the program is run.

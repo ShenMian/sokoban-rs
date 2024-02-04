@@ -112,7 +112,7 @@
 | load multiple files                   | :heavy_check_mark:       |
 | saves levels with format              | SQLite database          |
 
-### Import and Export for Internet
+### Import and export for Internet
 
 | Feature                                           | Support                  |
 | ------------------------------------------------- | ------------------------ |
