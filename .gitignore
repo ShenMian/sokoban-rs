@@ -4,4 +4,4 @@
 /.idea
 config.toml
 keymap.toml
-database.db
+db.sqlite3

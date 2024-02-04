@@ -16,7 +16,7 @@ use std::sync::Mutex;
 
 /// Sets up the database, initializes it, and loads levels from files into the database.
 pub fn setup_database(mut commands: Commands) {
-    let database = database::Database::from_file(Path::new("database.db"));
+    let database = database::Database::from_file(Path::new("db.sqlite3"));
     database.initialize();
     info!("Loading levels from files");
     for path in fs::read_dir("assets/levels/").unwrap() {
