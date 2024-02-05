@@ -1,5 +1,6 @@
 use arboard::Clipboard;
 use bevy::prelude::*;
+use bevy_tweening::{lens::*, *};
 use nalgebra::Vector2;
 
 use crate::board;
@@ -119,19 +120,37 @@ pub fn spawn_board(
                             {
                                 sprite.color = Color::WHITE * (1.0 - config.even_square_shades);
                             }
+                            let translation = Vec3::new(
+                                position.x as f32 * tile_size.x,
+                                level.dimensions().y as f32 * tile_size.y
+                                    - position.y as f32 * tile_size.y,
+                                z_order,
+                            );
                             let mut entity = parent.spawn((
                                 SpriteSheetBundle {
                                     texture_atlas: texture_atlas_handle.clone(),
                                     sprite,
-                                    transform: Transform::from_xyz(0.0, 0.0, z_order),
+                                    transform: Transform::from_translation(translation),
                                     ..default()
                                 },
                                 GridPosition(position),
                             ));
+                            let tween = Tween::new(
+                                EaseFunction::QuadraticInOut,
+                                std::time::Duration::from_secs(0),
+                                TransformPositionLens {
+                                    start: translation,
+                                    end: translation,
+                                },
+                            );
                             if tile == Tile::Player {
-                                entity.insert((Player, AnimationState::default()));
+                                entity.insert((
+                                    Player,
+                                    AnimationState::default(),
+                                    Animator::new(tween),
+                                ));
                             } else if tile == Tile::Crate {
-                                entity.insert(Crate);
+                                entity.insert((Crate, Animator::new(tween)));
                             }
                         }
                     }

@@ -1,6 +1,8 @@
 use benimator::{Animation, FrameRate};
 use bevy::prelude::*;
 use bevy::winit::WinitWindows;
+use bevy_tweening::{lens::*, *};
+use nalgebra::Vector2;
 
 use crate::components::*;
 use crate::direction::Direction;
@@ -76,10 +78,24 @@ pub fn animate_player(
     sprite.index = animation_state.frame_index();
 }
 
+fn transform_tween(from: Vec3, to: Vec3, speed: f32) -> Tween<Transform> {
+    Tween::new(
+        EaseFunction::QuadraticOut,
+        Duration::from_secs_f32(speed),
+        TransformPositionLens {
+            start: from,
+            end: to,
+        },
+    )
+}
+
 /// Handles player movement and interacts with crates on the board.
 pub fn handle_player_movement(
-    mut player: Query<&mut GridPosition, With<Player>>,
-    mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
+    mut player: Query<(&mut GridPosition, &mut Transform, &mut Animator<Transform>), With<Player>>,
+    mut crates: Query<
+        (&mut GridPosition, &mut Transform, &mut Animator<Transform>),
+        (With<Crate>, Without<Player>),
+    >,
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
@@ -92,9 +108,18 @@ pub fn handle_player_movement(
         return;
     }
 
-    let board = &mut board.single_mut().board;
+    let Board { board, tile_size } = &mut *board.single_mut();
 
-    let player_grid_position = &mut **player.single_mut();
+    let level_dimensions = *board.level.dimensions();
+    let grid_position_to_translation = |grid_position: &Vector2<i32>| {
+        Vec2::new(
+            grid_position.x as f32 * tile_size.x,
+            level_dimensions.y as f32 * tile_size.y - grid_position.y as f32 * tile_size.y,
+        )
+    };
+
+    let (mut player_grid_position, mut player_transform, mut player_transform_animator) =
+        player.single_mut();
     if !config.instant_move {
         player_movement.timer.tick(time.delta());
         if !player_movement.timer.just_finished() {
@@ -121,14 +146,25 @@ pub fn handle_player_movement(
             player_grid_position.x += direction.to_vector().x;
             player_grid_position.y += direction.to_vector().y;
 
-            let old_crate_position = *player_grid_position;
+            *player_transform_animator = Animator::new(transform_tween(
+                player_transform.translation,
+                grid_position_to_translation(&player_grid_position.0)
+                    .extend(player_transform.translation.z),
+                config.player_move_speed,
+            ));
+
+            let old_crate_position = player_grid_position.clone();
             let new_crate_position = old_crate_position + direction.to_vector();
-            let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
-            if crate_grid_positions.contains(&player_grid_position) {
-                for mut crate_grid_position in crates.iter_mut() {
-                    if crate_grid_position.0 == old_crate_position {
-                        crate_grid_position.0 = new_crate_position;
-                    }
+            for (mut grid_position, transform, mut transform_animator) in crates.iter_mut() {
+                if grid_position.0 == old_crate_position {
+                    grid_position.0 = new_crate_position;
+
+                    *transform_animator = Animator::new(transform_tween(
+                        transform.translation,
+                        grid_position_to_translation(&grid_position.0)
+                            .extend(transform.translation.z),
+                        config.player_move_speed,
+                    ));
                 }
             }
         }
@@ -139,14 +175,18 @@ pub fn handle_player_movement(
             player_grid_position.x += direction.to_vector().x;
             player_grid_position.y += direction.to_vector().y;
 
-            let old_crate_position = *player_grid_position;
+            player_transform.translation = grid_position_to_translation(&player_grid_position.0)
+                .extend(player_transform.translation.z);
+
+            let old_crate_position = player_grid_position.clone();
             let new_crate_position = old_crate_position + direction.to_vector();
-            let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
-            if crate_grid_positions.contains(&player_grid_position) {
-                for mut crate_grid_position in crates.iter_mut() {
-                    if crate_grid_position.0 == old_crate_position {
-                        crate_grid_position.0 = new_crate_position;
-                    }
+            for (mut crate_grid_position, mut crate_transform, ..) in crates.iter_mut() {
+                if crate_grid_position.0 == old_crate_position {
+                    crate_grid_position.0 = new_crate_position;
+
+                    crate_transform.translation =
+                        grid_position_to_translation(&crate_grid_position.0)
+                            .extend(crate_transform.translation.z);
                 }
             }
         }
@@ -159,12 +199,12 @@ pub fn handle_player_movement(
 
 /// Applies smooth motion to tiles based on their grid positions.
 pub fn smooth_tile_motion(
-    mut tiles: Query<(&mut Transform, &GridPosition)>,
+    mut tiles: Query<(&mut Transform, &GridPosition, &mut Animator<Transform>)>,
     board: Query<&Board>,
     config: Res<Config>,
 ) {
     let Board { board, tile_size } = &board.single();
-    for (mut transform, grid_position) in tiles.iter_mut() {
+    for (mut transform, grid_position, mut transform_animator) in tiles.iter_mut() {
         if !config.instant_move {
             let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
 
@@ -172,6 +212,7 @@ pub fn smooth_tile_motion(
             let target_y = board.level.dimensions().y as f32 * tile_size.y
                 - grid_position.y as f32 * tile_size.y;
 
+            /*
             if (transform.translation.x - target_x).abs() > 0.001 {
                 transform.translation.x = lerp(transform.translation.x, target_x, 0.3);
             } else {
@@ -182,6 +223,17 @@ pub fn smooth_tile_motion(
             } else {
                 transform.translation.y = target_y;
             }
+            */
+
+            let tween = Tween::new(
+                EaseFunction::QuadraticInOut,
+                Duration::from_secs_f32(1.0),
+                TransformPositionLens {
+                    start: transform.translation,
+                    end: Vec3::new(target_x, target_y, transform.translation.z),
+                },
+            );
+            *transform_animator = Animator::new(tween);
         } else {
             transform.translation.x = grid_position.x as f32 * tile_size.x;
             transform.translation.y = board.level.dimensions().y as f32 * tile_size.y

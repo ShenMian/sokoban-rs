@@ -23,6 +23,7 @@ bevy = "0.12"
 leafwing-input-manager = "0.11"
 bevy_kira_audio = "0.18"
 benimator = "4.1"
+bevy_tweening = "0.9.0"
 bevy_editor_pls = "0.7"
 
 rusqlite = { version = "0.30", features = ["bundled"] }

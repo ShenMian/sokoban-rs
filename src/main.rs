@@ -17,6 +17,7 @@ mod test;
 
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
+use bevy_tweening::*;
 use events::*;
 use input_action_map::*;
 use leafwing_input_manager::prelude::*;
@@ -80,6 +81,7 @@ fn main() {
         AudioPlugin,
         PerformanceMatrixPlugin,
         InputManagerPlugin::<Action>::default(),
+        TweeningPlugin,
         // EditorPlugin::default(),
     ))
     .add_state::<AppState>()
@@ -93,9 +95,8 @@ fn main() {
             setup_hud,
             setup_level,
         ),
-    );
-
-    app.add_systems(
+    )
+    .add_systems(
         Update,
         (
             button_visual_effect,
@@ -125,7 +126,7 @@ fn main() {
     )
     .add_systems(
         FixedUpdate,
-        (handle_player_movement, smooth_tile_motion).run_if(in_state(AppState::Main)),
+        (handle_player_movement /*smooth_tile_motion*/,).run_if(in_state(AppState::Main)),
     );
 
     app.add_systems(
