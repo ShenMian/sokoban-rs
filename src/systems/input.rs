@@ -15,73 +15,6 @@ use crate::systems::level::*;
 use crate::AppState;
 use crate::{components::*, Action};
 
-/// Moves the player to the specified target position on the board.
-pub fn player_move_to(
-    target: &Vector2<i32>,
-    player_movement: &mut PlayerMovement,
-    board: &crate::board::Board,
-) {
-    if let Some(path) = find_path(&board.level.player_position, target, |position| {
-        board
-            .level
-            .get_unchecked(&position)
-            .intersects(Tile::Wall | Tile::Crate)
-    }) {
-        let directions = path
-            .windows(2)
-            .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
-        for direction in directions {
-            player_move_unchecked(direction, player_movement);
-        }
-    }
-}
-
-/// Adds movement without checking for moveability.
-pub fn player_move_unchecked(direction: Direction, player_movement: &mut PlayerMovement) {
-    player_movement.directions.push_front(direction);
-}
-
-/// Adds movement if the move is valid.
-pub fn player_move(
-    direction: Direction,
-    player_movement: &mut PlayerMovement,
-    board: &crate::board::Board,
-) {
-    if !board.moveable(direction) {
-        return;
-    }
-    player_movement.directions.push_front(direction);
-}
-
-pub fn instant_player_move_to(
-    target: &Vector2<i32>,
-    board_clone: &mut crate::board::Board,
-    player_movement: &mut PlayerMovement,
-) {
-    if let Some(path) = find_path(&board_clone.level.player_position, target, |position| {
-        board_clone
-            .level
-            .get_unchecked(&position)
-            .intersects(Tile::Wall | Tile::Crate)
-    }) {
-        let directions = path
-            .windows(2)
-            .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
-        for direction in directions {
-            instant_player_move(direction, board_clone, player_movement);
-        }
-    }
-}
-
-pub fn instant_player_move(
-    direction: Direction,
-    board_clone: &mut crate::board::Board,
-    player_movement: &mut PlayerMovement,
-) {
-    board_clone.move_or_push(direction);
-    player_movement.directions.push_front(direction);
-}
-
 /// Clears the action state by consuming all stored actions.
 pub fn clear_action_state(mut action_state: ResMut<ActionState<Action>>) {
     action_state.consume_all();
@@ -143,6 +76,73 @@ pub fn handle_actions(
         AppState::AutoMove => handle_viewport_zoom_action(&action_state, main_camera),
         AppState::AutoSolve => handle_viewport_zoom_action(&action_state, main_camera),
     }
+}
+
+/// Adds movement without checking for moveability.
+pub fn player_move_unchecked(direction: Direction, player_movement: &mut PlayerMovement) {
+    player_movement.directions.push_front(direction);
+}
+
+/// Moves the player to the specified target position on the board.
+fn player_move_to(
+    target: &Vector2<i32>,
+    player_movement: &mut PlayerMovement,
+    board: &crate::board::Board,
+) {
+    if let Some(path) = find_path(&board.level.player_position, target, |position| {
+        board
+            .level
+            .get_unchecked(&position)
+            .intersects(Tile::Wall | Tile::Crate)
+    }) {
+        let directions = path
+            .windows(2)
+            .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
+        for direction in directions {
+            player_move_unchecked(direction, player_movement);
+        }
+    }
+}
+
+/// Adds movement if the move is valid.
+fn player_move(
+    direction: Direction,
+    player_movement: &mut PlayerMovement,
+    board: &crate::board::Board,
+) {
+    if !board.moveable(direction) {
+        return;
+    }
+    player_movement.directions.push_front(direction);
+}
+
+fn instant_player_move_to(
+    target: &Vector2<i32>,
+    board_clone: &mut crate::board::Board,
+    player_movement: &mut PlayerMovement,
+) {
+    if let Some(path) = find_path(&board_clone.level.player_position, target, |position| {
+        board_clone
+            .level
+            .get_unchecked(&position)
+            .intersects(Tile::Wall | Tile::Crate)
+    }) {
+        let directions = path
+            .windows(2)
+            .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
+        for direction in directions {
+            instant_player_move(direction, board_clone, player_movement);
+        }
+    }
+}
+
+fn instant_player_move(
+    direction: Direction,
+    board_clone: &mut crate::board::Board,
+    player_movement: &mut PlayerMovement,
+) {
+    board_clone.move_or_push(direction);
+    player_movement.directions.push_front(direction);
 }
 
 fn handle_viewport_zoom_action(action_state: &ActionState<Action>, main_camera: &mut MainCamera) {

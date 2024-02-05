@@ -44,13 +44,13 @@ pub fn setup_hud(mut commands: Commands) {
         TextBundle::from_sections([
             text_section(Color::SEA_GREEN.with_a(ALPHA), "Level : "),
             text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "\nMoves : "),
+            text_section(Color::SEA_GREEN.with_a(ALPHA), "Moves : "),
             text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "\nPushes: "),
+            text_section(Color::SEA_GREEN.with_a(ALPHA), "Pushes: "),
             text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "\nBest moves : "),
+            text_section(Color::SEA_GREEN.with_a(ALPHA), "Best moves : "),
             text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "\nBest pushes: "),
+            text_section(Color::SEA_GREEN.with_a(ALPHA), "Best pushes: "),
             text_section(Color::GOLD.with_a(ALPHA), ""),
         ])
         .with_style(Style {
@@ -73,15 +73,15 @@ pub fn update_hud(
     let board = &board.single().board;
 
     if level_id.is_changed() {
-        hud.sections[1].value = format!("#{}", **level_id);
+        hud.sections[1].value = format!("#{}\n", **level_id);
 
         let database = database.lock().unwrap();
-        hud.sections[7].value = format!("{}", database.best_move_count(**level_id).unwrap_or(0));
-        hud.sections[9].value = format!("{}", database.best_push_count(**level_id).unwrap_or(0));
+        hud.sections[7].value = format!("{}\n", database.best_move_count(**level_id).unwrap_or(0));
+        hud.sections[9].value = format!("{}\n", database.best_push_count(**level_id).unwrap_or(0));
     }
 
-    hud.sections[3].value = format!("{}", board.movements().move_count());
-    hud.sections[5].value = format!("{}", board.movements().push_count());
+    hud.sections[3].value = format!("{}\n", board.movements().move_count());
+    hud.sections[5].value = format!("{}\n", board.movements().push_count());
 }
 
 /// Sets up buttons on the screen.
