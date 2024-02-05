@@ -1,20 +1,32 @@
 // #![feature(test)]
 
+mod board;
+mod components;
+mod database;
+mod direction;
+mod events;
+mod input_action_map;
+mod level;
+mod movement;
+mod plugins;
+mod resources;
+mod solver;
+mod state;
+mod systems;
+mod test;
+
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
+use events::*;
+use input_action_map::*;
 use leafwing_input_manager::prelude::*;
-
+use level::*;
+use plugins::performance_matrix::*;
+use resources::*;
+use state::*;
 use std::collections::VecDeque;
 use std::fs;
 use std::path::Path;
-
-mod state;
-use state::*;
-
-mod level;
-use level::*;
-
-mod systems;
 use systems::audio::*;
 use systems::auto_move::*;
 use systems::auto_solve::*;
@@ -22,26 +34,6 @@ use systems::input::*;
 use systems::level::*;
 use systems::render::*;
 use systems::ui::*;
-
-mod plugins;
-use plugins::performance_matrix::*;
-
-mod resources;
-use resources::*;
-
-mod events;
-use events::*;
-
-mod input_action_map;
-use input_action_map::*;
-
-mod board;
-mod components;
-mod database;
-mod direction;
-mod movement;
-mod solver;
-mod test;
 
 #[allow(unused_imports)]
 use bevy_editor_pls::prelude::*;

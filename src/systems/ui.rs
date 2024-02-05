@@ -86,6 +86,36 @@ pub fn update_hud(
 
 /// Sets up buttons on the screen.
 pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let button = |parent: &mut ChildBuilder, action, img_path| {
+        parent
+            .spawn((
+                action,
+                ButtonBundle {
+                    style: Style {
+                        width: Val::Px(64.0),
+                        height: Val::Px(64.0),
+                        justify_content: JustifyContent::Center,
+                        align_items: AlignItems::Center,
+                        border: UiRect::all(Val::Px(5.0)),
+                        ..default()
+                    },
+                    border_color: Color::NONE.into(),
+                    background_color: BUTTON_NORMAL_COLOR.into(),
+                    ..default()
+                },
+            ))
+            .with_children(|parent| {
+                parent.spawn(ImageBundle {
+                    style: Style {
+                        width: Val::Percent(100.0),
+                        height: Val::Percent(100.0),
+                        ..default()
+                    },
+                    image: asset_server.load(img_path).into(),
+                    ..default()
+                });
+            });
+    };
     commands
         .spawn(NodeBundle {
             style: Style {
@@ -98,118 +128,18 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..default()
         })
         .with_children(|parent| {
-            parent
-                .spawn((
-                    Action::ToggleInstantMove,
-                    ButtonBundle {
-                        style: Style {
-                            width: Val::Px(64.0),
-                            height: Val::Px(64.0),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
-                            border: UiRect::all(Val::Px(5.0)),
-                            ..default()
-                        },
-                        border_color: Color::NONE.into(),
-                        background_color: BUTTON_NORMAL_COLOR.into(),
-                        ..default()
-                    },
-                ))
-                .with_children(|parent| {
-                    parent.spawn(ImageBundle {
-                        style: Style {
-                            width: Val::Percent(100.0),
-                            height: Val::Percent(100.0),
-                            ..default()
-                        },
-                        image: asset_server.load("textures/instant_move_off.png").into(),
-                        ..default()
-                    });
-                });
-            parent
-                .spawn((
-                    Action::ToggleAutomaticSolution,
-                    ButtonBundle {
-                        style: Style {
-                            width: Val::Px(64.0),
-                            height: Val::Px(64.0),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
-                            border: UiRect::all(Val::Px(5.0)),
-                            ..default()
-                        },
-                        border_color: Color::NONE.into(),
-                        background_color: BUTTON_NORMAL_COLOR.into(),
-                        ..default()
-                    },
-                ))
-                .with_children(|parent| {
-                    parent.spawn(ImageBundle {
-                        style: Style {
-                            width: Val::Percent(100.0),
-                            height: Val::Percent(100.0),
-                            ..default()
-                        },
-                        image: asset_server.load("textures/automatic_solution.png").into(),
-                        ..default()
-                    });
-                });
-            parent
-                .spawn((
-                    Action::PreviousLevel,
-                    ButtonBundle {
-                        style: Style {
-                            width: Val::Px(64.0),
-                            height: Val::Px(64.0),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
-                            border: UiRect::all(Val::Px(5.0)),
-                            ..default()
-                        },
-                        border_color: Color::NONE.into(),
-                        background_color: BUTTON_NORMAL_COLOR.into(),
-                        ..default()
-                    },
-                ))
-                .with_children(|parent| {
-                    parent.spawn(ImageBundle {
-                        style: Style {
-                            width: Val::Percent(100.0),
-                            height: Val::Percent(100.0),
-                            ..default()
-                        },
-                        image: asset_server.load("textures/previous.png").into(),
-                        ..default()
-                    });
-                });
-            parent
-                .spawn((
-                    Action::NextLevel,
-                    ButtonBundle {
-                        style: Style {
-                            width: Val::Px(64.0),
-                            height: Val::Px(64.0),
-                            justify_content: JustifyContent::Center,
-                            align_items: AlignItems::Center,
-                            border: UiRect::all(Val::Px(5.0)),
-                            ..default()
-                        },
-                        border_color: Color::NONE.into(),
-                        background_color: BUTTON_NORMAL_COLOR.into(),
-                        ..default()
-                    },
-                ))
-                .with_children(|parent| {
-                    parent.spawn(ImageBundle {
-                        style: Style {
-                            width: Val::Percent(100.0),
-                            height: Val::Percent(100.0),
-                            ..default()
-                        },
-                        image: asset_server.load("textures/next.png").into(),
-                        ..default()
-                    });
-                });
+            button(
+                parent,
+                Action::ToggleInstantMove,
+                "textures/instant_move_off.png",
+            );
+            button(
+                parent,
+                Action::ToggleAutomaticSolution,
+                "textures/automatic_solution.png",
+            );
+            button(parent, Action::PreviousLevel, "textures/previous.png");
+            button(parent, Action::NextLevel, "textures/next.png");
         });
 }
 
