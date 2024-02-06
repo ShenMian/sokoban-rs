@@ -58,14 +58,14 @@ pub fn handle_actions(
                 &database,
                 board,
             );
-            handle_toggle_instant_move_action(&action_state, &mut config);
-            handle_toggle_toggle_fullscreen_action(&action_state, window);
+            handle_toggle_fullscreen_action(&action_state, window);
             handle_undo_redo_action(
                 &action_state,
                 &mut player_movement,
                 board,
                 &mut update_grid_position_events,
             );
+            handle_toggle_instant_move_action(&action_state, &mut config);
             handle_automatic_solution_action(
                 &action_state,
                 &state,
@@ -73,8 +73,21 @@ pub fn handle_actions(
                 &mut player_movement,
             );
         }
-        AppState::AutoMove => handle_viewport_zoom_action(&action_state, main_camera),
-        AppState::AutoSolve => handle_viewport_zoom_action(&action_state, main_camera),
+        AppState::AutoMove => {
+            handle_viewport_zoom_action(&action_state, main_camera);
+            handle_toggle_fullscreen_action(&action_state, window);
+        }
+        AppState::AutoSolve => {
+            handle_viewport_zoom_action(&action_state, main_camera);
+            handle_toggle_fullscreen_action(&action_state, window);
+            handle_toggle_instant_move_action(&action_state, &mut config);
+            handle_automatic_solution_action(
+                &action_state,
+                &state,
+                &mut next_state,
+                &mut player_movement,
+            );
+        }
     }
 }
 
@@ -224,7 +237,7 @@ fn handle_toggle_instant_move_action(
     }
 }
 
-fn handle_toggle_toggle_fullscreen_action(action_state: &ActionState<Action>, window: &mut Window) {
+fn handle_toggle_fullscreen_action(action_state: &ActionState<Action>, window: &mut Window) {
     if action_state.just_pressed(Action::ToggleFullscreen) {
         window.mode = match window.mode {
             WindowMode::BorderlessFullscreen => WindowMode::Windowed,
