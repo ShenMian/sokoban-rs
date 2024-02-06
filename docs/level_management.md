@@ -16,10 +16,10 @@
 
 Supports importing levels in XSB format (support run-length encoding) from files or system clipboard:
 
-- Import from file: User can drag single or multiple level files in XSB format into the window.
-- Import from clipboard: If the level in XSB format is already in the clipboard, it can be imported by input action.
+- Import from files: The user can drag single or multiple level files in XSB format into the window.
+- Import from clipboard: If some levels in XSB format is already in the clipboard, it can be imported using the input action.
 
-The levels will be standardized first to prevent repeated import of the same or similar levels. The standardized levels are only used for deduplication, and the final imported levels are not standardized.
+The levels will first be standardized to prevent repeated import of the same or similar levels. The standardized levels are only used for deduplication, and the final imported levels are not standardized.
 
 Levels that meet the following conditions are considered similar:
 

@@ -15,7 +15,7 @@ A sokoban with solver.
   <p align="center"><img src="./docs/assets/auto_crate_push.gif" width=50%></p>
 
 - [**Level management**](docs/level_management.md):
-  Levels and solutions are stored in a database.
+  Levels and solutions are stored in the database.
 
 - [**Customizing**](docs/customizing.md):
   Options can be customized via configuration file.
@@ -24,7 +24,7 @@ A sokoban with solver.
   Supports moving and zooming the map. When switching levels, the zoom will be automatically adjusted to fit the window size.
 
 - **Player character animation**:
-  Player character have smooth movement and movement animations in different directions.
+  Player character has smooth movement and movement animations in different directions.
 
 - **Front-end and back-end separation**:
   Backend code (such as solvers) does not depend on frontend (such as Bevy).
@@ -34,13 +34,13 @@ A sokoban with solver.
 ### Mouse
 
 | Key                                   | Action                                   |
-|---------------------------------------|------------------------------------------|
+| ------------------------------------- | ---------------------------------------- |
 | Click `Left` on player reachable area | Move the character to this position      |
 | Click `Left` on a crate               | Show the pushable area of the crate      |
 | Click `Left` on crate pushable area   | Push the selected crate to this position |
 | Hold `Right` and drag                 | Adjust viewport                          |
-| Click `Button 4`                      | Undo last push                           |
-| Click `Button 5`                      | Redo last push                           |
+| Click `Button 4`                      | Undo the last push                       |
+| Click `Button 5`                      | Redo the last push                       |
 | Scroll `Middle`                       | Zoom in/out                              |
 
 ### Keyboard
@@ -51,8 +51,8 @@ A sokoban with solver.
 | Arrow keys                | Move the character                         |
 | `[`/`]`                   | Switch to the previous/next level          |
 | `Ctrl` + `[`/`Ctrl` + `]` | Switch to the previous/next unsolved level |
-| `Ctrl` + `Z`              | Undo last push                             |
-| `Ctrl` + `Shift` + `Z`    | Redo last push                             |
+| `Ctrl` + `Z`              | Undo the last push                         |
+| `Ctrl` + `Shift` + `Z`    | Redo the last push                         |
 | `Esc`                     | Reset current level                        |
 | `-`/`=`                   | Zoom in/out                                |
 | `Ctrl` + `V`              | Import levels from clipboard               |
@@ -63,11 +63,11 @@ A sokoban with solver.
 
 ### Keyboard (Vim)
 
-| Key             | Action                            |
-|-----------------|-----------------------------------|
-| `H`/`J`/`K`/`L` | Move the character                |
-| `U`             | Undo last push                    |
-| `Ctrl` + `R`    | Redo last push                    |
+| Key             | Action             |
+| --------------- | ------------------ |
+| `H`/`J`/`K`/`L` | Move the character |
+| `U`             | Undo the last push |
+| `Ctrl` + `R`    | Redo the last push |
 
 ### Controller
 
@@ -75,8 +75,8 @@ A sokoban with solver.
 | -------------- | --------------------------------- |
 | D-Pad          | Move the character                |
 | `LB`/`RB`      | Switch to the previous/next level |
-| `B`/`Circle`   | Undo last push                    |
-| `A`/`Cross`    | Redo last push                    |
+| `B`/`Circle`   | Undo the last push                |
+| `A`/`Cross`    | Redo the last push                |
 | `LT`/`RT`      | Zoom in/out                       |
 | Right stick    | Adjust viewport                   |
 | `X`/`Square`   | Toggle instant move[^1]           |

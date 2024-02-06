@@ -2,7 +2,7 @@
 
 <p align="center"><img src="assets/auto_solve.gif" width=70%></p>
 
-The solver can automatically solve simple levels.
+The solver can automatically solve levels of moderate complexity.
 
 ## Strategy
 
@@ -14,21 +14,21 @@ The solver can automatically solve simple levels.
 ## Lower bound calculation method
 
 - `MinimumPush`: Minimum push count to nearest target.
-- `MinimumMove`: Minimum move count to nearest target. (Slow, especially on maps with many crates or large areas)
-- `ManhattanDistance`: Manhattan distance to nearest target. (Fast, suitable for maps with many crates or large areas)
+- `MinimumMove`: Minimum move count to nearest target. (This method is slow, especially on maps with many crates or large areas)
+- `ManhattanDistance`: Manhattan distance to nearest target. (This method is fast, suitable for maps with many crates or large areas)
 
 ## Optimization
 
 - Deadlocks detection.
-  - Dead square deadlocks.
-  - Freeze deadlocks.
+  - Detects dead square deadlocks.
+  - Detects freeze deadlocks.
 - Tunnels detection.
 
 ## Statistics
 
 CPU       : 13th Gen Intel(R) Core(TM) i9-13900HX (Base speed: 2.20 GHz).  
 Threads   : 1.  
-Time limit: 10 sec.
+Time limit: 10 seconds.
 
 | Collection          | Total | Solved |
 | ------------------- | ----- | ------ |
@@ -38,7 +38,7 @@ Time limit: 10 sec.
 
 ## Visualization
 
-Supports visualization of the automatic solution process. This feature can be used to intuitively view the working status of the solver.
+Supports visualizing the automatic solution process. This feature can be used to intuitively view the working status of the solver.
 
 - Displays the optimal state obtained by the current solver.
 - Display the lower bound as a heat map.
