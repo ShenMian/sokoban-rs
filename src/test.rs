@@ -47,7 +47,7 @@ mod tests {
 
             let mut board = Board::with_level(level);
             for movement in &*solution {
-                board.move_or_push(movement.direction);
+                board.move_or_push(movement.direction());
             }
             assert!(board.is_solved());
         }

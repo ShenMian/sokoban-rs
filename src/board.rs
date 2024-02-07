@@ -75,9 +75,9 @@ impl Board {
             }
             self.move_crate(player_next_position, crate_next_position);
 
-            self.movements.push(Movement::with_push(direction));
+            self.movements.push(Movement::Push(direction));
         } else {
-            self.movements.push(Movement::with_move(direction));
+            self.movements.push(Movement::Move(direction));
         }
         self.move_player(player_next_position);
         self.undone_movements.clear();
@@ -86,7 +86,7 @@ impl Board {
     /// Undoes the last push.
     pub fn undo_push(&mut self) {
         while let Some(history) = self.movements.last() {
-            if history.is_push {
+            if history.is_push() {
                 self.undo_move();
                 return;
             }
@@ -98,8 +98,8 @@ impl Board {
     pub fn undo_move(&mut self) {
         debug_assert!(!self.movements.is_empty());
         let history = self.movements.pop().unwrap();
-        let direction = history.direction;
-        if history.is_push {
+        let direction = history.direction();
+        if history.is_push() {
             let crate_position = self.level.player_position + direction.to_vector();
             self.move_crate(crate_position, self.level.player_position.clone());
         }
@@ -111,7 +111,7 @@ impl Board {
     /// Redoes the last push.
     pub fn redo_push(&mut self) {
         while let Some(history) = self.undone_movements.last() {
-            if history.is_push {
+            if history.is_push() {
                 self.redo_move();
                 return;
             }
@@ -124,7 +124,7 @@ impl Board {
         debug_assert!(!self.undone_movements.is_empty());
         let history = self.undone_movements.pop().unwrap();
         let undone_movements = self.undone_movements.clone();
-        self.move_or_push(history.direction);
+        self.move_or_push(history.direction());
         self.undone_movements = undone_movements;
     }
 
@@ -141,7 +141,7 @@ impl Board {
     pub fn player_orientation(&self) -> Direction {
         self.movements
             .last()
-            .map(|movement| movement.direction)
+            .map(|movement| movement.direction())
             .unwrap_or(Direction::Down)
     }
 

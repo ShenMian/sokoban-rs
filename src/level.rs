@@ -47,10 +47,10 @@ impl Hash for Level {
     }
 }
 
-#[derive(Debug)]
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub enum ParseMapError {
-    MoreThanOnePlayer,
     NoPlayer,
+    MoreThanOnePlayer,
     MismatchBetweenCratesAndTargets,
     InvalidCharacter(char),
 }

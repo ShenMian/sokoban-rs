@@ -3,36 +3,50 @@ use std::ops::{Deref, DerefMut};
 use crate::direction::Direction;
 
 #[derive(Clone, PartialEq, Eq, Debug)]
-pub struct Movement {
-    pub direction: Direction,
-    pub is_push: bool,
+pub enum Movement {
+    Move(Direction),
+    Push(Direction),
+}
+
+impl Movement {
+    pub fn direction(&self) -> Direction {
+        match self {
+            Movement::Move(direction) => *direction,
+            Movement::Push(direction) => *direction,
+        }
+    }
+
+    pub fn is_push(&self) -> bool {
+        matches!(&self, Movement::Push(_))
+    }
 }
 
 impl From<char> for Movement {
-    fn from(item: char) -> Self {
-        let direction = match item.to_ascii_lowercase() {
+    fn from(ch: char) -> Self {
+        let direction = match ch.to_ascii_lowercase() {
             'u' => Direction::Up,
             'd' => Direction::Down,
             'l' => Direction::Left,
             'r' => Direction::Right,
             _ => panic!("invalid character"),
         };
-        Self {
-            direction,
-            is_push: item.is_uppercase(),
+        if ch.is_uppercase() {
+            Movement::Push(direction)
+        } else {
+            Movement::Move(direction)
         }
     }
 }
 
 impl Into<char> for Movement {
     fn into(self) -> char {
-        let c = match self.direction {
+        let c = match self.direction() {
             Direction::Up => 'u',
             Direction::Down => 'd',
             Direction::Left => 'l',
             Direction::Right => 'r',
         };
-        if self.is_push {
+        if self.is_push() {
             c.to_ascii_uppercase()
         } else {
             c
@@ -40,24 +54,26 @@ impl Into<char> for Movement {
     }
 }
 
-impl Movement {
-    pub fn with_move(direction: Direction) -> Self {
-        Self {
-            direction,
-            is_push: false,
-        }
-    }
-
-    pub fn with_push(direction: Direction) -> Self {
-        Self {
-            direction,
-            is_push: true,
-        }
-    }
-}
-
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Movements(pub Vec<Movement>);
+
+impl Movements {
+    pub fn new() -> Self {
+        Self(Vec::new())
+    }
+
+    pub fn move_count(&self) -> usize {
+        self.len()
+    }
+
+    pub fn push_count(&self) -> usize {
+        self.iter().filter(|x| x.is_push()).count()
+    }
+
+    pub fn lurd(&self) -> String {
+        self.iter().map(|x| Into::<char>::into(x.clone())).collect()
+    }
+}
 
 impl Deref for Movements {
     type Target = Vec<Movement>;
@@ -70,23 +86,5 @@ impl Deref for Movements {
 impl DerefMut for Movements {
     fn deref_mut(&mut self) -> &mut Self::Target {
         &mut self.0
-    }
-}
-
-impl Movements {
-    pub fn new() -> Self {
-        Self(Vec::new())
-    }
-
-    pub fn move_count(&self) -> usize {
-        self.len()
-    }
-
-    pub fn push_count(&self) -> usize {
-        self.iter().filter(|x| x.is_push).count()
-    }
-
-    pub fn lurd(&self) -> String {
-        self.iter().map(|x| Into::<char>::into(x.clone())).collect()
     }
 }

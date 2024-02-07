@@ -109,7 +109,7 @@ pub fn update_solver(
         Ok(solution) => {
             let mut verify_board = board.clone();
             for movement in &*solution {
-                verify_board.move_or_push(movement.direction);
+                verify_board.move_or_push(movement.direction());
             }
             assert!(verify_board.is_solved());
 
@@ -126,7 +126,7 @@ pub fn update_solver(
             info!("    Solution: {}", solution.lurd());
 
             for movement in &*solution {
-                player_move_unchecked(movement.direction, &mut player_movement);
+                player_move_unchecked(movement.direction(), &mut player_movement);
             }
             next_state.set(AppState::Main);
             return;
@@ -152,7 +152,7 @@ pub fn update_solver(
         //     best_state.movements.push_count()
         // );
         for movement in &*best_state.movements {
-            board.move_or_push(movement.direction);
+            board.move_or_push(movement.direction());
         }
     }
 }

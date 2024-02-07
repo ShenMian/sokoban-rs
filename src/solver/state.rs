@@ -117,9 +117,9 @@ impl State {
                 new_movements.extend(
                     path.windows(2)
                         .map(|p| Direction::from_vector(p[1] - p[0]).unwrap())
-                        .map(Movement::with_move),
+                        .map(Movement::Move),
                 );
-                new_movements.push(Movement::with_push(push_direction));
+                new_movements.push(Movement::Push(push_direction));
 
                 // skip tunnels
                 while solver.tunnels().contains(&(
@@ -132,7 +132,7 @@ impl State {
                         break;
                     }
                     new_crate_position += push_direction.to_vector();
-                    new_movements.push(Movement::with_push(push_direction));
+                    new_movements.push(Movement::Push(push_direction));
                 }
 
                 let mut new_crate_positions = self.crate_positions.clone();

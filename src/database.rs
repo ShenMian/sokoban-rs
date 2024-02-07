@@ -3,7 +3,7 @@ use rusqlite::Connection;
 use siphasher::sip::SipHasher24;
 
 use crate::level::Level;
-use crate::movement::Movement;
+use crate::movement::Movements;
 
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
@@ -157,16 +157,14 @@ impl Database {
         Some(row.get(0).unwrap())
     }
 
-    pub fn update_solution(&self, level_id: u64, solution: &[Movement]) {
-        let move_count = solution.len();
-        let push_count = solution.iter().filter(|x| x.is_push).count();
+    pub fn update_solution(&self, level_id: u64, solution: &Movements) {
         let lurd: String = solution
             .iter()
             .map(|x| Into::<char>::into(x.clone()))
             .collect();
 
         if let Some(best_move_count) = self.best_move_count(level_id) {
-            if move_count < best_move_count {
+            if solution.move_count() < best_move_count {
                 self.connection
                     .execute(
                         "UPDATE tb_solution SET best_move_solution = ? WHERE level_id = ?",
@@ -177,7 +175,7 @@ impl Database {
         }
 
         if let Some(best_push_count) = self.best_push_count(level_id) {
-            if push_count < best_push_count {
+            if solution.push_count() < best_push_count {
                 self.connection
                     .execute(
                         "UPDATE tb_solution SET best_push_solution = ? WHERE level_id = ?",
