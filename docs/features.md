@@ -11,24 +11,16 @@
 | macOS    | :heavy_check_mark:       |
 | Android  | :heavy_multiplication_x: |
 
-### Limits
-
-|                  | Limit     |
-| ---------------- | --------- |
-| Maximal map size | unlimited |
-| Maximal moves    | unlimited |
-| Maximal boxes    | unlimited |
-
 ## Game play
 
 ### HID
 
-| Feature    | Support                  |
-| ---------- | ------------------------ |
-| Keyboard   | :heavy_check_mark:       |
-| Mouse      | :heavy_check_mark:       |
-| Controller | :heavy_check_mark:       |
-| Touchpad   | :heavy_multiplication_x: |
+| Feature    | Support                                                |
+| ---------- | ------------------------------------------------------ |
+| Keyboard   | :heavy_check_mark:                                     |
+| Mouse      | :heavy_check_mark:                                     |
+| Controller | :heavy_check_mark:                                     |
+| Touchpad   | :heavy_multiplication_x: (Waiting for Android support) |
 
 ### Basic
 
@@ -39,7 +31,7 @@
 | push or move optimized pathfinding                                    | :heavy_check_mark:                                                  |
 | move animation modes                                                  | smooth, instant                                                     |
 | mouse move control: select and drop [^1]                              | :heavy_check_mark:                                                  |
-| mouse move control: drag and track [^2]                               | :heavy_multiplication_x:                                            |
+| mouse move control: drag and track [^2]                               | :heavy_multiplication_x: (Waiting for Android support)              |
 | reverse mode play starting at end position (pull instead of push)     | :heavy_multiplication_x:                                            |
 | show secondary metrics (box-pushes, box-changes and pushing-sessions) | :heavy_multiplication_x:                                            |
 | timing                                                                | :heavy_multiplication_x:                                            |
@@ -92,11 +84,10 @@
 
 | Feature                              | Support                  |
 | ------------------------------------ | ------------------------ |
-| level browser with preview           | :heavy_multiplication_x: |
 | resize skin to fit window            | :heavy_check_mark:       |
 | levels larger than window: scrolling | :heavy_check_mark:       |
-| search for unsolved level            | next                     |
-| rotate and mirror level-map          | :heavy_multiplication_x: |
+| search for unsolved level            | next, previous           |
+| rotate and mirror map                | :heavy_multiplication_x: |
 | full screen                          | :heavy_check_mark:       |
 
 ## Level management
@@ -118,6 +109,13 @@
 | ------------------------------------------------- | ------------------------ |
 | import levels with hyphens "-" or underscores "_" | :heavy_check_mark:       |
 | export levels with hyphens "-" or underscores "_" | :heavy_multiplication_x: |
+
+## Features will not be implemented
+
+| Feature                    | Reasons                                                   |
+| -------------------------- | --------------------------------------------------------- |
+| level browser with preview | It is not appropriate to use the Bevy engine to implement |
+| Support iOS                | No device running iOS                                     |
 
 ## See also
 
