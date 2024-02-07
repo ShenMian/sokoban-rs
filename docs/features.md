@@ -26,7 +26,7 @@
 
 | Feature                                                               | Support                                                             |
 | --------------------------------------------------------------------- | ------------------------------------------------------------------- |
-| autosave best solutions                                               | moves, pushes                                                       |
+| autosave best solutions                                               | tiebreaking: moves, pushes                                          |
 | autosave solutions options                                            | always autosaves better solutions, inferior solutions are discarded |
 | push or move optimized pathfinding                                    | :heavy_check_mark:                                                  |
 | move animation modes                                                  | smooth, instant                                                     |
@@ -42,13 +42,13 @@
 
 ### Legal moves
 
-| Feature                          | Support                  |
-| -------------------------------- | ------------------------ |
-| show player's reachable squares  | :heavy_check_mark:       |
-| show box's reachable squares     | :heavy_check_mark:       |
-| show pushable boxes              | :heavy_multiplication_x: |
-| simple deadlock detection [^3]   | :heavy_multiplication_x: |
-| advanced deadlock detection [^4] | :heavy_multiplication_x: |
+| Feature                          | Support                                       |
+| -------------------------------- | --------------------------------------------- |
+| show player's reachable squares  | :heavy_check_mark: figure: small square blobs |
+| show box's reachable squares     | :heavy_check_mark: figure: small square blobs |
+| show pushable boxes              | :heavy_multiplication_x:                      |
+| simple deadlock detection [^3]   | :heavy_multiplication_x:                      |
+| advanced deadlock detection [^4] | :heavy_multiplication_x:                      |
 
 [^3]: Dead squares/freeze deadlocks.
 [^4]: Bipartite deadlocks/corral deadlocks.
@@ -57,7 +57,7 @@
 
 | Feature               | Support                  |
 | --------------------- | ------------------------ |
-| undo/redo             | unlimited                |
+| undo/redo             | :heavy_check_mark:       |
 | undo all              | :heavy_multiplication_x: |
 | redo all              | :heavy_multiplication_x: |
 | replay                | :heavy_multiplication_x: |
