@@ -57,6 +57,15 @@ pub struct PlayerMovement {
     pub timer: Timer,
 }
 
+impl PlayerMovement {
+    pub fn new(player_move_speed: f32) -> Self {
+        Self {
+            directions: VecDeque::new(),
+            timer: Timer::from_seconds(player_move_speed, TimerMode::Repeating),
+        }
+    }
+}
+
 #[derive(Resource, Default)]
 pub enum AutoMoveState {
     #[default]
