@@ -62,6 +62,14 @@ impl Movements {
         Self(Vec::new())
     }
 
+    pub fn from_lurd(lurd: &str) -> Self {
+        let mut instance = Self::new();
+        for ch in lurd.chars() {
+            instance.push(Movement::from(ch));
+        }
+        instance
+    }
+
     pub fn move_count(&self) -> usize {
         self.len()
     }

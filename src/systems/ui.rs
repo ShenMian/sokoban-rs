@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
 use crate::components::*;
+use crate::movement::Movements;
 use crate::resources::*;
 use crate::Action;
 
@@ -76,8 +77,20 @@ pub fn update_hud(
         hud.sections[1].value = format!("#{}\n", **level_id);
 
         let database = database.lock().unwrap();
-        hud.sections[7].value = format!("{}\n", database.best_move_count(**level_id).unwrap_or(0));
-        hud.sections[9].value = format!("{}\n", database.best_push_count(**level_id).unwrap_or(0));
+        hud.sections[7].value = format!(
+            "{}\n",
+            database
+                .best_move_solution(**level_id)
+                .unwrap_or(Movements::new())
+                .move_count()
+        );
+        hud.sections[9].value = format!(
+            "{}\n",
+            database
+                .best_push_solution(**level_id)
+                .unwrap_or(Movements::new())
+                .push_count()
+        );
     }
 
     hud.sections[3].value = format!("{}\n", board.movements().move_count());

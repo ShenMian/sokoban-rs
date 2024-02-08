@@ -46,26 +46,21 @@ impl Database {
         ";
         const CREATE_LEVEL_INDICES: &str =
             "CREATE UNIQUE INDEX IF NOT EXISTS ux_level_hash ON tb_level(hash)";
-        const CREATE_SOLUTION_TABLE: &str = "
-            CREATE TABLE IF NOT EXISTS tb_solution (
-                level_id           INTEGER PRIMARY KEY,
-                best_move_solution TEXT,
-                best_push_solution TEXT
-            )
-        ";
-        const CREATE_SESSION_TABLE: &str = "
-            CREATE TABLE IF NOT EXISTS tb_session (
-                level_id INTEGER PRIMARY KEY,
-                movement TEXT,
-                datetime DATETIME NOT NULL,
+        const CREATE_SNAPSHOT_TABLE: &str = "
+            CREATE TABLE IF NOT EXISTS tb_snapshot (
+                level_id  INTEGER,
+                movements TEXT,
+                datetime  DATETIME NOT NULL,
+                best_move BOOLEAN NOT NULL DEFAULT 0 CHECK (best_move IN (0, 1)),
+                best_push BOOLEAN NOT NULL DEFAULT 0 CHECK (best_push IN (0, 1)),
+                PRIMARY KEY (level_id, best_move, best_push),
                 FOREIGN KEY (level_id) REFERENCES tb_level(id)
             )
         ";
 
         self.connection.execute(CREATE_LEVEL_TABLE, ()).unwrap();
         self.connection.execute(CREATE_LEVEL_INDICES, ()).unwrap();
-        self.connection.execute(CREATE_SOLUTION_TABLE, ()).unwrap();
-        self.connection.execute(CREATE_SESSION_TABLE, ()).unwrap();
+        self.connection.execute(CREATE_SNAPSHOT_TABLE, ()).unwrap();
     }
 
     /// Imports multiple levels into the database.
@@ -138,7 +133,7 @@ impl Database {
     /// Returns the ID of the next unsolved level after the provided ID.
     pub fn next_unsolved_level_id(&self, id: u64) -> Option<u64> {
         let mut statement = self.connection.prepare(
-            "SELECT id FROM tb_level WHERE id > ? AND id NOT IN (SELECT level_id FROM tb_solution) ORDER BY id ASC LIMIT 1",
+            "SELECT id FROM tb_level WHERE id > ? AND id NOT IN (SELECT DISTINCT level_id FROM tb_snapshot) ORDER BY id ASC LIMIT 1",
         ).unwrap();
         let mut rows = statement.query([id]).unwrap();
 
@@ -149,7 +144,7 @@ impl Database {
     /// Returns the ID of the previous unsolved level before the provided ID.
     pub fn previous_unsolved_level_id(&self, id: u64) -> Option<u64> {
         let mut statement = self.connection.prepare(
-            "SELECT id FROM tb_level WHERE id < ? AND id NOT IN (SELECT level_id FROM tb_solution) ORDER BY id ASC LIMIT 1",
+            "SELECT id FROM tb_level WHERE id < ? AND id NOT IN (SELECT DISTINCT level_id FROM tb_snapshot) ORDER BY id ASC LIMIT 1",
         ).unwrap();
         let mut rows = statement.query([id]).unwrap();
 
@@ -157,73 +152,68 @@ impl Database {
         Some(row.get(0).unwrap())
     }
 
-    pub fn update_solution(&self, level_id: u64, solution: &Movements) {
-        let lurd: String = solution
-            .iter()
-            .map(|x| Into::<char>::into(x.clone()))
-            .collect();
-
-        if let Some(best_move_count) = self.best_move_count(level_id) {
-            if solution.move_count() < best_move_count {
-                self.connection
-                    .execute(
-                        "UPDATE tb_solution SET best_move_solution = ? WHERE level_id = ?",
-                        (lurd.clone(), level_id),
-                    )
-                    .unwrap();
-            }
-        }
-
-        if let Some(best_push_count) = self.best_push_count(level_id) {
-            if solution.push_count() < best_push_count {
-                self.connection
-                    .execute(
-                        "UPDATE tb_solution SET best_push_solution = ? WHERE level_id = ?",
-                        (lurd.clone(), level_id),
-                    )
-                    .unwrap();
-            }
-        }
-
-        let _ = self.connection.execute(
-            "INSERT INTO tb_solution (level_id, best_move_solution, best_push_solution) VALUES (?, ?, ?)",
-            (level_id, lurd.clone(), lurd.clone()),
-        );
-    }
-
-    pub fn best_move_count(&self, level_id: u64) -> Option<usize> {
-        Some(self.best_move_solution(level_id)?.len())
-    }
-
-    pub fn best_push_count(&self, level_id: u64) -> Option<usize> {
-        Some(
-            self.best_push_solution(level_id)?
-                .chars()
-                .filter(|x| x.is_ascii_uppercase())
-                .count(),
-        )
-    }
-
-    pub fn best_move_solution(&self, level_id: u64) -> Option<String> {
+    pub fn best_move_solution(&self, level_id: u64) -> Option<Movements> {
         let mut statement = self
             .connection
-            .prepare("SELECT best_move_solution FROM tb_solution WHERE level_id = ?")
+            .prepare("SELECT movements FROM tb_snapshot WHERE level_id = ? AND best_move = 1")
             .unwrap();
         let mut rows = statement.query([level_id]).unwrap();
         let row = rows.next().unwrap()?;
         let best_move: String = row.get(0).unwrap();
-        Some(best_move)
+        Some(Movements::from_lurd(&best_move))
     }
 
-    pub fn best_push_solution(&self, level_id: u64) -> Option<String> {
+    pub fn best_push_solution(&self, level_id: u64) -> Option<Movements> {
         let mut statement = self
             .connection
-            .prepare("SELECT best_push_solution FROM tb_solution WHERE level_id = ?")
+            .prepare("SELECT movements FROM tb_snapshot WHERE level_id = ? AND best_push = 1")
             .unwrap();
         let mut rows = statement.query([level_id]).unwrap();
         let row = rows.next().unwrap()?;
         let best_push: String = row.get(0).unwrap();
-        Some(best_push)
+        Some(Movements::from_lurd(&best_push))
+    }
+
+    pub fn update_solution(&self, level_id: u64, solution: &Movements) {
+        let lurd: String = solution.lurd();
+
+        if let Some(best_move_solution) = self.best_move_solution(level_id) {
+            dbg!();
+            if solution.move_count() < best_move_solution.move_count() {
+                self.connection
+                    .execute(
+                        "UPDATE tb_snapshot SET movements = ? WHERE level_id = ?",
+                        (lurd.clone(), level_id),
+                    )
+                    .unwrap();
+            }
+        } else {
+            self.connection
+                .execute(
+                    "INSERT INTO tb_snapshot (level_id, movements, best_move, datetime) VALUES (?, ?, 1, DATE('now'))",
+                    (level_id, lurd.clone()),
+                )
+                .unwrap();
+        }
+
+        if let Some(best_push_solution) = self.best_push_solution(level_id) {
+            dbg!();
+            if solution.push_count() < best_push_solution.push_count() {
+                self.connection
+                    .execute(
+                        "UPDATE tb_snapshot SET movements = ? WHERE level_id = ?",
+                        (lurd.clone(), level_id),
+                    )
+                    .unwrap();
+            }
+        } else {
+            self.connection
+                .execute(
+                    "INSERT INTO tb_snapshot (level_id, movements, best_push, datetime) VALUES (?, ?, 1, DATE('now'))",
+                    (level_id, lurd.clone()),
+                )
+                .unwrap();
+        }
     }
 
     /// Returns the maximum level ID.
