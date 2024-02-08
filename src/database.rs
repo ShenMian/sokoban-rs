@@ -230,6 +230,27 @@ impl Database {
             .unwrap()
     }
 
+    pub fn snapshot(&self, level_id: u64) -> Option<Movements> {
+        let lurd: String = self
+            .connection
+            .query_row(
+                "SELECT movements FROM tb_snapshot WHERE level_id = ?",
+                [level_id],
+                |row| row.get(0),
+            )
+            .unwrap_or_else(|_| return None)?;
+        Some(Movements::from_lurd(&lurd))
+    }
+
+    pub fn update_snapshot(&self, level_id: u64, movements: &Movements) {
+        self.connection
+            .execute(
+                "INSERT OR REPLACE INTO tb_snapshot (level_id, movements, datetime) VALUES (?, ?, DATE('now'))",
+                (level_id, movements.lurd()),
+            )
+            .unwrap();
+    }
+
     /// Computes a normalized hash for the provided level.
     fn normalized_hash(level: &Level) -> String {
         let mut hasher = SipHasher24::new();

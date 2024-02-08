@@ -14,6 +14,7 @@ pub enum Action {
     Undo,
     Redo,
 
+    // TODO: Replaced with undo all
     ResetLevel,
     NextLevel,
     PreviousLevel,
@@ -26,6 +27,9 @@ pub enum Action {
     ToggleInstantMove,
     ToggleAutomaticSolution,
     ToggleFullscreen,
+
+    StoreSnapshot,
+    RestoreSnapshot,
 
     ImportLevelsFromClipboard,
     ExportLevelToClipboard,
@@ -114,6 +118,18 @@ pub fn default_input_action_map() -> InputMap<Action> {
         (
             UserInput::Single(Keyboard(KeyCode::F11)),
             Action::ToggleFullscreen,
+        ),
+        (
+            UserInput::Chord(vec![Keyboard(KeyCode::AltLeft), Keyboard(KeyCode::Key1)]),
+            Action::StoreSnapshot,
+        ),
+        (
+            UserInput::Chord(vec![
+                Keyboard(KeyCode::AltLeft),
+                Keyboard(KeyCode::ShiftLeft),
+                Keyboard(KeyCode::Key1),
+            ]),
+            Action::RestoreSnapshot,
         ),
         (
             UserInput::Chord(vec![Keyboard(KeyCode::ControlLeft), Keyboard(KeyCode::V)]),

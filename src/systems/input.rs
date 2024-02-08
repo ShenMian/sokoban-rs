@@ -72,6 +72,13 @@ pub fn handle_actions(
                 &mut next_state,
                 &mut player_movement,
             );
+            handle_snapshot_action(
+                &action_state,
+                &level_id,
+                board,
+                &database,
+                &mut player_movement,
+            );
         }
         AppState::AutoMove => {
             handle_viewport_zoom_action(&action_state, main_camera);
@@ -278,6 +285,41 @@ pub fn handle_automatic_solution_action(
         } else {
             next_state.set(AppState::Main);
         }
+    }
+}
+
+pub fn handle_snapshot_action(
+    action_state: &ActionState<Action>,
+    level_id: &LevelId,
+    board: &mut crate::board::Board,
+    database: &crate::database::Database,
+    player_movement: &mut ResMut<PlayerMovement>,
+) {
+    if action_state.just_pressed(Action::StoreSnapshot) {
+        store_snapshot(level_id, board, database)
+    }
+    if action_state.just_pressed(Action::RestoreSnapshot) {
+        restore_snapshot(level_id, database, player_movement);
+    }
+}
+
+pub fn store_snapshot(
+    level_id: &LevelId,
+    board: &crate::board::Board,
+    database: &crate::database::Database,
+) {
+    database.update_snapshot(level_id.0, board.movements());
+}
+
+pub fn restore_snapshot(
+    level_id: &LevelId,
+    database: &crate::database::Database,
+    player_movement: &mut PlayerMovement,
+) {
+    if let Some(movements) = database.snapshot(level_id.0) {
+        player_movement
+            .directions
+            .extend(movements.iter().map(|x| x.direction()));
     }
 }
 
