@@ -810,6 +810,54 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_level_load_from_memory() {
+        let no_player_level = String::from(
+            r#"
+            #####
+            # $.#
+            #####
+        "#,
+        );
+        let more_than_one_player_level = String::from(
+            r#"
+            ######
+            #@@$.#
+            ######
+        "#,
+        );
+        let mismatch_between_crates_and_targets_level = String::from(
+            r#"
+            ######
+            #@$$.#
+            ######
+        "#,
+        );
+        let invalid_character_level = String::from(
+            r#"
+            ######
+            #@!$.#
+            ######
+        "#,
+        );
+        assert_eq!(
+            Level::load_from_memory(no_player_level).err().unwrap(),
+            ParseMapError::NoPlayer
+        );
+        assert_eq!(
+            Level::load_from_memory(more_than_one_player_level)
+                .err()
+                .unwrap(),
+            ParseMapError::MoreThanOnePlayer
+        );
+        assert_eq!(
+            Level::load_from_memory(mismatch_between_crates_and_targets_level)
+                .err()
+                .unwrap(),
+            ParseMapError::MismatchBetweenCratesAndTargets
+        );
+    }
+
+    #[test]
     fn test_rle_encode() {
         assert_eq!(rle_encode(""), "");
         assert_eq!(rle_encode("aaabbbcdd"), "3a3bc2d");
