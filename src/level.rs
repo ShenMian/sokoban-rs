@@ -722,7 +722,7 @@ impl Level {
             ];
             for direction in directions {
                 let neighbor_position = position + direction;
-                if !self.in_bounds(start_position) {
+                if !self.in_bounds(&neighbor_position) {
                     continue;
                 }
 
