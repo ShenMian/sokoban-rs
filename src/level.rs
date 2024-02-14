@@ -530,14 +530,12 @@ impl Level {
             self.get_unchecked(position).intersects(Tile::Wall)
                 || initial_crate_positions.contains(position)
         });
-        for &push_direction in [
+        for push_direction in [
             Direction::Up,
             Direction::Down,
             Direction::Left,
             Direction::Right,
-        ]
-        .iter()
-        {
+        ] {
             let player_position = crate_position - push_direction.to_vector();
             if self.get_unchecked(&player_position).intersects(Tile::Wall)
                 || !player_reachable_area.contains(&player_position)
@@ -563,14 +561,12 @@ impl Level {
                     || crate_positions.contains(position)
             });
 
-            for &push_direction in [
+            for push_direction in [
                 Direction::Up,
                 Direction::Down,
                 Direction::Left,
                 Direction::Right,
-            ]
-            .iter()
-            {
+            ] {
                 let new_crate_position = state.crate_position + push_direction.to_vector();
                 let player_position = state.crate_position - push_direction.to_vector();
 

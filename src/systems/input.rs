@@ -334,14 +334,12 @@ pub fn mouse_input(
                         paths,
                     } => {
                         let mut crate_paths = Vec::new();
-                        for &push_direction in [
+                        for push_direction in [
                             Direction::Up,
                             Direction::Down,
                             Direction::Left,
                             Direction::Right,
-                        ]
-                        .iter()
-                        {
+                        ] {
                             let push_state = PushState {
                                 push_direction,
                                 crate_position: grid_position,
