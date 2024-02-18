@@ -77,7 +77,7 @@ pub fn despawn_lowerbound_marks(
     mut commands: Commands,
     marks: Query<Entity, With<LowerBoundMark>>,
 ) {
-    marks.for_each(|entity| commands.entity(entity).despawn());
+    marks.iter().for_each(|entity| commands.entity(entity).despawn());
 }
 
 /// Resets the board to the state before automatic solution

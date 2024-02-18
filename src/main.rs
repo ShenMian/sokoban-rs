@@ -34,9 +34,6 @@ use systems::level::*;
 use systems::render::*;
 use systems::ui::*;
 
-#[allow(unused_imports)]
-use bevy_editor_pls::prelude::*;
-
 const CONFIG_FILE_PATH: &'static str = "config.toml";
 
 fn load_config() -> Config {
@@ -80,9 +77,8 @@ fn main() {
         AudioPlugin,
         PerformanceMatrixPlugin,
         InputManagerPlugin::<Action>::default(),
-        // EditorPlugin::default(),
     ))
-    .add_state::<AppState>()
+    .init_state::<AppState>()
     .add_systems(PreStartup, (setup_camera, setup_database))
     .add_systems(
         Startup,

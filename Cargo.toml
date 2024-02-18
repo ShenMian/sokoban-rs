@@ -18,18 +18,16 @@ nalgebra = "0.32"
 itertools = "0.12.0"
 siphasher = "1.0"
 
-serde = { version = "1.0", features = ["derive"] }
-
-bevy = "0.12"
-leafwing-input-manager = "0.11"
-bevy_kira_audio = "0.18"
+bevy = "0.13"
+leafwing-input-manager = "0.13"
+bevy_kira_audio = "0.19"
 benimator = "4.1"
-bevy_editor_pls = "0.7"
 
-rusqlite = { version = "0.30", features = ["bundled"] }
+serde = { version = "1.0", features = ["derive"] }
+rusqlite = { version = "0.31", features = ["bundled"] }
 arboard = "3.3"                                         # 系统剪切板
 image = "0.24"
-winit = "0.28"                                          # 版本需要与 bevy 中使用的保持一致
+winit = "0.29"                                          # 版本需要与 bevy 中使用的保持一致
 toml = "0.8"
 
 [profile.dev.package."*"]
