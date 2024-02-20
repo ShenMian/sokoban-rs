@@ -55,22 +55,21 @@ pub fn spawn_board(
     level_id: Res<LevelId>,
     config: Res<Config>,
     asset_server: Res<AssetServer>,
-    mut texture_atlases: ResMut<Assets<TextureAtlas>>,
+    mut spritesheet_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     let database = database.lock().unwrap();
     let level = database.get_level_by_id(**level_id).unwrap();
 
     let spritesheet_handle = asset_server.load("textures/tilesheet.png");
     let tile_size = Vector2::new(128.0, 128.0);
-    let texture_atlas = TextureAtlas::from_grid(
-        spritesheet_handle,
+    let spritesheet_layout = TextureAtlasLayout::from_grid(
         Vec2::new(tile_size.x, tile_size.y),
         6,
         3,
         Some(Vec2::new(1.0, 1.0)),
         None,
     );
-    let texture_atlas_handle = texture_atlases.add(texture_atlas);
+    let spritesheet_layout_handle = spritesheet_layouts.add(spritesheet_layout);
 
     let board_size = tile_size.x * level.dimensions().map(|x| x as f32);
 
@@ -112,7 +111,7 @@ pub fn spawn_board(
                     ]);
                     for (tile, (sprite_index, z_order)) in tiles.into_iter() {
                         if level.get_unchecked(&position).intersects(tile) {
-                            let mut sprite = TextureAtlasSprite::new(sprite_index);
+                            let mut sprite = Sprite::default();
                             if config.even_square_shades > 0.0
                                 && tile == Tile::Floor
                                 && (x + y) % 2 == 0
@@ -121,7 +120,11 @@ pub fn spawn_board(
                             }
                             let mut entity = parent.spawn((
                                 SpriteSheetBundle {
-                                    texture_atlas: texture_atlas_handle.clone(),
+                                    atlas: TextureAtlas {
+                                        layout: spritesheet_layout_handle.clone(),
+                                        index: sprite_index,
+                                    },
+                                    texture: spritesheet_handle.clone(),
                                     sprite,
                                     transform: Transform::from_xyz(0.0, 0.0, z_order),
                                     ..default()

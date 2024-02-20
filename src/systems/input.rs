@@ -159,9 +159,9 @@ fn instant_player_move(
 }
 
 fn handle_viewport_zoom_action(action_state: &ActionState<Action>, main_camera: &mut MainCamera) {
-    if action_state.just_pressed(Action::ZoomIn) {
+    if action_state.just_pressed(&Action::ZoomIn) {
         main_camera.target_scale /= 1.25;
-    } else if action_state.just_pressed(Action::ZoomOut) {
+    } else if action_state.just_pressed(&Action::ZoomOut) {
         main_camera.target_scale *= 1.25;
     }
 }
@@ -173,16 +173,16 @@ fn handle_player_movement_action(
 ) {
     // TODO: If you move the character through PlayerMovement, the character's
     // movement speed will be limited, giving the player a sense of input lag.
-    if action_state.just_pressed(Action::MoveUp) {
+    if action_state.just_pressed(&Action::MoveUp) {
         player_move(Direction::Up, player_movement, board);
     }
-    if action_state.just_pressed(Action::MoveDown) {
+    if action_state.just_pressed(&Action::MoveDown) {
         player_move(Direction::Down, player_movement, board);
     }
-    if action_state.just_pressed(Action::MoveLeft) {
+    if action_state.just_pressed(&Action::MoveLeft) {
         player_move(Direction::Left, player_movement, board);
     }
-    if action_state.just_pressed(Action::MoveRight) {
+    if action_state.just_pressed(&Action::MoveRight) {
         player_move(Direction::Right, player_movement, board);
     }
 }
@@ -193,19 +193,19 @@ fn handle_level_switch_action(
     level_id: &mut ResMut<LevelId>,
     database: &crate::database::Database,
 ) {
-    if action_state.just_pressed(Action::ResetLevel) {
+    if action_state.just_pressed(&Action::ResetLevel) {
         player_movement.directions.clear();
         level_id.0 = level_id.0;
-    } else if action_state.just_pressed(Action::NextLevel) {
+    } else if action_state.just_pressed(&Action::NextLevel) {
         player_movement.directions.clear();
         switch_to_next_level(level_id, database);
-    } else if action_state.just_pressed(Action::PreviousLevel) {
+    } else if action_state.just_pressed(&Action::PreviousLevel) {
         player_movement.directions.clear();
         switch_to_previous_level(level_id, database);
-    } else if action_state.just_pressed(Action::NextUnsolvedLevel) {
+    } else if action_state.just_pressed(&Action::NextUnsolvedLevel) {
         player_movement.directions.clear();
         switch_to_next_unsolved_level(level_id, database);
-    } else if action_state.just_pressed(Action::PreviousUnsolvedLevel) {
+    } else if action_state.just_pressed(&Action::PreviousUnsolvedLevel) {
         player_movement.directions.clear();
         switch_to_previous_unsolved_level(level_id, database);
     }
@@ -218,11 +218,11 @@ fn handle_clipboard_action(
     database: &crate::database::Database,
     board: &crate::board::Board,
 ) {
-    if action_state.just_pressed(Action::ImportLevelsFromClipboard) {
+    if action_state.just_pressed(&Action::ImportLevelsFromClipboard) {
         player_movement.directions.clear();
         import_from_clipboard(level_id, database);
     }
-    if action_state.just_pressed(Action::ExportLevelToClipboard) {
+    if action_state.just_pressed(&Action::ExportLevelToClipboard) {
         player_movement.directions.clear();
         export_to_clipboard(board);
     }
@@ -232,13 +232,13 @@ fn handle_toggle_instant_move_action(
     action_state: &ActionState<Action>,
     config: &mut ResMut<Config>,
 ) {
-    if action_state.just_pressed(Action::ToggleInstantMove) {
+    if action_state.just_pressed(&Action::ToggleInstantMove) {
         config.instant_move = !config.instant_move;
     }
 }
 
 fn handle_toggle_fullscreen_action(action_state: &ActionState<Action>, window: &mut Window) {
-    if action_state.just_pressed(Action::ToggleFullscreen) {
+    if action_state.just_pressed(&Action::ToggleFullscreen) {
         window.mode = match window.mode {
             WindowMode::BorderlessFullscreen => WindowMode::Windowed,
             WindowMode::Windowed => WindowMode::BorderlessFullscreen,
@@ -253,12 +253,12 @@ fn handle_undo_redo_action(
     board: &mut crate::board::Board,
     update_grid_position_events: &mut EventWriter<UpdateGridPositionEvent>,
 ) {
-    if action_state.just_pressed(Action::Undo) {
+    if action_state.just_pressed(&Action::Undo) {
         player_movement.directions.clear();
         board.undo_push();
         update_grid_position_events.send_default();
     }
-    if action_state.just_pressed(Action::Redo) {
+    if action_state.just_pressed(&Action::Redo) {
         player_movement.directions.clear();
         board.redo_push();
         update_grid_position_events.send_default();
@@ -271,7 +271,7 @@ pub fn handle_automatic_solution_action(
     next_state: &mut ResMut<NextState<AppState>>,
     player_movement: &mut ResMut<PlayerMovement>,
 ) {
-    if action_state.just_pressed(Action::ToggleAutomaticSolution) {
+    if action_state.just_pressed(&Action::ToggleAutomaticSolution) {
         player_movement.directions.clear();
         if *state == AppState::Main {
             next_state.set(AppState::AutoSolve);
@@ -283,7 +283,7 @@ pub fn handle_automatic_solution_action(
 
 /// Handles mouse input events.
 pub fn mouse_input(
-    mouse_buttons: Res<Input<MouseButton>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut board: Query<&mut Board>,
     windows: Query<&Window>,
     mut camera: Query<(&Camera, &GlobalTransform), With<MainCamera>>,
@@ -402,7 +402,7 @@ pub fn mouse_input(
 
 /// Adjusts the viewport based on various input events.
 pub fn adjust_viewport(
-    mouse_buttons: Res<Input<MouseButton>>,
+    mouse_buttons: Res<ButtonInput<MouseButton>>,
     gamepads: Res<Gamepads>,
     axes: Res<Axis<GamepadAxis>>,
     mut motion_events: EventReader<MouseMotion>,

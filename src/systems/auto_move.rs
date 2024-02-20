@@ -11,8 +11,8 @@ pub fn spawn_auto_move_marks(
     mut commands: Commands,
     mut auto_move_state: ResMut<AutoMoveState>,
     board: Query<&Board>,
-    mut crates: Query<(&GridPosition, &mut TextureAtlasSprite), (With<Crate>, Without<Player>)>,
-    mut player: Query<&mut TextureAtlasSprite, With<Player>>,
+    mut crates: Query<(&GridPosition, &mut Sprite), (With<Crate>, Without<Player>)>,
+    mut player: Query<&mut Sprite, With<Player>>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     let Board { board, tile_size } = board.single();
@@ -55,7 +55,7 @@ pub fn spawn_auto_move_marks(
             // highlight selected crate
             crates
                 .iter_mut()
-                .filter(|(grid_position, _)| ***grid_position == *crate_position)
+                .filter(|(grid_position, ..)| ***grid_position == *crate_position)
                 .for_each(|(_, mut sprite)| sprite.color = HIGHLIGHT_COLOR);
         }
         AutoMoveState::Player => {
@@ -98,8 +98,8 @@ pub fn spawn_auto_move_marks(
 /// Despawns the auto-move reachable marks on the board.
 pub fn despawn_auto_move_marks(
     mut commands: Commands,
-    mut crates: Query<(&GridPosition, &mut TextureAtlasSprite), (With<Crate>, Without<Player>)>,
-    mut player: Query<&mut TextureAtlasSprite, With<Player>>,
+    mut crates: Query<(&GridPosition, &mut Sprite), (With<Crate>, Without<Player>)>,
+    mut player: Query<&mut Sprite, With<Player>>,
     marks: Query<Entity, Or<(With<CratePushableMark>, With<PlayerMovableMark>)>>,
     auto_move_state: Res<AutoMoveState>,
 ) {
@@ -116,5 +116,5 @@ pub fn despawn_auto_move_marks(
         }
     }
 
-    marks.for_each(|entity| commands.entity(entity).despawn());
+    marks.iter().for_each(|entity| commands.entity(entity).despawn());
 }

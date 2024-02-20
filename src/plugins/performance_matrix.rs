@@ -62,7 +62,7 @@ fn update_performance_matrix(
     mut query: Query<&mut Text, With<PerformanceCounter>>,
 ) {
     let mut text = query.single_mut();
-    if let Some(fps) = diagnostics.get(FrameTimeDiagnosticsPlugin::FPS) {
+    if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(raw) = fps.value() {
             text.sections[1].value = format!("{raw:.2}\n");
         }

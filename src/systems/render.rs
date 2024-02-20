@@ -33,7 +33,7 @@ pub fn setup_camera(mut commands: Commands) {
 
 /// Animates the player character based on the player's movement and orientation.
 pub fn animate_player(
-    mut player: Query<(&mut AnimationState, &mut TextureAtlasSprite), With<Player>>,
+    mut player: Query<(&mut AnimationState, &mut TextureAtlas), With<Player>>,
     mut board: Query<&mut Board>,
     time: Res<Time>,
     player_movement: Res<PlayerMovement>,

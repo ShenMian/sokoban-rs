@@ -205,7 +205,7 @@ pub fn button_input_to_action(
 ) {
     for (interaction, action) in &buttons {
         if *interaction == Interaction::Pressed {
-            action_state.press(*action);
+            action_state.press(action);
         }
     }
 }
