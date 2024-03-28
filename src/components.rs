@@ -15,7 +15,7 @@ impl Default for MainCamera {
 }
 
 #[derive(Component)]
-pub struct HUD;
+pub struct Hud;
 
 #[derive(Component)]
 pub struct Board {

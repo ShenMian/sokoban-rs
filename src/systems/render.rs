@@ -55,22 +55,21 @@ pub fn animate_player(
     let move_left = Animation::from_indices(15..=15 + 2, FrameRate::from_fps(6.0));
     let move_right = Animation::from_indices(12..=12 + 2, FrameRate::from_fps(6.0));
 
-    let animation;
-    if player_movement.directions.is_empty() {
-        animation = match player_orientation {
+    let animation = if player_movement.directions.is_empty() {
+        match player_orientation {
             Direction::Up => face_up,
             Direction::Right => face_right,
             Direction::Down => face_down,
             Direction::Left => face_left,
-        };
+        }
     } else {
-        animation = match player_orientation {
+        match player_orientation {
             Direction::Up => move_up,
             Direction::Right => move_right,
             Direction::Down => move_down,
             Direction::Left => move_left,
-        };
-    }
+        }
+    };
 
     animation_state.update(&animation, time.delta());
     sprite.index = animation_state.frame_index();
@@ -124,7 +123,7 @@ pub fn handle_player_movement(
             let old_crate_position = *player_grid_position;
             let new_crate_position = old_crate_position + direction.to_vector();
             let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
-            if crate_grid_positions.contains(&player_grid_position) {
+            if crate_grid_positions.contains(player_grid_position) {
                 for mut crate_grid_position in crates.iter_mut() {
                     if crate_grid_position.0 == old_crate_position {
                         crate_grid_position.0 = new_crate_position;
@@ -142,7 +141,7 @@ pub fn handle_player_movement(
             let old_crate_position = *player_grid_position;
             let new_crate_position = old_crate_position + direction.to_vector();
             let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
-            if crate_grid_positions.contains(&player_grid_position) {
+            if crate_grid_positions.contains(player_grid_position) {
                 for mut crate_grid_position in crates.iter_mut() {
                     if crate_grid_position.0 == old_crate_position {
                         crate_grid_position.0 = new_crate_position;

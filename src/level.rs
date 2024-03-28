@@ -85,7 +85,7 @@ impl Level {
         for (y, line) in map.iter().enumerate() {
             for (x, char) in line.chars().enumerate() {
                 let position = Vector2::<i32>::new(x as i32, y as i32);
-                data[(y * dimensions.x as usize + x) as usize] = match char {
+                data[y * dimensions.x as usize + x] = match char {
                     ' ' | '-' | '_' => Tile::Void,
                     '#' => Tile::Wall,
                     '$' => {
@@ -157,7 +157,7 @@ impl Level {
 
     /// Loads levels from string.
     pub fn load_from_memory(buffer: String) -> Result<Vec<Level>> {
-        let buffer = buffer.replace("\r", "") + "\n";
+        let buffer = buffer.replace('\r', "") + "\n";
 
         let mut levels = Vec::new();
 
@@ -181,7 +181,7 @@ impl Level {
                 comments += &(trimmed_line.to_string() + "\n");
                 continue;
             }
-            if trimmed_line.starts_with(";") {
+            if trimmed_line.starts_with(';') {
                 comments += &(trimmed_line[1..].trim().to_string() + "\n");
                 continue;
             }
@@ -194,7 +194,7 @@ impl Level {
                     continue;
                 }
 
-                debug_assert!(metadata.get("comments") == None);
+                debug_assert!(metadata.get("comments").is_none());
                 if !comments.is_empty() {
                     metadata.insert("comments".to_string(), comments.clone());
                 }
@@ -211,15 +211,15 @@ impl Level {
             }
 
             // metadata
-            if trimmed_line.starts_with("'") {
+            if trimmed_line.starts_with('\'') {
                 metadata.insert(
                     "title".to_string(),
                     trimmed_line[1..trimmed_line.len() - 1].to_string(),
                 );
                 continue;
             }
-            if trimmed_line.contains(":") {
-                let (key, value) = trimmed_line.split_once(":").unwrap();
+            if trimmed_line.contains(':') {
+                let (key, value) = trimmed_line.split_once(':').unwrap();
                 let key = key.trim().to_lowercase();
                 let value = value.trim();
 
@@ -247,7 +247,7 @@ impl Level {
             }
 
             // if line contains numbers, perform RLE decoding
-            if line.chars().any(|c| c.is_digit(10)) {
+            if line.chars().any(|c| c.is_ascii_digit()) {
                 map_data.push(rle_decode(line));
             } else {
                 map_data.push(line.to_string());
@@ -321,7 +321,7 @@ impl Level {
                 result.push_str("comment-end:\n");
                 continue;
             }
-            debug_assert!(!value.contains("\n"));
+            debug_assert!(!value.contains('\n'));
             result.push_str(&format!("{}: {}\n", key, value));
         }
         result
@@ -640,11 +640,7 @@ impl Level {
 
         self.data = rotated_data;
         self.player_position = rotate_position(&self.player_position);
-        self.crate_positions = self
-            .crate_positions
-            .iter()
-            .map(|x| rotate_position(x))
-            .collect();
+        self.crate_positions = self.crate_positions.iter().map(rotate_position).collect();
         self.dimensions = self.dimensions.yx();
     }
 
@@ -666,11 +662,7 @@ impl Level {
 
         self.data = flipped_data;
         self.player_position = flip_position(&self.player_position);
-        self.crate_positions = self
-            .crate_positions
-            .iter()
-            .map(|x| flip_position(x))
-            .collect();
+        self.crate_positions = self.crate_positions.iter().map(flip_position).collect();
     }
 
     /// Checks if a position is within the bounds of the level.
@@ -762,14 +754,14 @@ fn rle_decode(data: &str) -> String {
 
     let mut iter = data.chars();
     while let Some(char) = iter.next() {
-        if char.is_digit(10) {
+        if char.is_ascii_digit() {
             length_str.push(char);
             continue;
         }
         let mut token = String::new();
         if char == '(' {
             let mut nesting_level = 0;
-            while let Some(char) = iter.next() {
+            for char in &mut iter {
                 if char == '(' {
                     nesting_level += 1;
                 } else if char == ')' {
@@ -788,7 +780,7 @@ fn rle_decode(data: &str) -> String {
         length_str.clear();
     }
 
-    if result.contains("(") {
+    if result.contains('(') {
         return rle_decode(&result);
     }
     result

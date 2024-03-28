@@ -86,17 +86,17 @@ impl Solver {
     pub fn search(&mut self, timeout: Duration) -> Result<Movements> {
         let timer = Instant::now();
         self.visited
-            .insert(self.heap.peek().unwrap().normalized_hash(&self));
+            .insert(self.heap.peek().unwrap().normalized_hash(self));
         while let Some(state) = self.heap.pop() {
             if timer.elapsed() >= timeout {
                 return Err(SolveError::Timeout);
             }
-            if state.is_solved(&self) {
+            if state.is_solved(self) {
                 return Ok(state.movements);
             }
 
-            for successor in state.successors(&self) {
-                if !self.visited.insert(successor.normalized_hash(&self)) {
+            for successor in state.successors(self) {
+                if !self.visited.insert(successor.normalized_hash(self)) {
                     continue;
                 }
                 self.heap.push(successor);

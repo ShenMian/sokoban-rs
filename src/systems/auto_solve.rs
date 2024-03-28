@@ -21,7 +21,7 @@ pub fn load_solver(
         stopwatch,
     } = &mut *solver_state;
     *level = board.level.clone();
-    let mut solver = solver.lock().unwrap();
+    let solver = solver.get_mut().unwrap();
     *solver = Solver::new(
         level.clone(),
         config.solver.strategy,
@@ -45,11 +45,7 @@ pub fn spawn_lowerbound_marks(
     let solver = solver_state.solver.lock().unwrap();
 
     let lowerbounds = solver.lower_bounds().clone();
-    let max_lowerbound = lowerbounds
-        .iter()
-        .map(|(_, lowerbound)| *lowerbound)
-        .max()
-        .unwrap();
+    let max_lowerbound = lowerbounds.values().cloned().max().unwrap();
     for (position, lowerbound) in lowerbounds {
         let alpha = lowerbound as f32 / max_lowerbound as f32;
         let color = Color::BLUE * alpha + Color::RED * (1.0 - alpha);
@@ -77,7 +73,9 @@ pub fn despawn_lowerbound_marks(
     mut commands: Commands,
     marks: Query<Entity, With<LowerBoundMark>>,
 ) {
-    marks.iter().for_each(|entity| commands.entity(entity).despawn());
+    marks
+        .iter()
+        .for_each(|entity| commands.entity(entity).despawn());
 }
 
 /// Resets the board to the state before automatic solution
@@ -102,7 +100,7 @@ pub fn update_solver(
 
     *board = crate::board::Board::with_level(level.clone());
 
-    let mut solver = solver.lock().unwrap();
+    let solver = solver.get_mut().unwrap();
     let timeout = Duration::from_millis(50);
     let timer = Instant::now();
     match solver.search(timeout) {

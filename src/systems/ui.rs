@@ -41,7 +41,7 @@ pub fn setup_hud(mut commands: Commands) {
         )
     };
     commands.spawn((
-        HUD,
+        Hud,
         TextBundle::from_sections([
             text_section(Color::SEA_GREEN.with_a(ALPHA), "Level : "),
             text_section(Color::GOLD.with_a(ALPHA), ""),
@@ -65,7 +65,7 @@ pub fn setup_hud(mut commands: Commands) {
 
 /// Updates the heads-up display (HUD).
 pub fn update_hud(
-    mut hud: Query<&mut Text, With<HUD>>,
+    mut hud: Query<&mut Text, With<Hud>>,
     board: Query<&Board>,
     level_id: Res<LevelId>,
     database: Res<Database>,
@@ -170,9 +170,9 @@ pub fn update_button_state(
         if *button == Action::ToggleInstantMove {
             let mut image = image.get_mut(children[0]).unwrap();
             image.texture = if config.instant_move {
-                asset_server.load("textures/instant_move_on.png").into()
+                asset_server.load("textures/instant_move_on.png")
             } else {
-                asset_server.load("textures/instant_move_off.png").into()
+                asset_server.load("textures/instant_move_off.png")
             };
         }
     }

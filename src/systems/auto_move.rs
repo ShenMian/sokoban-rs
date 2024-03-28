@@ -116,5 +116,7 @@ pub fn despawn_auto_move_marks(
         }
     }
 
-    marks.iter().for_each(|entity| commands.entity(entity).despawn());
+    marks
+        .iter()
+        .for_each(|entity| commands.entity(entity).despawn());
 }

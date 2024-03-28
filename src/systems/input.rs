@@ -105,7 +105,7 @@ fn player_move_to(
     if let Some(path) = find_path(&board.level.player_position, target, |position| {
         board
             .level
-            .get_unchecked(&position)
+            .get_unchecked(position)
             .intersects(Tile::Wall | Tile::Crate)
     }) {
         let directions = path
@@ -137,7 +137,7 @@ fn instant_player_move_to(
     if let Some(path) = find_path(&board_clone.level.player_position, target, |position| {
         board_clone
             .level
-            .get_unchecked(&position)
+            .get_unchecked(position)
             .intersects(Tile::Wall | Tile::Crate)
     }) {
         let directions = path
@@ -195,7 +195,7 @@ fn handle_level_switch_action(
 ) {
     if action_state.just_pressed(&Action::ResetLevel) {
         player_movement.directions.clear();
-        level_id.0 = level_id.0;
+        level_id.set_changed();
     } else if action_state.just_pressed(&Action::NextLevel) {
         player_movement.directions.clear();
         switch_to_next_level(level_id, database);

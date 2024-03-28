@@ -46,7 +46,7 @@ impl Board {
                 return false;
             }
         }
-        return true;
+        true
     }
 
     /// Moves the player or pushes a crate in the specified direction.
@@ -101,7 +101,7 @@ impl Board {
         let direction = history.direction();
         if history.is_push() {
             let crate_position = self.level.player_position + direction.to_vector();
-            self.move_crate(crate_position, self.level.player_position.clone());
+            self.move_crate(crate_position, self.level.player_position);
         }
         let player_prev_position = self.level.player_position - direction.to_vector();
         self.move_player(player_prev_position);

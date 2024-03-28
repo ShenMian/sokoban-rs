@@ -241,7 +241,7 @@ impl State {
 
             return false;
         }
-        return true;
+        true
     }
 
     /// Returns the lower bound value for the current state.
@@ -285,7 +285,7 @@ impl State {
         solver
             .level
             .reachable_area(&self.player_position, |position| {
-                self.can_block_player(&position, solver)
+                self.can_block_player(position, solver)
             })
     }
 }

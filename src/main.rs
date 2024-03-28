@@ -34,7 +34,7 @@ use systems::level::*;
 use systems::render::*;
 use systems::ui::*;
 
-const CONFIG_FILE_PATH: &'static str = "config.toml";
+const CONFIG_FILE_PATH: &str = "config.toml";
 
 fn load_config() -> Config {
     if !Path::new(CONFIG_FILE_PATH).is_file() {
@@ -47,7 +47,7 @@ fn load_config() -> Config {
 }
 
 fn load_input_action_map() -> InputMap<Action> {
-    const KEYMAP_FILE_PATH: &'static str = "keymap.toml";
+    const KEYMAP_FILE_PATH: &str = "keymap.toml";
     if !Path::new(KEYMAP_FILE_PATH).is_file() {
         let default_keymap_toml = toml::to_string(&default_input_action_map()).unwrap();
         fs::write(KEYMAP_FILE_PATH, default_keymap_toml).unwrap();

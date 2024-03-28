@@ -52,20 +52,44 @@ pub fn default_input_action_map() -> InputMap<Action> {
         ),
     ]);
     let keyboard_input_map = InputMap::new([
-        (Action::MoveUp, UserInput::Single(PhysicalKey(KeyCode::KeyW))),
-        (Action::MoveDown, UserInput::Single(PhysicalKey(KeyCode::KeyS))),
-        (Action::MoveLeft, UserInput::Single(PhysicalKey(KeyCode::KeyA))),
-        (Action::MoveRight, UserInput::Single(PhysicalKey(KeyCode::KeyD))),
-        (Action::MoveUp, UserInput::Single(PhysicalKey(KeyCode::ArrowUp))),
-        (Action::MoveDown, UserInput::Single(PhysicalKey(KeyCode::ArrowDown))),
-        (Action::MoveLeft, UserInput::Single(PhysicalKey(KeyCode::ArrowLeft))),
+        (
+            Action::MoveUp,
+            UserInput::Single(PhysicalKey(KeyCode::KeyW)),
+        ),
+        (
+            Action::MoveDown,
+            UserInput::Single(PhysicalKey(KeyCode::KeyS)),
+        ),
+        (
+            Action::MoveLeft,
+            UserInput::Single(PhysicalKey(KeyCode::KeyA)),
+        ),
+        (
+            Action::MoveRight,
+            UserInput::Single(PhysicalKey(KeyCode::KeyD)),
+        ),
+        (
+            Action::MoveUp,
+            UserInput::Single(PhysicalKey(KeyCode::ArrowUp)),
+        ),
+        (
+            Action::MoveDown,
+            UserInput::Single(PhysicalKey(KeyCode::ArrowDown)),
+        ),
+        (
+            Action::MoveLeft,
+            UserInput::Single(PhysicalKey(KeyCode::ArrowLeft)),
+        ),
         (
             Action::MoveRight,
             UserInput::Single(PhysicalKey(KeyCode::ArrowRight)),
         ),
         (
             Action::Undo,
-            UserInput::Chord(vec![PhysicalKey(KeyCode::ControlLeft), PhysicalKey(KeyCode::KeyZ)]),
+            UserInput::Chord(vec![
+                PhysicalKey(KeyCode::ControlLeft),
+                PhysicalKey(KeyCode::KeyZ),
+            ]),
         ),
         (
             Action::Redo,
@@ -101,8 +125,14 @@ pub fn default_input_action_map() -> InputMap<Action> {
                 PhysicalKey(KeyCode::BracketLeft),
             ]),
         ),
-        (Action::ZoomIn, UserInput::Single(PhysicalKey(KeyCode::Equal))),
-        (Action::ZoomOut, UserInput::Single(PhysicalKey(KeyCode::Minus))),
+        (
+            Action::ZoomIn,
+            UserInput::Single(PhysicalKey(KeyCode::Equal)),
+        ),
+        (
+            Action::ZoomOut,
+            UserInput::Single(PhysicalKey(KeyCode::Minus)),
+        ),
         (
             Action::ToggleInstantMove,
             UserInput::Single(PhysicalKey(KeyCode::KeyI)),
@@ -117,21 +147,42 @@ pub fn default_input_action_map() -> InputMap<Action> {
         ),
         (
             Action::ImportLevelsFromClipboard,
-            UserInput::Chord(vec![PhysicalKey(KeyCode::ControlLeft), PhysicalKey(KeyCode::KeyV)]),
+            UserInput::Chord(vec![
+                PhysicalKey(KeyCode::ControlLeft),
+                PhysicalKey(KeyCode::KeyV),
+            ]),
         ),
         (
             Action::ExportLevelToClipboard,
-            UserInput::Chord(vec![PhysicalKey(KeyCode::ControlLeft), PhysicalKey(KeyCode::KeyC)]),
+            UserInput::Chord(vec![
+                PhysicalKey(KeyCode::ControlLeft),
+                PhysicalKey(KeyCode::KeyC),
+            ]),
         ),
         // PhysicalKey (Vim)
-        (Action::MoveUp, UserInput::Single(PhysicalKey(KeyCode::KeyK))),
-        (Action::MoveDown, UserInput::Single(PhysicalKey(KeyCode::KeyJ))),
-        (Action::MoveLeft, UserInput::Single(PhysicalKey(KeyCode::KeyH))),
-        (Action::MoveRight, UserInput::Single(PhysicalKey(KeyCode::KeyL))),
+        (
+            Action::MoveUp,
+            UserInput::Single(PhysicalKey(KeyCode::KeyK)),
+        ),
+        (
+            Action::MoveDown,
+            UserInput::Single(PhysicalKey(KeyCode::KeyJ)),
+        ),
+        (
+            Action::MoveLeft,
+            UserInput::Single(PhysicalKey(KeyCode::KeyH)),
+        ),
+        (
+            Action::MoveRight,
+            UserInput::Single(PhysicalKey(KeyCode::KeyL)),
+        ),
         (Action::Undo, UserInput::Single(PhysicalKey(KeyCode::KeyU))),
         (
             Action::Redo,
-            UserInput::Chord(vec![PhysicalKey(KeyCode::ControlLeft), PhysicalKey(KeyCode::KeyR)]),
+            UserInput::Chord(vec![
+                PhysicalKey(KeyCode::ControlLeft),
+                PhysicalKey(KeyCode::KeyR),
+            ]),
         ),
     ]);
     let gamepad_input_map = InputMap::new([
