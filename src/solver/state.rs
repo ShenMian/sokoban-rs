@@ -62,22 +62,22 @@ impl State {
             heuristic: 0,
             lower_bound: OnceCell::new(),
         };
-        debug_assert!(instance.movements.move_count() < 10000);
-        debug_assert!(instance.movements.push_count() < 10000);
-        debug_assert!(instance.lower_bound(solver) < 10000);
+        debug_assert!(instance.movements.move_count() < 10_000);
+        debug_assert!(instance.movements.push_count() < 10_000);
+        debug_assert!(instance.lower_bound(solver) < 10_000);
         instance.heuristic = match solver.strategy() {
             Strategy::Fast => {
-                instance.lower_bound(solver) * 10000 + instance.movements.move_count()
+                instance.lower_bound(solver) * 10_000 + instance.movements.move_count()
             }
             Strategy::Mixed => instance.lower_bound(solver) + instance.movements.move_count(),
             Strategy::OptimalMovePush => {
-                instance.movements.move_count() * 10000_0000
-                    + instance.movements.push_count() * 10000
+                instance.movements.move_count() * 100_000_000
+                    + instance.movements.push_count() * 10_000
                     + instance.lower_bound(solver)
             }
             Strategy::OptimalPushMove => {
-                instance.movements.push_count() * 10000_0000
-                    + instance.movements.move_count() * 10000
+                instance.movements.push_count() * 100_000_000
+                    + instance.movements.move_count() * 10_000
                     + instance.lower_bound(solver)
             }
         };

@@ -38,18 +38,18 @@ impl From<char> for Movement {
     }
 }
 
-impl Into<char> for Movement {
-    fn into(self) -> char {
-        let c = match self.direction() {
+impl From<Movement> for char {
+    fn from(movement: Movement) -> Self {
+        let char = match movement.direction() {
             Direction::Up => 'u',
             Direction::Down => 'd',
             Direction::Left => 'l',
             Direction::Right => 'r',
         };
-        if self.is_push() {
-            c.to_ascii_uppercase()
+        if movement.is_push() {
+            char.to_ascii_uppercase()
         } else {
-            c
+            char
         }
     }
 }

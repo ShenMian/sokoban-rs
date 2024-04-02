@@ -181,8 +181,8 @@ impl Level {
                 comments += &(trimmed_line.to_string() + "\n");
                 continue;
             }
-            if trimmed_line.starts_with(';') {
-                comments += &(trimmed_line[1..].trim().to_string() + "\n");
+            if let Some(comment) = trimmed_line.strip_prefix(';') {
+                comments += &(comment.trim_start().to_string() + "\n");
                 continue;
             }
 

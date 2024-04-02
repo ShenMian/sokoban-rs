@@ -7,6 +7,7 @@ use crate::direction::Direction;
 use crate::events::*;
 use crate::resources::*;
 
+use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::time::Duration;
 
@@ -111,10 +112,10 @@ pub fn handle_player_movement(
                 .target_positions
                 .intersection(&board.level.crate_positions)
                 .count();
-            if new_occupied_targets_count > occupied_targets_count {
-                crate_enter_target_events.send_default();
-            } else if new_occupied_targets_count < occupied_targets_count {
-                crate_leave_target_events.send_default();
+            match new_occupied_targets_count.cmp(&occupied_targets_count) {
+                Ordering::Greater => drop(crate_enter_target_events.send_default()),
+                Ordering::Less => drop(crate_leave_target_events.send_default()),
+                _ => (),
             }
 
             player_grid_position.x += direction.to_vector().x;

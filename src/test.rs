@@ -56,7 +56,7 @@ mod tests {
 
     #[test]
     #[cfg(not(debug_assertions))]
-    fn solver_microban_2() {
+    fn solve_microban_2() {
         let levels = Level::load_from_file(Path::new("assets/levels/microban_II_135.xsb")).unwrap();
         assert!(
             solve(
@@ -73,7 +73,7 @@ mod tests {
 
     #[test]
     #[cfg(not(debug_assertions))]
-    fn solver_microban() {
+    fn solve_microban() {
         let levels = Level::load_from_file(Path::new("assets/levels/microban_155.xsb")).unwrap();
         assert!(
             solve(
@@ -87,7 +87,7 @@ mod tests {
 
     #[test]
     #[cfg(not(debug_assertions))]
-    fn solver_box_world() {
+    fn solve_box_world() {
         let levels = Level::load_from_file(Path::new("assets/levels/box_world_100.xsb")).unwrap();
         assert!(
             solve(
