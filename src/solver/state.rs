@@ -253,10 +253,14 @@ impl State {
 
     /// Calculates and returns the lower bound value for the current state.
     fn calculate_lower_bound(&self, solver: &Solver) -> usize {
-        self.crate_positions
-            .iter()
-            .map(|crate_position| solver.lower_bounds()[&crate_position])
-            .sum()
+        let mut sum: usize = 0;
+        for crate_position in &self.crate_positions {
+            match solver.lower_bounds().get(&crate_position) {
+                Some(lower_bound) => sum += lower_bound,
+                None => return 10_000 - 1,
+            }
+        }
+        sum
     }
 
     /// Checks if a position can block the player's movement.
