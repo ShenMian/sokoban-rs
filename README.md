@@ -4,30 +4,19 @@ A sokoban with solver.
 
 ## Features
 
-- [**Solver**](docs/solver.md):
-  The solver can automatically solve simple levels.
+- **Solver**: The solver can automatically solve simple levels. [More details](docs/solver.md).
 
   <p align="center"><img src="./docs/assets/auto_solve.gif" width=50%></p>
 
-- [**Auto move**](docs/auto_move.md):
-  Supports full mouse control for automatic player movement and crate pushing.
+- **Auto move**: Supports full mouse control for automatic player movement and crate pushing. [More details](docs/auto_move.md).
 
   <p align="center"><img src="./docs/assets/auto_crate_push.gif" width=50%></p>
 
-- [**Level management**](docs/level_management.md):
-  Levels and solutions are stored in the database.
-
-- [**Customizing**](docs/customizing.md):
-  Options can be customized via configuration file.
-
-- **Map viewing**:
-  Supports moving and zooming the map. When switching levels, the zoom will be automatically adjusted to fit the window size.
-
-- **Player character animation**:
-  Player character has smooth movement and movement animations in different directions.
-
-- **Front-end and back-end separation**:
-  Backend code (such as solvers) does not depend on frontend (such as Bevy).
+- **Level management**: Levels and solutions are stored in the database. [More details](docs/level_management.md).
+- **Customizing**: Options can be customized via configuration file. [More details](docs/customizing.md).
+- **Map viewing**: Supports moving and zooming the map. When switching levels, the zoom will be automatically adjusted to fit the window size.
+- **Player character animation**: Player character has smooth movement and animations in different directions.
+- **Front-end and back-end separation**: Backend code (such as solvers) is decoupled from the frontend (such as Bevy).
 
 ## Keymap
 
