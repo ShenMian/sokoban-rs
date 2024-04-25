@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 use crate::components::*;
 use crate::resources::*;
-use crate::solver::solver::*;
+use crate::solve::solver::*;
 use crate::systems::input::*;
 use crate::AppState;
 

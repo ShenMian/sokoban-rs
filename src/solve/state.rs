@@ -4,7 +4,7 @@ use siphasher::sip::SipHasher24;
 use crate::direction::Direction;
 use crate::level::{normalized_area, Tile};
 use crate::movement::{Movement, Movements};
-use crate::solver::solver::*;
+use crate::solve::solver::*;
 
 use std::cell::OnceCell;
 use std::cmp::Ordering;
@@ -144,7 +144,7 @@ impl State {
                     .level
                     .get_unchecked(&new_crate_position)
                     .intersects(Tile::Target)
-                    && self.is_freeze_deadlock(
+                    && Self::is_freeze_deadlock(
                         &new_crate_position,
                         &new_crate_positions,
                         solver,
@@ -194,7 +194,6 @@ impl State {
 
     /// Checks if the new crate position leads to a freeze deadlock.
     fn is_freeze_deadlock(
-        &self,
         crate_position: &Vector2<i32>,
         crate_positions: &HashSet<Vector2<i32>>,
         solver: &Solver,
@@ -232,9 +231,9 @@ impl State {
 
             // Checks if any immovable crates on the axis.
             if (crate_positions.contains(&neighbors[0])
-                && self.is_freeze_deadlock(&neighbors[0], crate_positions, solver, visited))
+                && Self::is_freeze_deadlock(&neighbors[0], crate_positions, solver, visited))
                 || (crate_positions.contains(&neighbors[1])
-                    && self.is_freeze_deadlock(&neighbors[1], crate_positions, solver, visited))
+                    && Self::is_freeze_deadlock(&neighbors[1], crate_positions, solver, visited))
             {
                 continue;
             }
@@ -255,7 +254,7 @@ impl State {
     fn calculate_lower_bound(&self, solver: &Solver) -> usize {
         let mut sum: usize = 0;
         for crate_position in &self.crate_positions {
-            match solver.lower_bounds().get(&crate_position) {
+            match solver.lower_bounds().get(crate_position) {
                 Some(lower_bound) => sum += lower_bound,
                 None => return 10_000 - 1,
             }

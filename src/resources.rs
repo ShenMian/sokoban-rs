@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::direction::Direction;
 use crate::level::PushState;
-use crate::solver::solver::*;
+use crate::solve::solver::*;
 use crate::{database, Level};
 
 use std::collections::{HashMap, VecDeque};

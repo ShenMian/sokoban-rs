@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use crate::direction::Direction;
 use crate::level::{Level, Tile};
 use crate::movement::Movements;
-use crate::solver::state::*;
+use crate::solve::state::*;
 
 use std::cell::OnceCell;
 use std::cmp::Ordering;

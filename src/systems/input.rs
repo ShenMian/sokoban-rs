@@ -10,7 +10,7 @@ use crate::direction::Direction;
 use crate::events::*;
 use crate::level::{Level, PushState, Tile};
 use crate::resources::*;
-use crate::solver::solver::*;
+use crate::solve::solver::*;
 use crate::systems::level::*;
 use crate::AppState;
 use crate::{components::*, Action};

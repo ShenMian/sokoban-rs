@@ -10,7 +10,7 @@ mod level;
 mod movement;
 mod plugins;
 mod resources;
-mod solver;
+mod solve;
 mod state;
 mod systems;
 mod test;

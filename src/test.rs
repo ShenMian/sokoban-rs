@@ -5,7 +5,7 @@ mod tests {
     // use super::test::Bencher;
     use crate::board::Board;
     use crate::level::Level;
-    use crate::solver::solver::*;
+    use crate::solve::solver::*;
     use std::fs;
     use std::ops::RangeBounds;
     use std::time::Duration;
