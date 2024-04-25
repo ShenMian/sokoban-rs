@@ -18,21 +18,21 @@ nalgebra = "0.32"
 itertools = "0.12.0"
 siphasher = "1.0"
 
-bevy = "0.13"
 leafwing-input-manager = "0.13"
 bevy_kira_audio = "0.19"
 benimator = "4.1"
 
 serde = { version = "1.0", features = ["derive"] }
 rusqlite = { version = "0.31", features = ["bundled"] }
-arboard = "3.3"                                         # 系统剪切板
+arboard = "3.3"                                         # System clipboard
 image = "0.25"
-winit = "0.29"                                          # 版本需要与 bevy 中使用的保持一致
+winit = "0.29"                                          # The version needs to be consistent with the one used in bevy
 toml = "0.8"
+
+[dependencies.bevy]
+version = "0.13"
+default-features = false
+features = ["multi-threaded", "png", "x11", "default_font"]
 
 [profile.dev.package."*"]
 opt-level = 3
-
-# [profile.release]
-# lto = true
-# codegen-units = 1
