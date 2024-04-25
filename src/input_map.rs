@@ -31,7 +31,7 @@ pub enum Action {
     ExportLevelToClipboard,
 }
 
-pub fn default_input_action_map() -> InputMap<Action> {
+pub fn default_input_map() -> InputMap<Action> {
     use leafwing_input_manager::user_input::InputKind::*;
     let mouse_input_map = InputMap::new([
         (

@@ -5,7 +5,7 @@ mod components;
 mod database;
 mod direction;
 mod events;
-mod input_action_map;
+mod input_map;
 mod level;
 mod movement;
 mod plugins;
@@ -18,7 +18,7 @@ mod test;
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 use events::*;
-use input_action_map::*;
+use input_map::*;
 use leafwing_input_manager::prelude::*;
 use level::*;
 use plugins::performance_matrix::*;
@@ -46,15 +46,15 @@ fn load_config() -> Config {
     config
 }
 
-fn load_input_action_map() -> InputMap<Action> {
+fn load_input_map() -> InputMap<Action> {
     const KEYMAP_FILE_PATH: &str = "keymap.toml";
     if !Path::new(KEYMAP_FILE_PATH).is_file() {
-        let default_keymap_toml = toml::to_string(&default_input_action_map()).unwrap();
+        let default_keymap_toml = toml::to_string(&default_input_map()).unwrap();
         fs::write(KEYMAP_FILE_PATH, default_keymap_toml).unwrap();
     }
     let keymap_toml = fs::read_to_string(KEYMAP_FILE_PATH).unwrap();
-    let input_action_map: InputMap<Action> = toml::from_str(keymap_toml.as_str()).unwrap();
-    input_action_map
+    let input_map: InputMap<Action> = toml::from_str(keymap_toml.as_str()).unwrap();
+    input_map
 }
 
 fn save_config(config: Res<Config>) {
@@ -163,9 +163,9 @@ fn main() {
         .insert_resource(player_movement)
         .insert_resource(AutoMoveState::default());
 
-    let input_action_map = load_input_action_map();
+    let input_map = load_input_map();
     app.init_resource::<ActionState<Action>>()
-        .insert_resource(input_action_map);
+        .insert_resource(input_map);
 
     app.add_event::<CrateEnterTarget>()
         .add_event::<CrateLeaveTarget>()
