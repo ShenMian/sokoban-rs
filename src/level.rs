@@ -820,13 +820,6 @@ mod tests {
             ######
         "#,
         );
-        let invalid_character_level = String::from(
-            r#"
-            ######
-            #@!$.#
-            ######
-        "#,
-        );
         assert_eq!(
             Level::load_from_memory(no_player_level).err().unwrap(),
             ParseMapError::NoPlayer
