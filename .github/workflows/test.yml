@@ -33,6 +33,15 @@ jobs:
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
+      
+      - name: Install cargo-audit
+        run: cargo install cargo-audit
+
+      - name: Audit
+        run: cargo audit
+
+      - name: Clippy
+        run: cargo clippy --verbose -- -D warnings
 
       - name: Test
         run: cargo test --release -- --test-threads 2
