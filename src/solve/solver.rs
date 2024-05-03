@@ -326,7 +326,7 @@ impl Solver {
             let lower_bound = *lower_bounds
                 .get(&next_crate_position)
                 .unwrap_or(&usize::MAX);
-            let new_lower_bound = lower_bounds[&crate_position] + 1;
+            let new_lower_bound = lower_bounds[crate_position] + 1;
             if !visited.insert((next_crate_position, pull_direction)) {
                 continue;
             }

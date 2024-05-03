@@ -3677,6 +3677,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "soukoban"
+version = "0.1.0"
+source = "git+https://github.com/ShenMian/soukoban#6868852b5065ec9e26b5833b755b77fcabcc0a9b"
+dependencies = [
+ "bitflags 2.5.0",
+ "itertools",
+ "nalgebra",
+ "thiserror",
+]
+
+[[package]]
 name = "soukoban-rs"
 version = "0.1.14"
 dependencies = [
@@ -3692,6 +3703,7 @@ dependencies = [
  "rusqlite",
  "serde",
  "siphasher",
+ "soukoban",
  "toml",
  "winit",
 ]

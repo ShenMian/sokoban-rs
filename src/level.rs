@@ -1,6 +1,7 @@
 use bitflags::bitflags;
 use nalgebra::Vector2;
 use siphasher::sip::SipHasher24;
+use soukoban::run_length::rle_decode;
 
 use crate::direction::Direction;
 
@@ -194,7 +195,7 @@ impl Level {
                     continue;
                 }
 
-                debug_assert!(metadata.get("comments").is_none());
+                debug_assert!(!metadata.contains_key("comments"));
                 if !comments.is_empty() {
                     metadata.insert("comments".to_string(), comments.clone());
                 }
@@ -248,7 +249,7 @@ impl Level {
 
             // if line contains numbers, perform RLE decoding
             if line.chars().any(|c| c.is_ascii_digit()) {
-                map_data.push(rle_decode(line));
+                map_data.push(rle_decode(line).unwrap());
             } else {
                 map_data.push(line.to_string());
             }
@@ -728,64 +729,6 @@ impl Level {
     }
 }
 
-/// Encodes a string using run-length encoding (RLE).
-#[allow(dead_code)]
-fn rle_encode(data: &str) -> String {
-    let mut result = String::new();
-    let mut chars = data.chars().peekable();
-    let mut count = 0;
-    while let Some(char) = chars.next() {
-        count += 1;
-        if chars.peek() != Some(&char) {
-            if count > 1 {
-                result.push_str(&count.to_string())
-            }
-            result.push(char);
-            count = 0;
-        }
-    }
-    result
-}
-
-/// Decodes a string encoded with run-length encoding (RLE).
-fn rle_decode(data: &str) -> String {
-    let mut result = String::new();
-    let mut length_str = String::new();
-
-    let mut iter = data.chars();
-    while let Some(char) = iter.next() {
-        if char.is_ascii_digit() {
-            length_str.push(char);
-            continue;
-        }
-        let mut token = String::new();
-        if char == '(' {
-            let mut nesting_level = 0;
-            for char in &mut iter {
-                if char == '(' {
-                    nesting_level += 1;
-                } else if char == ')' {
-                    if nesting_level == 0 {
-                        break;
-                    }
-                    nesting_level -= 1;
-                }
-                token.push(char);
-            }
-        } else {
-            token = char.to_string();
-        }
-        let length = length_str.parse().unwrap_or(1);
-        result += &token.repeat(length);
-        length_str.clear();
-    }
-
-    if result.contains('(') {
-        return rle_decode(&result);
-    }
-    result
-}
-
 pub fn normalized_area(area: &HashSet<Vector2<i32>>) -> Vector2<i32> {
     *area
         .iter()
@@ -836,18 +779,5 @@ mod tests {
                 .unwrap(),
             ParseMapError::MismatchBetweenCratesAndTargets
         );
-    }
-
-    #[test]
-    fn test_rle_encode() {
-        assert_eq!(rle_encode(""), "");
-        assert_eq!(rle_encode("aaabbbcdd"), "3a3bc2d");
-    }
-
-    #[test]
-    fn test_rle_decode() {
-        assert_eq!(rle_decode(""), "");
-        assert_eq!(rle_decode("-#$.*+@"), "-#$.*+@");
-        assert_eq!(rle_decode("3-##3(.$2(+*))-#"), "---##.$+*+*.$+*+*.$+*+*-#");
     }
 }
