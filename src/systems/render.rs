@@ -1,11 +1,12 @@
 use benimator::{Animation, FrameRate};
 use bevy::prelude::*;
 use bevy::winit::WinitWindows;
+use nalgebra::Vector2;
 
 use crate::components::*;
-use crate::direction::Direction;
 use crate::events::*;
 use crate::resources::*;
+use soukoban::direction::Direction;
 
 use std::cmp::Ordering;
 use std::collections::HashSet;
@@ -118,11 +119,11 @@ pub fn handle_player_movement(
                 _ => (),
             }
 
-            player_grid_position.x += direction.to_vector().x;
-            player_grid_position.y += direction.to_vector().y;
+            player_grid_position.x += Into::<Vector2<i32>>::into(direction).x;
+            player_grid_position.y += Into::<Vector2<i32>>::into(direction).y;
 
             let old_crate_position = *player_grid_position;
-            let new_crate_position = old_crate_position + direction.to_vector();
+            let new_crate_position = old_crate_position + &direction.into();
             let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
             if crate_grid_positions.contains(player_grid_position) {
                 for mut crate_grid_position in crates.iter_mut() {
@@ -136,11 +137,11 @@ pub fn handle_player_movement(
         while let Some(direction) = player_movement.directions.pop_back() {
             board.move_or_push(direction);
 
-            player_grid_position.x += direction.to_vector().x;
-            player_grid_position.y += direction.to_vector().y;
+            player_grid_position.x += Into::<Vector2<i32>>::into(direction).x;
+            player_grid_position.y += Into::<Vector2<i32>>::into(direction).y;
 
             let old_crate_position = *player_grid_position;
-            let new_crate_position = old_crate_position + direction.to_vector();
+            let new_crate_position = old_crate_position + &direction.into();
             let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
             if crate_grid_positions.contains(player_grid_position) {
                 for mut crate_grid_position in crates.iter_mut() {

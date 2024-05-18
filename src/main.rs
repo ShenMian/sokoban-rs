@@ -3,11 +3,9 @@
 mod board;
 mod components;
 mod database;
-mod direction;
 mod events;
 mod input_map;
 mod level;
-mod movement;
 mod plugins;
 mod resources;
 mod solve;

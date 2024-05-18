@@ -1,21 +1,21 @@
-use nalgebra::Vector2;
-use siphasher::sip::SipHasher24;
-
-use crate::direction::Direction;
 use crate::level::{normalized_area, Tile};
-use crate::movement::{Movement, Movements};
 use crate::solve::solver::*;
+use soukoban::direction::Direction;
 
 use std::cell::OnceCell;
 use std::cmp::Ordering;
 use std::collections::HashSet;
 use std::hash::{Hash, Hasher};
 
+use nalgebra::Vector2;
+use siphasher::sip::SipHasher24;
+use soukoban::{Action, Actions};
+
 #[derive(Clone, Eq)]
 pub struct State {
     pub player_position: Vector2<i32>,
     pub crate_positions: HashSet<Vector2<i32>>,
-    pub movements: Movements,
+    pub movements: Actions,
     heuristic: usize,
     lower_bound: OnceCell<usize>,
 }
@@ -52,7 +52,7 @@ impl State {
     pub fn new(
         player_position: Vector2<i32>,
         crate_positions: HashSet<Vector2<i32>>,
-        movements: Movements,
+        movements: Actions,
         solver: &Solver,
     ) -> Self {
         let mut instance = Self {
@@ -62,22 +62,20 @@ impl State {
             heuristic: 0,
             lower_bound: OnceCell::new(),
         };
-        debug_assert!(instance.movements.move_count() < 10_000);
-        debug_assert!(instance.movements.push_count() < 10_000);
+        debug_assert!(instance.movements.moves() < 10_000);
+        debug_assert!(instance.movements.pushes() < 10_000);
         debug_assert!(instance.lower_bound(solver) < 10_000);
         instance.heuristic = match solver.strategy() {
-            Strategy::Fast => {
-                instance.lower_bound(solver) * 10_000 + instance.movements.move_count()
-            }
-            Strategy::Mixed => instance.lower_bound(solver) + instance.movements.move_count(),
+            Strategy::Fast => instance.lower_bound(solver) * 10_000 + instance.movements.moves(),
+            Strategy::Mixed => instance.lower_bound(solver) + instance.movements.moves(),
             Strategy::OptimalMovePush => {
-                instance.movements.move_count() * 100_000_000
-                    + instance.movements.push_count() * 10_000
+                instance.movements.moves() * 100_000_000
+                    + instance.movements.pushes() * 10_000
                     + instance.lower_bound(solver)
             }
             Strategy::OptimalPushMove => {
-                instance.movements.push_count() * 100_000_000
-                    + instance.movements.move_count() * 10_000
+                instance.movements.pushes() * 100_000_000
+                    + instance.movements.moves() * 10_000
                     + instance.lower_bound(solver)
             }
         };
@@ -97,12 +95,12 @@ impl State {
                 Direction::Left,
                 Direction::Right,
             ] {
-                let mut new_crate_position = crate_position + push_direction.to_vector();
+                let mut new_crate_position = crate_position + &push_direction.into();
                 if self.can_block_crate(&new_crate_position, solver) {
                     continue;
                 }
 
-                let next_player_position = crate_position - push_direction.to_vector();
+                let next_player_position = crate_position - &push_direction.into();
                 if self.can_block_player(&next_player_position, solver)
                     || !player_reachable_area.contains(&next_player_position)
                 {
@@ -116,23 +114,22 @@ impl State {
                 .unwrap();
                 new_movements.extend(
                     path.windows(2)
-                        .map(|p| Direction::from_vector(p[1] - p[0]).unwrap())
-                        .map(Movement::Move),
+                        .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap())
+                        .map(Action::Move),
                 );
-                new_movements.push(Movement::Push(push_direction));
+                new_movements.push(Action::Push(push_direction));
 
                 // skip tunnels
                 while solver.tunnels().contains(&(
-                    (new_crate_position - push_direction.to_vector()),
+                    (new_crate_position - &push_direction.into()),
                     push_direction,
                 )) {
-                    if self
-                        .can_block_crate(&(new_crate_position + push_direction.to_vector()), solver)
+                    if self.can_block_crate(&(new_crate_position + &push_direction.into()), solver)
                     {
                         break;
                     }
-                    new_crate_position += push_direction.to_vector();
-                    new_movements.push(Movement::Push(push_direction));
+                    new_crate_position += &push_direction.into();
+                    new_movements.push(Action::Push(push_direction));
                 }
 
                 let mut new_crate_positions = self.crate_positions.clone();
@@ -142,7 +139,7 @@ impl State {
                 // skip deadlocks
                 if !solver
                     .level
-                    .get_unchecked(&new_crate_position)
+                    .get(&new_crate_position)
                     .intersects(Tile::Target)
                     && Self::is_freeze_deadlock(
                         &new_crate_position,
@@ -154,7 +151,7 @@ impl State {
                     continue;
                 }
 
-                let new_player_position = new_crate_position - push_direction.to_vector();
+                let new_player_position = new_crate_position - &push_direction.into();
 
                 let new_state = State::new(
                     new_player_position,
@@ -212,18 +209,18 @@ impl State {
         .chunks(2)
         {
             let neighbors = [
-                crate_position + direction[0].to_vector(),
-                crate_position + direction[1].to_vector(),
+                crate_position + &direction[0].into(),
+                crate_position + &direction[1].into(),
             ];
 
             // Checks if any immovable walls on the axis.
             if solver
                 .level
-                .get_unchecked(&neighbors[0])
+                .get(&neighbors[0])
                 .intersects(Tile::Wall)
                 || solver
                     .level
-                    .get_unchecked(&neighbors[1])
+                    .get(&neighbors[1])
                     .intersects(Tile::Wall)
             {
                 continue;
@@ -264,7 +261,7 @@ impl State {
 
     /// Checks if a position can block the player's movement.
     fn can_block_player(&self, position: &Vector2<i32>, solver: &Solver) -> bool {
-        solver.level.get_unchecked(position).intersects(Tile::Wall)
+        solver.level.get(position).intersects(Tile::Wall)
             || self.crate_positions.contains(position)
     }
 
@@ -272,7 +269,7 @@ impl State {
     fn can_block_crate(&self, position: &Vector2<i32>, solver: &Solver) -> bool {
         solver
             .level
-            .get_unchecked(position)
+            .get(position)
             .intersects(Tile::Wall | Tile::Deadlock)
             || !solver.lower_bounds().contains_key(position)
             || self.crate_positions.contains(position)

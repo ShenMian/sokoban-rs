@@ -63,7 +63,7 @@ pub fn spawn_auto_move_marks(
                 board
                     .level
                     .reachable_area(&board.level.player_position, |position| {
-                        board.level.get_unchecked(position).intersects(Tile::Wall)
+                        board.level.get(position).intersects(Tile::Wall)
                             || board.level.crate_positions.contains(position)
                     });
             reachable_area.remove(&board.level.player_position);

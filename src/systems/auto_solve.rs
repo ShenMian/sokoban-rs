@@ -118,10 +118,10 @@ pub fn update_solver(
             );
             info!(
                 "    Moves: {}, pushes: {}",
-                solution.move_count(),
-                solution.push_count()
+                solution.moves(),
+                solution.pushes()
             );
-            info!("    Solution: {}", solution.lurd());
+            info!("    Solution: {}", solution.to_string());
 
             for movement in &*solution {
                 player_move_unchecked(movement.direction(), &mut player_movement);
@@ -146,8 +146,8 @@ pub fn update_solver(
         // println!(
         //     "lower bound: {:3}, moves: {:3}, pushes: {:3}",
         //     best_state.lower_bound(&solver),
-        //     best_state.movements.move_count(),
-        //     best_state.movements.push_count()
+        //     best_state.movements.moves(),
+        //     best_state.movements.pushes()
         // );
         for movement in &*best_state.movements {
             board.move_or_push(movement.direction());

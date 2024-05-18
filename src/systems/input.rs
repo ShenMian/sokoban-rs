@@ -6,7 +6,6 @@ use bevy::window::WindowMode;
 use leafwing_input_manager::prelude::*;
 use nalgebra::Vector2;
 
-use crate::direction::Direction;
 use crate::events::*;
 use crate::level::{Level, PushState, Tile};
 use crate::resources::*;
@@ -14,6 +13,7 @@ use crate::solve::solver::*;
 use crate::systems::level::*;
 use crate::AppState;
 use crate::{components::*, Action};
+use soukoban::direction::Direction;
 
 /// Clears the action state by consuming all stored actions.
 pub fn clear_action_state(mut action_state: ResMut<ActionState<Action>>) {
@@ -105,12 +105,12 @@ fn player_move_to(
     if let Some(path) = find_path(&board.level.player_position, target, |position| {
         board
             .level
-            .get_unchecked(position)
+            .get(position)
             .intersects(Tile::Wall | Tile::Crate)
     }) {
         let directions = path
             .windows(2)
-            .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
+            .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap());
         for direction in directions {
             player_move_unchecked(direction, player_movement);
         }
@@ -137,12 +137,12 @@ fn instant_player_move_to(
     if let Some(path) = find_path(&board_clone.level.player_position, target, |position| {
         board_clone
             .level
-            .get_unchecked(position)
+            .get(position)
             .intersects(Tile::Wall | Tile::Crate)
     }) {
         let directions = path
             .windows(2)
-            .map(|pos| Direction::from_vector(pos[1] - pos[0]).unwrap());
+            .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap());
         for direction in directions {
             instant_player_move(direction, board_clone, player_movement);
         }
@@ -357,12 +357,11 @@ pub fn mouse_input(
                             crate_paths.iter().min_by_key(|crate_path| crate_path.len())
                         {
                             let mut board_clone = board.clone();
-                            for (crate_position, push_direction) in
-                                min_crate_path.windows(2).map(|pos| {
-                                    (pos[0], Direction::from_vector(pos[1] - pos[0]).unwrap())
-                                })
+                            for (crate_position, push_direction) in min_crate_path
+                                .windows(2)
+                                .map(|pos| (pos[0], Direction::try_from(pos[1] - pos[0]).unwrap()))
                             {
-                                let player_position = crate_position - push_direction.to_vector();
+                                let player_position = crate_position - &push_direction.into();
                                 instant_player_move_to(
                                     &player_position,
                                     &mut board_clone,

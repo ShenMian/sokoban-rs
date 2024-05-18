@@ -1,13 +1,14 @@
-use nalgebra::Vector2;
-use rusqlite::Connection;
-use siphasher::sip::SipHasher24;
-
-use crate::level::Level;
-use crate::movement::Movements;
-
 use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
+use std::str::FromStr;
+
+use crate::level::Level;
+
+use nalgebra::Vector2;
+use rusqlite::Connection;
+use siphasher::sip::SipHasher24;
+use soukoban::Actions;
 
 pub struct Database {
     connection: Connection,
@@ -152,7 +153,7 @@ impl Database {
         Some(row.get(0).unwrap())
     }
 
-    pub fn best_move_solution(&self, level_id: u64) -> Option<Movements> {
+    pub fn best_move_solution(&self, level_id: u64) -> Option<Actions> {
         let mut statement = self
             .connection
             .prepare("SELECT movements FROM tb_snapshot WHERE level_id = ? AND best_move = 1")
@@ -160,10 +161,10 @@ impl Database {
         let mut rows = statement.query([level_id]).unwrap();
         let row = rows.next().unwrap()?;
         let best_move: String = row.get(0).unwrap();
-        Some(Movements::from_lurd(&best_move))
+        Some(Actions::from_str(&best_move).unwrap())
     }
 
-    pub fn best_push_solution(&self, level_id: u64) -> Option<Movements> {
+    pub fn best_push_solution(&self, level_id: u64) -> Option<Actions> {
         let mut statement = self
             .connection
             .prepare("SELECT movements FROM tb_snapshot WHERE level_id = ? AND best_push = 1")
@@ -171,15 +172,15 @@ impl Database {
         let mut rows = statement.query([level_id]).unwrap();
         let row = rows.next().unwrap()?;
         let best_push: String = row.get(0).unwrap();
-        Some(Movements::from_lurd(&best_push))
+        Some(Actions::from_str(&best_push).unwrap())
     }
 
-    pub fn update_solution(&self, level_id: u64, solution: &Movements) {
-        let lurd: String = solution.lurd();
+    pub fn update_solution(&self, level_id: u64, solution: &Actions) {
+        let lurd = solution.to_string();
 
         if let Some(best_move_solution) = self.best_move_solution(level_id) {
             dbg!();
-            if solution.move_count() < best_move_solution.move_count() {
+            if solution.moves() < best_move_solution.moves() {
                 self.connection
                     .execute(
                         "UPDATE tb_snapshot SET movements = ? WHERE level_id = ?",
@@ -198,7 +199,7 @@ impl Database {
 
         if let Some(best_push_solution) = self.best_push_solution(level_id) {
             dbg!();
-            if solution.push_count() < best_push_solution.push_count() {
+            if solution.pushes() < best_push_solution.pushes() {
                 self.connection
                     .execute(
                         "UPDATE tb_snapshot SET movements = ? WHERE level_id = ?",

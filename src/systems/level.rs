@@ -99,7 +99,7 @@ pub fn spawn_board(
             for y in 0..level.dimensions().y {
                 for x in 0..level.dimensions().x {
                     let position = Vector2::<i32>::new(x, y);
-                    if level.get_unchecked(&position) == Tile::Void {
+                    if level.get(&position) == Tile::Void {
                         continue;
                     }
                     let tiles = HashMap::from([
@@ -110,7 +110,7 @@ pub fn spawn_board(
                         (Tile::Player, (0, 4.0)),
                     ]);
                     for (tile, (sprite_index, z_order)) in tiles.into_iter() {
-                        if level.get_unchecked(&position).intersects(tile) {
+                        if level.get(&position).intersects(tile) {
                             let mut sprite = Sprite::default();
                             if config.even_square_shades > 0.0
                                 && tile == Tile::Floor
@@ -157,10 +157,10 @@ pub fn auto_switch_to_next_unsolved_level(
     debug_assert!(board.is_solved());
     info!("{}", "=".repeat(15));
     info!("#{} Sloved!", **level_id);
-    info!("Moves   : {}", board.movements().move_count());
-    info!("Pushes  : {}", board.movements().push_count());
-    info!("Solution: {}", board.movements().lurd());
-    database.update_solution(**level_id, board.movements());
+    info!("Moves   : {}", board.actions().moves());
+    info!("Pushes  : {}", board.actions().pushes());
+    info!("Solution: {}", board.actions().to_string());
+    database.update_solution(**level_id, board.actions());
     switch_to_next_unsolved_level(&mut level_id, &database);
 }
 

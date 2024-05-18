@@ -3,10 +3,10 @@ use bevy::time::Stopwatch;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
 
-use crate::direction::Direction;
 use crate::level::PushState;
 use crate::solve::solver::*;
 use crate::{database, Level};
+use soukoban::direction::Direction;
 
 use std::collections::{HashMap, VecDeque};
 use std::sync::Mutex;

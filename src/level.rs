@@ -3,7 +3,7 @@ use nalgebra::Vector2;
 use siphasher::sip::SipHasher24;
 use soukoban::run_length::rle_decode;
 
-use crate::direction::Direction;
+use soukoban::direction::Direction;
 
 use std::cmp;
 use std::collections::{HashMap, HashSet, VecDeque};
@@ -272,13 +272,13 @@ impl Level {
     }
 
     /// Returns the tile at the specified position without bounds checking.
-    pub fn get_unchecked(&self, position: &Vector2<i32>) -> Tile {
+    pub fn get(&self, position: &Vector2<i32>) -> Tile {
         debug_assert!(self.in_bounds(position));
         self.data[(position.y * self.dimensions.x + position.x) as usize]
     }
 
     /// Returns a mutable reference to the tile at the specified position without bounds checking.
-    pub fn get_unchecked_mut(&mut self, position: &Vector2<i32>) -> &mut Tile {
+    pub fn get_mut(&mut self, position: &Vector2<i32>) -> &mut Tile {
         debug_assert!(self.in_bounds(position));
         &mut self.data[(position.y * self.dimensions.x + position.x) as usize]
     }
@@ -288,7 +288,7 @@ impl Level {
         let mut result = String::new();
         for y in 0..self.dimensions.y {
             for x in 0..self.dimensions.x {
-                let tiles = self.get_unchecked(&Vector2::<i32>::new(x, y));
+                let tiles = self.get(&Vector2::<i32>::new(x, y));
                 if tiles.contains(Tile::Crate | Tile::Target) {
                     result.push('*');
                 } else if tiles.contains(Tile::Player | Tile::Target) {
@@ -330,15 +330,13 @@ impl Level {
 
     /// Normalizes the level.
     pub fn normalize(&mut self) {
-        assert!(self
-            .get_unchecked(&self.player_position)
-            .contains(Tile::Floor));
+        assert!(self.get(&self.player_position).contains(Tile::Floor));
         self.clear(Tile::Wall);
         self.clear(Tile::Void);
         for x in 0..self.dimensions.x {
             for y in 0..self.dimensions.y {
                 let position = Vector2::<i32>::new(x, y);
-                if self.get_unchecked(&position).intersects(Tile::Floor) {
+                if self.get(&position).intersects(Tile::Floor) {
                     let directions = [
                         Vector2::<i32>::y(),
                         -Vector2::<i32>::y(),
@@ -351,9 +349,8 @@ impl Level {
                     ];
                     for direction in directions {
                         let neighbor_position = position + direction;
-                        if !self.get_unchecked(&neighbor_position).contains(Tile::Floor) {
-                            self.get_unchecked_mut(&neighbor_position)
-                                .insert(Tile::Wall);
+                        if !self.get(&neighbor_position).contains(Tile::Floor) {
+                            self.get_mut(&neighbor_position).insert(Tile::Wall);
                         }
                     }
                 }
@@ -367,13 +364,11 @@ impl Level {
                 self.flip();
             }
 
-            self.set_player_position(&normalized_area(&self.reachable_area(
-                &self.player_position,
-                |position| {
-                    self.get_unchecked(position)
-                        .intersects(Tile::Wall | Tile::Crate)
-                },
-            )));
+            self.set_player_position(&normalized_area(
+                &self.reachable_area(&self.player_position, |position| {
+                    self.get(position).intersects(Tile::Wall | Tile::Crate)
+                }),
+            ));
 
             let mut hasher = SipHasher24::new();
             self.hash(&mut hasher);
@@ -388,13 +383,11 @@ impl Level {
                 self.flip();
             }
 
-            self.set_player_position(&normalized_area(&self.reachable_area(
-                &self.player_position,
-                |position| {
-                    self.get_unchecked(position)
-                        .intersects(Tile::Wall | Tile::Crate)
-                },
-            )));
+            self.set_player_position(&normalized_area(
+                &self.reachable_area(&self.player_position, |position| {
+                    self.get(position).intersects(Tile::Wall | Tile::Crate)
+                }),
+            ));
 
             let mut hasher = SipHasher24::new();
             self.hash(&mut hasher);
@@ -412,9 +405,9 @@ impl Level {
         for x in 1..self.dimensions.x - 1 {
             for y in 1..self.dimensions.y - 1 {
                 let position = Vector2::new(x, y);
-                if !self.get_unchecked(&position).intersects(Tile::Floor)
+                if !self.get(&position).intersects(Tile::Floor)
                     || self
-                        .get_unchecked(&position)
+                        .get(&position)
                         .intersects(Tile::Target | Tile::Deadlock)
                 {
                     continue;
@@ -430,33 +423,32 @@ impl Level {
                 .windows(2)
                 {
                     let neighbor = [
-                        position + directions[0].to_vector(),
-                        position + directions[1].to_vector(),
+                        position + &directions[0].into(),
+                        position + &directions[1].into(),
                     ];
-                    if !(self.get_unchecked(&neighbor[0]).intersects(Tile::Wall)
-                        && self.get_unchecked(&neighbor[1]).intersects(Tile::Wall))
+                    if !(self.get(&neighbor[0]).intersects(Tile::Wall)
+                        && self.get(&neighbor[1]).intersects(Tile::Wall))
                     {
                         continue;
                     }
 
-                    self.get_unchecked_mut(&position).insert(Tile::Deadlock);
+                    self.get_mut(&position).insert(Tile::Deadlock);
 
                     let mut dead_positions = HashSet::new();
                     let mut next_position = position;
-                    while !self.get_unchecked(&next_position).intersects(Tile::Wall)
+                    while !self.get(&next_position).intersects(Tile::Wall)
                         && self
-                            .get_unchecked(&(next_position + directions[1].to_vector()))
+                            .get(&(next_position + &directions[1].into()))
                             .intersects(Tile::Wall)
                     {
                         dead_positions.insert(next_position);
-                        next_position += -directions[0].to_vector();
-                        if self.get_unchecked(&next_position).intersects(Tile::Target) {
+                        next_position += -Into::<Vector2<i32>>::into(directions[0]);
+                        if self.get(&next_position).intersects(Tile::Target) {
                             break;
                         }
-                        if self.get_unchecked(&next_position).intersects(Tile::Wall) {
+                        if self.get(&next_position).intersects(Tile::Wall) {
                             for dead_position in dead_positions {
-                                self.get_unchecked_mut(&dead_position)
-                                    .insert(Tile::Deadlock);
+                                self.get_mut(&dead_position).insert(Tile::Deadlock);
                             }
                             break;
                         }
@@ -464,20 +456,19 @@ impl Level {
 
                     let mut dead_positions = HashSet::new();
                     let mut next_position = position;
-                    while !self.get_unchecked(&next_position).intersects(Tile::Wall)
+                    while !self.get(&next_position).intersects(Tile::Wall)
                         && self
-                            .get_unchecked(&(next_position + directions[0].to_vector()))
+                            .get(&(next_position + &directions[0].into()))
                             .intersects(Tile::Wall)
                     {
                         dead_positions.insert(next_position);
-                        next_position += -directions[1].to_vector();
-                        if self.get_unchecked(&next_position).intersects(Tile::Target) {
+                        next_position += -Into::<Vector2<i32>>::into(directions[1]);
+                        if self.get(&next_position).intersects(Tile::Target) {
                             break;
                         }
-                        if self.get_unchecked(&next_position).intersects(Tile::Wall) {
+                        if self.get(&next_position).intersects(Tile::Wall) {
                             for dead_position in dead_positions {
-                                self.get_unchecked_mut(&dead_position)
-                                    .insert(Tile::Deadlock);
+                                self.get_mut(&dead_position).insert(Tile::Deadlock);
                             }
                             break;
                         }
@@ -507,7 +498,7 @@ impl Level {
                 Direction::Left,
                 Direction::Right,
             ] {
-                let next_position = position + direction.to_vector();
+                let next_position = position + &direction.into();
                 if is_block(&next_position) {
                     continue;
                 }
@@ -528,8 +519,7 @@ impl Level {
         let mut queue = VecDeque::new();
 
         let player_reachable_area = self.reachable_area(&self.player_position, |position| {
-            self.get_unchecked(position).intersects(Tile::Wall)
-                || initial_crate_positions.contains(position)
+            self.get(position).intersects(Tile::Wall) || initial_crate_positions.contains(position)
         });
         for push_direction in [
             Direction::Up,
@@ -537,8 +527,8 @@ impl Level {
             Direction::Left,
             Direction::Right,
         ] {
-            let player_position = crate_position - push_direction.to_vector();
-            if self.get_unchecked(&player_position).intersects(Tile::Wall)
+            let player_position = crate_position - &push_direction.into();
+            if self.get(&player_position).intersects(Tile::Wall)
                 || !player_reachable_area.contains(&player_position)
             {
                 continue;
@@ -556,10 +546,9 @@ impl Level {
             crate_positions.remove(crate_position);
             crate_positions.insert(state.crate_position);
 
-            let player_position = state.crate_position - state.push_direction.to_vector();
+            let player_position = state.crate_position - &state.push_direction.into();
             let player_reachable_area = self.reachable_area(&player_position, |position| {
-                self.get_unchecked(position).intersects(Tile::Wall)
-                    || crate_positions.contains(position)
+                self.get(position).intersects(Tile::Wall) || crate_positions.contains(position)
             });
 
             for push_direction in [
@@ -568,18 +557,18 @@ impl Level {
                 Direction::Left,
                 Direction::Right,
             ] {
-                let new_crate_position = state.crate_position + push_direction.to_vector();
-                let player_position = state.crate_position - push_direction.to_vector();
+                let new_crate_position = state.crate_position + &push_direction.into();
+                let player_position = state.crate_position - &push_direction.into();
 
                 if self
-                    .get_unchecked(&new_crate_position)
+                    .get(&new_crate_position)
                     .intersects(Tile::Wall | Tile::Deadlock)
                     || crate_positions.contains(&new_crate_position)
                 {
                     continue;
                 }
 
-                if self.get_unchecked(&player_position).intersects(Tile::Wall)
+                if self.get(&player_position).intersects(Tile::Wall)
                     || !player_reachable_area.contains(&player_position)
                 {
                     continue;
@@ -616,10 +605,10 @@ impl Level {
     }
 
     fn set_player_position(&mut self, position: &Vector2<i32>) {
-        self.get_unchecked_mut(&self.player_position.clone())
+        self.get_mut(&self.player_position.clone())
             .remove(Tile::Player);
         self.player_position = *position;
-        self.get_unchecked_mut(&self.player_position.clone())
+        self.get_mut(&self.player_position.clone())
             .insert(Tile::Player);
     }
 
@@ -635,7 +624,7 @@ impl Level {
                 let rotated_position = rotate_position(&position);
                 rotated_data
                     [(rotated_position.x + rotated_position.y * self.dimensions.y) as usize] =
-                    self.get_unchecked(&position);
+                    self.get(&position);
             }
         }
 
@@ -657,7 +646,7 @@ impl Level {
                 let flipped_position = flip_position(&position);
                 flipped_data
                     [(flipped_position.x + flipped_position.y * self.dimensions.x) as usize] =
-                    self.get_unchecked(&position);
+                    self.get(&position);
             }
         }
 
@@ -677,8 +666,7 @@ impl Level {
     pub fn clear(&mut self, value: Tile) {
         for x in 0..self.dimensions.x {
             for y in 0..self.dimensions.y {
-                self.get_unchecked_mut(&Vector2::<i32>::new(x, y))
-                    .remove(value);
+                self.get_mut(&Vector2::<i32>::new(x, y)).remove(value);
             }
         }
     }
@@ -698,10 +686,10 @@ impl Level {
             }
             visited.insert(position);
 
-            if self.get_unchecked(&position).contains(value) {
+            if self.get(&position).contains(value) {
                 continue;
             }
-            self.get_unchecked_mut(&position).insert(value);
+            self.get_mut(&position).insert(value);
 
             let directions = [
                 Vector2::<i32>::y(),
@@ -715,9 +703,7 @@ impl Level {
                     continue;
                 }
 
-                if self
-                    .get_unchecked(&neighbor_position)
-                    .intersects(value | border)
+                if self.get(&neighbor_position).intersects(value | border)
                     || visited.contains(&neighbor_position)
                 {
                     continue;

@@ -1,17 +1,17 @@
-use itertools::Itertools;
-use nalgebra::Vector2;
-use serde::{Deserialize, Serialize};
-
-use crate::direction::Direction;
-use crate::level::{Level, Tile};
-use crate::movement::Movements;
-use crate::solve::state::*;
-
 use std::cell::OnceCell;
 use std::cmp::Ordering;
 use std::collections::{BinaryHeap, HashMap, HashSet};
 use std::hash::Hash;
 use std::time::{Duration, Instant};
+
+use crate::level::{Level, Tile};
+use crate::solve::state::*;
+use soukoban::direction::Direction;
+
+use itertools::Itertools;
+use nalgebra::Vector2;
+use serde::{Deserialize, Serialize};
+use soukoban::Actions;
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum Strategy {
@@ -76,14 +76,15 @@ impl Solver {
         instance.heap.push(State::new(
             instance.level.player_position,
             instance.level.crate_positions.clone(),
-            Movements::new(),
+            // TODO: from_str("") -> new() or default()
+            Actions::new(),
             &instance,
         ));
         instance
     }
 
     /// Searches for solution using the A* algorithm.
-    pub fn search(&mut self, timeout: Duration) -> Result<Movements> {
+    pub fn search(&mut self, timeout: Duration) -> Result<Actions> {
         let timer = Instant::now();
         self.visited
             .insert(self.heap.peek().unwrap().normalized_hash(self));
@@ -128,11 +129,7 @@ impl Solver {
         for x in 1..self.level.dimensions().x - 1 {
             for y in 1..self.level.dimensions().y - 1 {
                 let player_position = Vector2::new(x, y);
-                if !self
-                    .level
-                    .get_unchecked(&player_position)
-                    .intersects(Tile::Floor)
-                {
+                if !self.level.get(&player_position).intersects(Tile::Floor) {
                     continue;
                 }
 
@@ -145,81 +142,75 @@ impl Solver {
                     Direction::Right,
                     Direction::Down,
                 ]
-                .iter()
+                .into_iter()
                 .tuple_windows::<(_, _, _, _)>()
                 {
                     // #$#
                     // #@#
                     if self
                         .level
-                        .get_unchecked(&(player_position + left.to_vector()))
+                        .get(&(player_position + &left.into()))
                         .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&(player_position + right.to_vector()))
+                            .get(&(player_position + &right.into()))
                             .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&(player_position + up.to_vector() + left.to_vector()))
+                            .get(&(player_position + &up.into() + &left.into()))
                             .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&(player_position + up.to_vector() + right.to_vector()))
+                            .get(&(player_position + &up.into() + &right.into()))
                             .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&(player_position + up.to_vector()))
+                            .get(&(player_position + &up.into()))
                             .intersects(Tile::Floor)
                         && !self
                             .level
-                            .get_unchecked(&(player_position + up.to_vector()))
+                            .get(&(player_position + &up.into()))
                             .intersects(Tile::Target)
                     {
-                        tunnels.insert((player_position, *up));
+                        tunnels.insert((player_position, up));
                     }
 
                     // #$_ _$#
                     // #@# #@#
                     if self
                         .level
-                        .get_unchecked(&(player_position + left.to_vector()))
+                        .get(&(player_position + &left.into()))
                         .intersects(Tile::Wall)
                         && self
                             .level
-                            .get_unchecked(&(player_position + right.to_vector()))
+                            .get(&(player_position + &right.into()))
                             .intersects(Tile::Wall)
                         && (self
                             .level
-                            .get_unchecked(&(player_position + up.to_vector() + right.to_vector()))
+                            .get(&(player_position + &up.into() + &right.into()))
                             .intersects(Tile::Wall)
                             && self
                                 .level
-                                .get_unchecked(
-                                    &(player_position + up.to_vector() + left.to_vector()),
-                                )
+                                .get(&(player_position + &up.into() + &left.into()))
                                 .intersects(Tile::Floor)
                             || self
                                 .level
-                                .get_unchecked(
-                                    &(player_position + up.to_vector() + right.to_vector()),
-                                )
+                                .get(&(player_position + &up.into() + &right.into()))
                                 .intersects(Tile::Floor)
                                 && self
                                     .level
-                                    .get_unchecked(
-                                        &(player_position + up.to_vector() + left.to_vector()),
-                                    )
+                                    .get(&(player_position + &up.into() + &left.into()))
                                     .intersects(Tile::Wall))
                         && self
                             .level
-                            .get_unchecked(&(player_position + up.to_vector()))
+                            .get(&(player_position + &up.into()))
                             .intersects(Tile::Floor)
                         && !self
                             .level
-                            .get_unchecked(&(player_position + up.to_vector()))
+                            .get(&(player_position + &up.into()))
                             .intersects(Tile::Target)
                     {
-                        tunnels.insert((player_position, *up));
+                        tunnels.insert((player_position, up));
                     }
                 }
             }
@@ -255,17 +246,11 @@ impl Solver {
                 Direction::Down,
                 Direction::Left,
             ] {
-                let next_crate_position = target_position + pull_direction.to_vector();
-                let next_player_position = next_crate_position + pull_direction.to_vector();
+                let next_crate_position = target_position + &pull_direction.into();
+                let next_player_position = next_crate_position + &pull_direction.into();
                 if self.level.in_bounds(&next_player_position)
-                    && !self
-                        .level
-                        .get_unchecked(&next_player_position)
-                        .intersects(Tile::Wall)
-                    && !self
-                        .level
-                        .get_unchecked(&next_crate_position)
-                        .intersects(Tile::Wall)
+                    && !self.level.get(&next_player_position).intersects(Tile::Wall)
+                    && !self.level.get(&next_crate_position).intersects(Tile::Wall)
                 {
                     player_position = Some(next_player_position);
                     break;
@@ -293,7 +278,7 @@ impl Solver {
         visited: &mut HashSet<(Vector2<i32>, Direction)>,
     ) {
         let player_reachable_area = self.level.reachable_area(player_position, |position| {
-            self.level.get_unchecked(position).intersects(Tile::Wall) || position == crate_position
+            self.level.get(position).intersects(Tile::Wall) || position == crate_position
         });
         for pull_direction in [
             Direction::Up,
@@ -301,21 +286,14 @@ impl Solver {
             Direction::Down,
             Direction::Left,
         ] {
-            let next_crate_position = crate_position + pull_direction.to_vector();
-            if self
-                .level
-                .get_unchecked(&next_crate_position)
-                .intersects(Tile::Wall)
-            {
+            let next_crate_position = crate_position + &pull_direction.into();
+            if self.level.get(&next_crate_position).intersects(Tile::Wall) {
                 continue;
             }
 
-            let next_player_position = next_crate_position + pull_direction.to_vector();
+            let next_player_position = next_crate_position + &pull_direction.into();
             if !self.level.in_bounds(&next_player_position)
-                || self
-                    .level
-                    .get_unchecked(&next_player_position)
-                    .intersects(Tile::Wall)
+                || self.level.get(&next_player_position).intersects(Tile::Wall)
             {
                 continue;
             }
@@ -350,15 +328,12 @@ impl Solver {
                 let position = Vector2::new(x, y);
                 // There may be situations in the level where the box is
                 // already on the target and cannot be reached by the player.
-                if self.level.get_unchecked(&position).intersects(Tile::Target) {
+                if self.level.get(&position).intersects(Tile::Target) {
                     lower_bounds.insert(position, 0);
                     continue;
                 }
-                if !self.level.get_unchecked(&position).intersects(Tile::Floor)
-                    || self
-                        .level
-                        .get_unchecked(&position)
-                        .intersects(Tile::Deadlock)
+                if !self.level.get(&position).intersects(Tile::Floor)
+                    || self.level.get(&position).intersects(Tile::Deadlock)
                 {
                     continue;
                 }
@@ -370,7 +345,7 @@ impl Solver {
                     .iter()
                     .filter(|path| {
                         self.level
-                            .get_unchecked(&path.0.crate_position)
+                            .get(&path.0.crate_position)
                             .intersects(Tile::Target)
                     })
                     .map(|path| path.1.len() - 1)
@@ -391,15 +366,12 @@ impl Solver {
                 let position = Vector2::new(x, y);
                 // There may be situations in the level where the box is
                 // already on the target and cannot be reached by the player.
-                if self.level.get_unchecked(&position).intersects(Tile::Target) {
+                if self.level.get(&position).intersects(Tile::Target) {
                     lower_bounds.insert(position, 0);
                     continue;
                 }
-                if !self.level.get_unchecked(&position).intersects(Tile::Floor)
-                    || self
-                        .level
-                        .get_unchecked(&position)
-                        .intersects(Tile::Deadlock)
+                if !self.level.get(&position).intersects(Tile::Floor)
+                    || self.level.get(&position).intersects(Tile::Deadlock)
                 {
                     continue;
                 }
@@ -500,7 +472,7 @@ pub fn find_path(
             Direction::Left,
             Direction::Right,
         ] {
-            let new_position = node.position + direction.to_vector();
+            let new_position = node.position + &direction.into();
             if is_block(&new_position) {
                 continue;
             }

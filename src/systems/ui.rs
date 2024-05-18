@@ -1,10 +1,10 @@
-use bevy::prelude::*;
-use leafwing_input_manager::prelude::*;
-
 use crate::components::*;
-use crate::movement::Movements;
 use crate::resources::*;
 use crate::Action;
+
+use bevy::prelude::*;
+use leafwing_input_manager::prelude::*;
+use soukoban::Actions;
 
 /// Sets up the version information text on the screen.
 pub fn setup_version_info(mut commands: Commands) {
@@ -81,20 +81,20 @@ pub fn update_hud(
             "{}\n",
             database
                 .best_move_solution(**level_id)
-                .unwrap_or(Movements::new())
-                .move_count()
+                .unwrap_or(Actions::new())
+                .moves()
         );
         hud.sections[9].value = format!(
             "{}\n",
             database
                 .best_push_solution(**level_id)
-                .unwrap_or(Movements::new())
-                .push_count()
+                .unwrap_or(Actions::new())
+                .pushes()
         );
     }
 
-    hud.sections[3].value = format!("{}\n", board.movements().move_count());
-    hud.sections[5].value = format!("{}\n", board.movements().push_count());
+    hud.sections[3].value = format!("{}\n", board.actions().moves());
+    hud.sections[5].value = format!("{}\n", board.actions().pushes());
 }
 
 /// Sets up buttons on the screen.
