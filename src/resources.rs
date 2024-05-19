@@ -2,10 +2,11 @@ use bevy::prelude::*;
 use bevy::time::Stopwatch;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
+use soukoban::{Level, Map};
 
+use crate::database;
 use crate::level::PushState;
 use crate::solve::solver::*;
-use crate::{database, Level};
 use soukoban::direction::Direction;
 
 use std::collections::{HashMap, VecDeque};
@@ -87,11 +88,11 @@ impl Default for SolverState {
     fn default() -> Self {
         Self {
             solver: Mutex::new(Solver::new(
-                Level::empty(),
+                Level::from_map(Map::with_dimensions(Vector2::new(0, 0))),
                 Strategy::default(),
                 LowerBoundMethod::default(),
             )),
-            level: Level::empty(),
+            level: Level::from_map(Map::with_dimensions(Vector2::new(0, 0))),
             stopwatch: Stopwatch::new(),
         }
     }

@@ -1,14 +1,10 @@
-use std::collections::HashMap;
 use std::hash::{Hash, Hasher};
 use std::path::Path;
 use std::str::FromStr;
 
-use crate::level::Level;
-
-use nalgebra::Vector2;
 use rusqlite::Connection;
 use siphasher::sip::SipHasher24;
-use soukoban::Actions;
+use soukoban::{Actions, Level};
 
 pub struct Database {
     connection: Connection,
@@ -75,14 +71,14 @@ impl Database {
 
     /// Imports a single level into the database.
     pub fn import_level(&self, level: &Level) {
-        let title = level.metadata.get("title");
-        let author = level.metadata.get("author");
-        let comments = level.metadata.get("comments");
+        let title = level.metadata().get("title");
+        let author = level.metadata().get("author");
+        let comments = level.metadata().get("comments");
         let hash = Database::normalized_hash(level);
 
         let _ = self.connection.execute(
             "INSERT INTO tb_level(title, author, comments, map, width, height, hash, date) VALUES (?, ?, ?, ?, ?, ?, ?, DATE('now'))",
-            (title, author, comments, level.export_map(), level.dimensions().x, level.dimensions().y, hash),
+            (title, author, comments, level.map().to_string(), level.dimensions().x, level.dimensions().y, hash),
         );
     }
 
@@ -110,24 +106,18 @@ impl Database {
         let mut rows = statement.query([id]).unwrap();
         let row = rows.next().unwrap()?;
 
-        let map = row
-            .get::<_, String>(0)
-            .unwrap()
-            .split('\n')
-            .map(|x| x.to_string())
-            .collect();
-        let size = Vector2::new(row.get(1).unwrap(), row.get(2).unwrap());
-        let mut metadata = HashMap::new();
-        if let Ok(title) = row.get(3) {
-            metadata.insert("title".to_string(), title);
+        let map = row.get::<_, String>(0).unwrap();
+        let mut metadata = String::new();
+        if let Ok(title) = row.get::<_, String>(3) {
+            metadata.push_str(&format!("title: {title}\n"));
         }
-        if let Ok(author) = row.get(4) {
-            metadata.insert("author".to_string(), author);
+        if let Ok(author) = row.get::<_, String>(4) {
+            metadata.push_str(&format!("author: {author}\n"));
         }
-        if let Ok(comments) = row.get(5) {
-            metadata.insert("comments".to_string(), comments);
+        if let Ok(comments) = row.get::<_, String>(5) {
+            metadata.push_str(&format!("comments: {comments}\n"));
         }
-        let level = Level::new(map, size, metadata).unwrap();
+        let level = Level::from_str(&(map + &metadata)).unwrap();
         Some(level)
     }
 

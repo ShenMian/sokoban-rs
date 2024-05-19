@@ -1,13 +1,15 @@
 use std::collections::HashMap;
+use std::fs;
 
 use bevy::input::mouse::MouseMotion;
 use bevy::prelude::*;
 use bevy::window::WindowMode;
 use leafwing_input_manager::prelude::*;
 use nalgebra::Vector2;
+use soukoban::{Level, Tiles};
 
 use crate::events::*;
-use crate::level::{Level, PushState, Tile};
+use crate::level::PushState;
 use crate::resources::*;
 use crate::solve::solver::*;
 use crate::systems::level::*;
@@ -102,11 +104,8 @@ fn player_move_to(
     player_movement: &mut PlayerMovement,
     board: &crate::board::Board,
 ) {
-    if let Some(path) = find_path(&board.level.player_position, target, |position| {
-        board
-            .level
-            .get(position)
-            .intersects(Tile::Wall | Tile::Crate)
+    if let Some(path) = find_path(&board.level.player_position(), target, |position| {
+        board.level[*position].intersects(Tiles::Wall | Tiles::Box)
     }) {
         let directions = path
             .windows(2)
@@ -134,11 +133,8 @@ fn instant_player_move_to(
     board_clone: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
 ) {
-    if let Some(path) = find_path(&board_clone.level.player_position, target, |position| {
-        board_clone
-            .level
-            .get(position)
-            .intersects(Tile::Wall | Tile::Crate)
+    if let Some(path) = find_path(&board_clone.level.player_position(), target, |position| {
+        board_clone.level[*position].intersects(Tiles::Wall | Tiles::Box)
     }) {
         let directions = path
             .windows(2)
@@ -314,14 +310,14 @@ pub fn mouse_input(
 
         match state.get() {
             AppState::Main => {
-                if board.level.crate_positions.contains(&grid_position) {
+                if board.level.box_positions().contains(&grid_position) {
                     *auto_move_state = AutoMoveState::Crate {
                         crate_position: grid_position,
                         paths: HashMap::new(),
                     };
                     next_state.set(AppState::AutoMove);
                     return;
-                } else if board.level.player_position == grid_position {
+                } else if board.level.player_position() == grid_position {
                     *auto_move_state = AutoMoveState::Player;
                     next_state.set(AppState::AutoMove);
                     return;
@@ -342,7 +338,7 @@ pub fn mouse_input(
                         ] {
                             let push_state = PushState {
                                 push_direction,
-                                crate_position: grid_position,
+                                box_position: grid_position,
                             };
                             if paths.contains_key(&push_state) {
                                 if *crate_position == grid_position {
@@ -374,7 +370,7 @@ pub fn mouse_input(
                                 );
                             }
                         } else if grid_position != *crate_position
-                            && board.level.crate_positions.contains(&grid_position)
+                            && board.level.box_positions().contains(&grid_position)
                         {
                             // crate_position = grid_position;
                             // FIXME: Re-entering AppState::AutoCratePush https://github.com/bevyengine/bevy/issues/9130
@@ -441,7 +437,9 @@ pub fn file_drag_and_drop(
         if let FileDragAndDrop::DroppedFile { path_buf, .. } = event {
             let database = database.lock().unwrap();
             info!("Load levels from file {:?}", path_buf);
-            match Level::load_from_file(path_buf) {
+            match Level::load_from_string(&fs::read_to_string(path_buf).unwrap())
+                .collect::<Result<Vec<_>, _>>()
+            {
                 Ok(levels) => {
                     info!("Done, {} levels loaded", levels.len());
                     database.import_levels(&levels);

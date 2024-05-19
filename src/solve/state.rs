@@ -1,20 +1,24 @@
-use crate::level::{normalized_area, Tile};
-use crate::solve::solver::*;
-use soukoban::direction::Direction;
+use std::{
+    cell::OnceCell,
+    cmp::Ordering,
+    collections::HashSet,
+    hash::{Hash, Hasher},
+};
 
-use std::cell::OnceCell;
-use std::cmp::Ordering;
-use std::collections::HashSet;
-use std::hash::{Hash, Hasher};
+use crate::solve::solver::*;
 
 use nalgebra::Vector2;
 use siphasher::sip::SipHasher24;
-use soukoban::{Action, Actions};
+use soukoban::{
+    direction::Direction,
+    path_finding::{normalized_area, reachable_area},
+    Action, Actions, Tiles,
+};
 
 #[derive(Clone, Eq)]
 pub struct State {
     pub player_position: Vector2<i32>,
-    pub crate_positions: HashSet<Vector2<i32>>,
+    pub box_positions: HashSet<Vector2<i32>>,
     pub movements: Actions,
     heuristic: usize,
     lower_bound: OnceCell<usize>,
@@ -22,15 +26,14 @@ pub struct State {
 
 impl PartialEq for State {
     fn eq(&self, other: &Self) -> bool {
-        self.player_position == other.player_position
-            && self.crate_positions == other.crate_positions
+        self.player_position == other.player_position && self.box_positions == other.box_positions
     }
 }
 
 impl Hash for State {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.player_position.hash(state);
-        for position in &self.crate_positions {
+        for position in &self.box_positions {
             position.hash(state);
         }
     }
@@ -57,7 +60,7 @@ impl State {
     ) -> Self {
         let mut instance = Self {
             player_position,
-            crate_positions,
+            box_positions: crate_positions,
             movements,
             heuristic: 0,
             lower_bound: OnceCell::new(),
@@ -79,7 +82,7 @@ impl State {
                     + instance.lower_bound(solver)
             }
         };
-        instance.crate_positions.shrink_to_fit();
+        instance.box_positions.shrink_to_fit();
         instance.movements.shrink_to_fit();
         instance
     }
@@ -88,7 +91,7 @@ impl State {
     pub fn successors(&self, solver: &Solver) -> Vec<State> {
         let mut successors = Vec::new();
         let player_reachable_area = self.player_reachable_area(solver);
-        for crate_position in &self.crate_positions {
+        for crate_position in &self.box_positions {
             for push_direction in [
                 Direction::Up,
                 Direction::Down,
@@ -96,12 +99,12 @@ impl State {
                 Direction::Right,
             ] {
                 let mut new_crate_position = crate_position + &push_direction.into();
-                if self.can_block_crate(&new_crate_position, solver) {
+                if self.can_block_crate(new_crate_position, solver) {
                     continue;
                 }
 
                 let next_player_position = crate_position - &push_direction.into();
-                if self.can_block_player(&next_player_position, solver)
+                if self.can_block_player(next_player_position, solver)
                     || !player_reachable_area.contains(&next_player_position)
                 {
                     continue;
@@ -109,7 +112,7 @@ impl State {
 
                 let mut new_movements = self.movements.clone();
                 let path = find_path(&self.player_position, &next_player_position, |position| {
-                    self.can_block_player(position, solver)
+                    self.can_block_player(*position, solver)
                 })
                 .unwrap();
                 new_movements.extend(
@@ -124,23 +127,19 @@ impl State {
                     (new_crate_position - &push_direction.into()),
                     push_direction,
                 )) {
-                    if self.can_block_crate(&(new_crate_position + &push_direction.into()), solver)
-                    {
+                    if self.can_block_crate(new_crate_position + &push_direction.into(), solver) {
                         break;
                     }
                     new_crate_position += &push_direction.into();
                     new_movements.push(Action::Push(push_direction));
                 }
 
-                let mut new_crate_positions = self.crate_positions.clone();
+                let mut new_crate_positions = self.box_positions.clone();
                 new_crate_positions.remove(crate_position);
                 new_crate_positions.insert(new_crate_position);
 
                 // skip deadlocks
-                if !solver
-                    .level
-                    .get(&new_crate_position)
-                    .intersects(Tile::Target)
+                if !solver.level[new_crate_position].intersects(Tiles::Goal)
                     && Self::is_freeze_deadlock(
                         &new_crate_position,
                         &new_crate_positions,
@@ -214,8 +213,8 @@ impl State {
             ];
 
             // Checks if any immovable walls on the axis.
-            if solver.level.get(&neighbors[0]).intersects(Tile::Wall)
-                || solver.level.get(&neighbors[1]).intersects(Tile::Wall)
+            if solver.level[neighbors[0]].intersects(Tiles::Wall)
+                || solver.level[neighbors[1]].intersects(Tiles::Wall)
             {
                 continue;
             }
@@ -244,7 +243,7 @@ impl State {
     /// Calculates and returns the lower bound value for the current state.
     fn calculate_lower_bound(&self, solver: &Solver) -> usize {
         let mut sum: usize = 0;
-        for crate_position in &self.crate_positions {
+        for crate_position in &self.box_positions {
             match solver.lower_bounds().get(crate_position) {
                 Some(lower_bound) => sum += lower_bound,
                 None => return 10_000 - 1,
@@ -254,31 +253,26 @@ impl State {
     }
 
     /// Checks if a position can block the player's movement.
-    fn can_block_player(&self, position: &Vector2<i32>, solver: &Solver) -> bool {
-        solver.level.get(position).intersects(Tile::Wall) || self.crate_positions.contains(position)
+    fn can_block_player(&self, position: Vector2<i32>, solver: &Solver) -> bool {
+        solver.level[position].intersects(Tiles::Wall) || self.box_positions.contains(&position)
     }
 
     /// Checks if a position can block a crate's movement.
-    fn can_block_crate(&self, position: &Vector2<i32>, solver: &Solver) -> bool {
-        solver
-            .level
-            .get(position)
-            .intersects(Tile::Wall | Tile::Deadlock)
-            || !solver.lower_bounds().contains_key(position)
-            || self.crate_positions.contains(position)
+    fn can_block_crate(&self, position: Vector2<i32>, solver: &Solver) -> bool {
+        solver.level[position].intersects(Tiles::Wall /* | Tiles::Deadlock */)
+            || !solver.lower_bounds().contains_key(&position)
+            || self.box_positions.contains(&position)
     }
 
     /// Returns the normalized player position based on reachable area.
     fn normalized_player_position(&self, solver: &Solver) -> Vector2<i32> {
-        normalized_area(&self.player_reachable_area(solver))
+        normalized_area(&self.player_reachable_area(solver)).unwrap()
     }
 
     /// Returns the reachable area for the player in the current state.
     fn player_reachable_area(&self, solver: &Solver) -> HashSet<Vector2<i32>> {
-        solver
-            .level
-            .reachable_area(&self.player_position, |position| {
-                self.can_block_player(position, solver)
-            })
+        reachable_area(self.player_position, |position| {
+            !self.can_block_player(position, solver)
+        })
     }
 }

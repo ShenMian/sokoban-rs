@@ -1,17 +1,19 @@
-use std::cell::OnceCell;
-use std::cmp::Ordering;
-use std::collections::{BinaryHeap, HashMap, HashSet};
-use std::hash::Hash;
-use std::time::{Duration, Instant};
+use std::{
+    cell::OnceCell,
+    cmp::Ordering,
+    collections::{BinaryHeap, HashMap, HashSet},
+    hash::Hash,
+    time::{Duration, Instant},
+};
 
-use crate::level::{Level, Tile};
+use crate::crate_pushable_paths_with_crate_positions;
 use crate::solve::state::*;
-use soukoban::direction::Direction;
+use soukoban::{direction::Direction, path_finding::reachable_area, Level};
 
 use itertools::Itertools;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
-use soukoban::Actions;
+use soukoban::{Actions, Tiles};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum Strategy {
@@ -62,8 +64,7 @@ type Result<T> = std::result::Result<T, SolveError>;
 
 impl Solver {
     /// Creates a new solver.
-    pub fn new(mut level: Level, strategy: Strategy, lower_bound_method: LowerBoundMethod) -> Self {
-        level.clear(Tile::Player | Tile::Crate);
+    pub fn new(level: Level, strategy: Strategy, lower_bound_method: LowerBoundMethod) -> Self {
         let mut instance = Self {
             level,
             strategy,
@@ -74,9 +75,8 @@ impl Solver {
             heap: BinaryHeap::new(),
         };
         instance.heap.push(State::new(
-            instance.level.player_position,
-            instance.level.crate_positions.clone(),
-            // TODO: from_str("") -> new() or default()
+            instance.level.player_position(),
+            instance.level.box_positions().clone(),
             Actions::new(),
             &instance,
         ));
@@ -129,7 +129,7 @@ impl Solver {
         for x in 1..self.level.dimensions().x - 1 {
             for y in 1..self.level.dimensions().y - 1 {
                 let player_position = Vector2::new(x, y);
-                if !self.level.get(&player_position).intersects(Tile::Floor) {
+                if !self.level[player_position].intersects(Tiles::Floor) {
                     continue;
                 }
 
@@ -147,68 +147,32 @@ impl Solver {
                 {
                     // #$#
                     // #@#
-                    if self
-                        .level
-                        .get(&(player_position + &left.into()))
-                        .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get(&(player_position + &right.into()))
-                            .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get(&(player_position + &up.into() + &left.into()))
-                            .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get(&(player_position + &up.into() + &right.into()))
-                            .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get(&(player_position + &up.into()))
-                            .intersects(Tile::Floor)
-                        && !self
-                            .level
-                            .get(&(player_position + &up.into()))
-                            .intersects(Tile::Target)
+                    if self.level[player_position + &left.into()].intersects(Tiles::Wall)
+                        && self.level[player_position + &right.into()].intersects(Tiles::Wall)
+                        && self.level[player_position + &up.into() + &left.into()]
+                            .intersects(Tiles::Wall)
+                        && self.level[player_position + &up.into() + &right.into()]
+                            .intersects(Tiles::Wall)
+                        && self.level[player_position + &up.into()].intersects(Tiles::Floor)
+                        && !self.level[player_position + &up.into()].intersects(Tiles::Goal)
                     {
                         tunnels.insert((player_position, up));
                     }
 
                     // #$_ _$#
                     // #@# #@#
-                    if self
-                        .level
-                        .get(&(player_position + &left.into()))
-                        .intersects(Tile::Wall)
-                        && self
-                            .level
-                            .get(&(player_position + &right.into()))
-                            .intersects(Tile::Wall)
-                        && (self
-                            .level
-                            .get(&(player_position + &up.into() + &right.into()))
-                            .intersects(Tile::Wall)
-                            && self
-                                .level
-                                .get(&(player_position + &up.into() + &left.into()))
-                                .intersects(Tile::Floor)
-                            || self
-                                .level
-                                .get(&(player_position + &up.into() + &right.into()))
-                                .intersects(Tile::Floor)
-                                && self
-                                    .level
-                                    .get(&(player_position + &up.into() + &left.into()))
-                                    .intersects(Tile::Wall))
-                        && self
-                            .level
-                            .get(&(player_position + &up.into()))
-                            .intersects(Tile::Floor)
-                        && !self
-                            .level
-                            .get(&(player_position + &up.into()))
-                            .intersects(Tile::Target)
+                    if self.level[player_position + &left.into()].intersects(Tiles::Wall)
+                        && self.level[player_position + &right.into()].intersects(Tiles::Wall)
+                        && (self.level[player_position + &up.into() + &right.into()]
+                            .intersects(Tiles::Wall)
+                            && self.level[player_position + &up.into() + &left.into()]
+                                .intersects(Tiles::Floor)
+                            || self.level[player_position + &up.into() + &right.into()]
+                                .intersects(Tiles::Floor)
+                                && self.level[player_position + &up.into() + &left.into()]
+                                    .intersects(Tiles::Wall))
+                        && self.level[player_position + &up.into()].intersects(Tiles::Floor)
+                        && !self.level[player_position + &up.into()].intersects(Tiles::Goal)
                     {
                         tunnels.insert((player_position, up));
                     }
@@ -237,7 +201,7 @@ impl Solver {
     /// Calculates and returns the lower bounds using the minimum push method.
     fn minimum_push_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
-        for target_position in &self.level.target_positions {
+        for target_position in self.level.goal_positions() {
             lower_bounds.insert(*target_position, 0);
             let mut player_position = None;
             for pull_direction in [
@@ -248,9 +212,9 @@ impl Solver {
             ] {
                 let next_crate_position = target_position + &pull_direction.into();
                 let next_player_position = next_crate_position + &pull_direction.into();
-                if self.level.in_bounds(&next_player_position)
-                    && !self.level.get(&next_player_position).intersects(Tile::Wall)
-                    && !self.level.get(&next_crate_position).intersects(Tile::Wall)
+                if self.level.in_bounds(next_player_position)
+                    && !self.level[next_player_position].intersects(Tiles::Wall)
+                    && !self.level[next_crate_position].intersects(Tiles::Wall)
                 {
                     player_position = Some(next_player_position);
                     break;
@@ -258,8 +222,8 @@ impl Solver {
             }
             if let Some(player_position) = player_position {
                 self.minimum_push_to(
-                    target_position,
-                    &player_position,
+                    *target_position,
+                    player_position,
                     &mut lower_bounds,
                     &mut HashSet::new(),
                 );
@@ -272,13 +236,13 @@ impl Solver {
 
     fn minimum_push_to(
         &self,
-        crate_position: &Vector2<i32>,
-        player_position: &Vector2<i32>,
+        box_position: Vector2<i32>,
+        player_position: Vector2<i32>,
         lower_bounds: &mut HashMap<Vector2<i32>, usize>,
         visited: &mut HashSet<(Vector2<i32>, Direction)>,
     ) {
-        let player_reachable_area = self.level.reachable_area(player_position, |position| {
-            self.level.get(position).intersects(Tile::Wall) || position == crate_position
+        let player_reachable_area = reachable_area(player_position, |position| {
+            !self.level[position].intersects(Tiles::Wall) && position != box_position
         });
         for pull_direction in [
             Direction::Up,
@@ -286,14 +250,14 @@ impl Solver {
             Direction::Down,
             Direction::Left,
         ] {
-            let next_crate_position = crate_position + &pull_direction.into();
-            if self.level.get(&next_crate_position).intersects(Tile::Wall) {
+            let next_crate_position = box_position + &pull_direction.into();
+            if self.level[next_crate_position].intersects(Tiles::Wall) {
                 continue;
             }
 
             let next_player_position = next_crate_position + &pull_direction.into();
-            if !self.level.in_bounds(&next_player_position)
-                || self.level.get(&next_player_position).intersects(Tile::Wall)
+            if !self.level.in_bounds(next_player_position)
+                || self.level[next_player_position].intersects(Tiles::Wall)
             {
                 continue;
             }
@@ -304,7 +268,7 @@ impl Solver {
             let lower_bound = *lower_bounds
                 .get(&next_crate_position)
                 .unwrap_or(&usize::MAX);
-            let new_lower_bound = lower_bounds[crate_position] + 1;
+            let new_lower_bound = lower_bounds[&box_position] + 1;
             if !visited.insert((next_crate_position, pull_direction)) {
                 continue;
             }
@@ -312,8 +276,8 @@ impl Solver {
                 lower_bounds.insert(next_crate_position, new_lower_bound);
             }
             self.minimum_push_to(
-                &next_crate_position,
-                &next_player_position,
+                next_crate_position,
+                next_player_position,
                 lower_bounds,
                 visited,
             );
@@ -328,26 +292,24 @@ impl Solver {
                 let position = Vector2::new(x, y);
                 // There may be situations in the level where the box is
                 // already on the target and cannot be reached by the player.
-                if self.level.get(&position).intersects(Tile::Target) {
+                if self.level[position].intersects(Tiles::Goal) {
                     lower_bounds.insert(position, 0);
                     continue;
                 }
-                if !self.level.get(&position).intersects(Tile::Floor)
-                    || self.level.get(&position).intersects(Tile::Deadlock)
+                if !self.level[position].intersects(Tiles::Floor)
+                // || self.level[position].intersects(Tiles::Deadlock)
                 {
                     continue;
                 }
 
-                let paths = self
-                    .level
-                    .crate_pushable_paths_with_crate_positions(&position, &HashSet::new());
+                let paths = crate_pushable_paths_with_crate_positions(
+                    &self.level,
+                    &position,
+                    &HashSet::new(),
+                );
                 if let Some(lower_bound) = paths
                     .iter()
-                    .filter(|path| {
-                        self.level
-                            .get(&path.0.crate_position)
-                            .intersects(Tile::Target)
-                    })
+                    .filter(|path| self.level[path.0.box_position].intersects(Tiles::Goal))
                     .map(|path| path.1.len() - 1)
                     .min()
                 {
@@ -366,18 +328,18 @@ impl Solver {
                 let position = Vector2::new(x, y);
                 // There may be situations in the level where the box is
                 // already on the target and cannot be reached by the player.
-                if self.level.get(&position).intersects(Tile::Target) {
+                if self.level[position].intersects(Tiles::Goal) {
                     lower_bounds.insert(position, 0);
                     continue;
                 }
-                if !self.level.get(&position).intersects(Tile::Floor)
-                    || self.level.get(&position).intersects(Tile::Deadlock)
+                if !self.level[position].intersects(Tiles::Floor)
+                // || self.level.get(&position).intersects(Tiles::Deadlock)
                 {
                     continue;
                 }
                 let lower_bound = self
                     .level
-                    .target_positions
+                    .goal_positions()
                     .iter()
                     .map(|crate_pos| manhattan_distance(crate_pos, &position))
                     .min()

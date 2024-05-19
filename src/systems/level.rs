@@ -1,12 +1,12 @@
 use arboard::Clipboard;
 use bevy::prelude::*;
 use nalgebra::Vector2;
+use soukoban::Level;
+use soukoban::Tiles;
 
 use crate::board;
 use crate::components::*;
 use crate::database;
-use crate::level::Level;
-use crate::level::Tile;
 use crate::resources::*;
 
 use std::collections::HashMap;
@@ -25,7 +25,9 @@ pub fn setup_database(mut commands: Commands) {
             continue;
         }
         info!("  {:?}", path);
-        let levels = Level::load_from_file(&path).unwrap();
+        let levels: Vec<_> = Level::load_from_string(&fs::read_to_string(path).unwrap())
+            .filter_map(Result::ok)
+            .collect();
         database.import_levels(&levels);
     }
     info!("Done");
@@ -99,21 +101,21 @@ pub fn spawn_board(
             for y in 0..level.dimensions().y {
                 for x in 0..level.dimensions().x {
                     let position = Vector2::<i32>::new(x, y);
-                    if level.get(&position) == Tile::Void {
+                    if level[position].is_empty() {
                         continue;
                     }
                     let tiles = HashMap::from([
-                        (Tile::Floor, (0, 0.0)),
-                        (Tile::Wall, (3, 1.0)),
-                        (Tile::Crate, (1, 2.0)),
-                        (Tile::Target, (2, 3.0)),
-                        (Tile::Player, (0, 4.0)),
+                        (Tiles::Floor, (0, 0.0)),
+                        (Tiles::Wall, (3, 1.0)),
+                        (Tiles::Box, (1, 2.0)),
+                        (Tiles::Goal, (2, 3.0)),
+                        (Tiles::Player, (0, 4.0)),
                     ]);
                     for (tile, (sprite_index, z_order)) in tiles.into_iter() {
-                        if level.get(&position).intersects(tile) {
+                        if level[position].intersects(tile) {
                             let mut sprite = Sprite::default();
                             if config.even_square_shades > 0.0
-                                && tile == Tile::Floor
+                                && tile == Tiles::Floor
                                 && (x + y) % 2 == 0
                             {
                                 sprite.color = Color::WHITE * (1.0 - config.even_square_shades);
@@ -131,9 +133,9 @@ pub fn spawn_board(
                                 },
                                 GridPosition(position),
                             ));
-                            if tile == Tile::Player {
+                            if tile == Tiles::Player {
                                 entity.insert((Player, AnimationState::default()));
-                            } else if tile == Tile::Crate {
+                            } else if tile == Tiles::Box {
                                 entity.insert(Crate);
                             }
                         }
@@ -167,7 +169,7 @@ pub fn auto_switch_to_next_unsolved_level(
 /// Imports levels from the system clipboard.
 pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Database) {
     let mut clipboard = Clipboard::new().unwrap();
-    match Level::load_from_memory(clipboard.get_text().unwrap()) {
+    match Level::load_from_string(&clipboard.get_text().unwrap()).collect::<Result<Vec<_>, _>>() {
         Ok(levels) => {
             if levels.is_empty() {
                 error!("failed to import any level from clipboard");
@@ -183,9 +185,7 @@ pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Databa
 
 pub fn export_to_clipboard(board: &crate::board::Board) {
     let mut clipboard = Clipboard::new().unwrap();
-    clipboard
-        .set_text(board.level.export_map() + &board.level.export_metadata())
-        .unwrap();
+    clipboard.set_text(board.level.to_string()).unwrap();
 }
 
 /// Switches to the next unsolved level based on the current level ID.

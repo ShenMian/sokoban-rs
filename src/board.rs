@@ -1,8 +1,5 @@
-use crate::level::Level;
-use crate::Tile;
-
 use nalgebra::Vector2;
-use soukoban::{direction::Direction, Action, Actions};
+use soukoban::{direction::Direction, Action, Actions, Level, Tiles};
 
 #[derive(Clone)]
 pub struct Board {
@@ -23,21 +20,13 @@ impl Board {
 
     /// Checks if the player can move or push in the specified direction.
     pub fn moveable(&self, direction: Direction) -> bool {
-        let player_next_position = self.level.player_position + &direction.into();
-        if self.level.get(&player_next_position).intersects(Tile::Wall) {
+        let player_next_position = self.level.player_position() + &direction.into();
+        if self.level[player_next_position].intersects(Tiles::Wall) {
             return false;
         }
-        if self
-            .level
-            .get(&player_next_position)
-            .intersects(Tile::Crate)
-        {
+        if self.level[player_next_position].intersects(Tiles::Box) {
             let crate_next_position = player_next_position + &direction.into();
-            if self
-                .level
-                .get(&crate_next_position)
-                .intersects(Tile::Crate | Tile::Wall)
-            {
+            if self.level[crate_next_position].intersects(Tiles::Box | Tiles::Wall) {
                 return false;
             }
         }
@@ -47,21 +36,13 @@ impl Board {
     /// Moves the player or pushes a crate in the specified direction.
     pub fn move_or_push(&mut self, direction: Direction) {
         let direction_vector = &direction.into();
-        let player_next_position = self.level.player_position + direction_vector;
-        if self.level.get(&player_next_position).intersects(Tile::Wall) {
+        let player_next_position = self.level.player_position() + direction_vector;
+        if self.level[player_next_position].intersects(Tiles::Wall) {
             return;
         }
-        if self
-            .level
-            .get(&player_next_position)
-            .intersects(Tile::Crate)
-        {
+        if self.level[player_next_position].intersects(Tiles::Box) {
             let crate_next_position = player_next_position + direction_vector;
-            if self
-                .level
-                .get(&crate_next_position)
-                .intersects(Tile::Wall | Tile::Crate)
-            {
+            if self.level[crate_next_position].intersects(Tiles::Wall | Tiles::Box) {
                 return;
             }
             self.move_crate(player_next_position, crate_next_position);
@@ -91,10 +72,10 @@ impl Board {
         let history = self.actions.pop().unwrap();
         let direction = history.direction();
         if history.is_push() {
-            let crate_position = self.level.player_position + &direction.into();
-            self.move_crate(crate_position, self.level.player_position);
+            let crate_position = self.level.player_position() + &direction.into();
+            self.move_crate(crate_position, self.level.player_position());
         }
-        let player_prev_position = self.level.player_position - &direction.into();
+        let player_prev_position = self.level.player_position() - &direction.into();
         self.move_player(player_prev_position);
         self.undone_actions.push(history);
     }
@@ -121,7 +102,7 @@ impl Board {
 
     /// Checks if the level is solved.
     pub fn is_solved(&self) -> bool {
-        self.level.crate_positions == self.level.target_positions
+        self.level.box_positions() == self.level.goal_positions()
     }
 
     pub fn actions(&self) -> &Actions {
@@ -137,17 +118,15 @@ impl Board {
     }
 
     fn move_player(&mut self, to: Vector2<i32>) {
-        self.level
-            .get_mut(&self.level.player_position.clone())
-            .remove(Tile::Player);
-        self.level.get_mut(&to).insert(Tile::Player);
-        self.level.player_position = to;
+        let player_position = self.level.player_position();
+        self.level[player_position].remove(Tiles::Player);
+        self.level[to].insert(Tiles::Player);
+        self.level.set_player_position(to);
     }
 
     fn move_crate(&mut self, from: Vector2<i32>, to: Vector2<i32>) {
-        self.level.get_mut(&from).remove(Tile::Crate);
-        self.level.get_mut(&to).insert(Tile::Crate);
-        self.level.crate_positions.remove(&from);
-        self.level.crate_positions.insert(to);
+        self.level[from].remove(Tiles::Box);
+        self.level[to].insert(Tiles::Box);
+        self.level.set_box_position(from, to);
     }
 }

@@ -1,8 +1,10 @@
 use bevy::prelude::*;
 use itertools::Itertools;
+use soukoban::path_finding::reachable_area;
+use soukoban::Tiles;
 
 use crate::components::*;
-use crate::level::Tile;
+use crate::crate_pushable_paths;
 use crate::resources::*;
 use crate::AppState;
 
@@ -25,10 +27,10 @@ pub fn spawn_auto_move_marks(
             crate_position,
             paths,
         } => {
-            *paths = board.level.crate_pushable_paths(crate_position);
+            *paths = crate_pushable_paths(&board.level, crate_position);
 
             // spawn crate pushable marks
-            for crate_position in paths.keys().map(|state| state.crate_position).unique() {
+            for crate_position in paths.keys().map(|state| state.box_position).unique() {
                 commands.spawn((
                     SpriteBundle {
                         sprite: Sprite {
@@ -59,14 +61,11 @@ pub fn spawn_auto_move_marks(
                 .for_each(|(_, mut sprite)| sprite.color = HIGHLIGHT_COLOR);
         }
         AutoMoveState::Player => {
-            let mut reachable_area =
-                board
-                    .level
-                    .reachable_area(&board.level.player_position, |position| {
-                        board.level.get(position).intersects(Tile::Wall)
-                            || board.level.crate_positions.contains(position)
-                    });
-            reachable_area.remove(&board.level.player_position);
+            let mut reachable_area = reachable_area(board.level.player_position(), |position| {
+                !board.level[position].intersects(Tiles::Wall)
+                    && !board.level.box_positions().contains(&position)
+            });
+            reachable_area.remove(&board.level.player_position());
 
             // spawn player movable marks
             for crate_position in reachable_area {

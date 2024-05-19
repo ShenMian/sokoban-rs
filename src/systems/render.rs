@@ -104,14 +104,14 @@ pub fn handle_player_movement(
         if let Some(direction) = player_movement.directions.pop_back() {
             let occupied_targets_count = board
                 .level
-                .target_positions
-                .intersection(&board.level.crate_positions)
+                .goal_positions()
+                .intersection(board.level.box_positions())
                 .count();
             board.move_or_push(direction);
             let new_occupied_targets_count = board
                 .level
-                .target_positions
-                .intersection(&board.level.crate_positions)
+                .goal_positions()
+                .intersection(board.level.box_positions())
                 .count();
             match new_occupied_targets_count.cmp(&occupied_targets_count) {
                 Ordering::Greater => drop(crate_enter_target_events.send_default()),
@@ -219,24 +219,24 @@ pub fn update_grid_position_from_board(
     let board = &board.single().board;
 
     let player_grid_position = &mut player.single_mut().0;
-    player_grid_position.x = board.level.player_position.x;
-    player_grid_position.y = board.level.player_position.y;
+    player_grid_position.x = board.level.player_position().x;
+    player_grid_position.y = board.level.player_position().y;
 
     let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
     debug_assert!(
         crate_grid_positions
-            .difference(&board.level.crate_positions)
+            .difference(board.level.box_positions())
             .count()
             <= 1
     );
     if let Some(old_position) = crate_grid_positions
-        .difference(&board.level.crate_positions)
+        .difference(board.level.box_positions())
         .collect::<Vec<_>>()
         .first()
     {
         let new_position = *board
             .level
-            .crate_positions
+            .box_positions()
             .difference(&crate_grid_positions)
             .collect::<Vec<_>>()
             .first()

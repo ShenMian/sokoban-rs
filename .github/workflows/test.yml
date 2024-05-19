@@ -35,7 +35,7 @@ jobs:
         uses: taiki-e/install-action@cargo-llvm-cov
       
       - name: Install cargo-audit
-        run: cargo install cargo-audit
+        run: cargo install --force cargo-audit
 
       - name: Audit
         run: cargo audit

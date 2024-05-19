@@ -4,21 +4,13 @@
 mod tests {
     // use super::test::Bencher;
     use crate::board::Board;
-    use crate::level::Level;
     use crate::solve::solver::*;
-    use std::fs;
+    use soukoban::Level;
     use std::ops::RangeBounds;
     use std::time::Duration;
 
     #[cfg(not(debug_assertions))]
-    use std::path::Path;
-
-    #[test]
-    fn load_levels_from_file() {
-        for path in fs::read_dir("assets/levels/").unwrap() {
-            assert!(Level::load_from_file(&path.unwrap().path()).is_ok());
-        }
-    }
+    use std::fs;
 
     #[allow(dead_code)]
     fn solve<R: RangeBounds<usize> + IntoIterator<Item = usize>>(
@@ -38,7 +30,7 @@ mod tests {
                 Solver::new(level.clone(), Strategy::Fast, LowerBoundMethod::MinimumMove);
             let solution = solver.search(Duration::from_secs(time_limit));
             if solution.is_err() {
-                println!("{}", level.export_map());
+                println!("{}", level.map());
                 println!("{:?}\n\n", solution.clone().err());
                 failed += 1;
                 continue;
@@ -57,7 +49,11 @@ mod tests {
     #[test]
     #[cfg(not(debug_assertions))]
     fn solve_microban_2() {
-        let levels = Level::load_from_file(Path::new("assets/levels/microban_II_135.xsb")).unwrap();
+        let levels = Level::load_from_string(
+            &fs::read_to_string("assets/levels/microban_II_135.xsb").unwrap(),
+        )
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
         assert!(
             solve(
                 &levels,
@@ -74,7 +70,10 @@ mod tests {
     #[test]
     #[cfg(not(debug_assertions))]
     fn solve_microban() {
-        let levels = Level::load_from_file(Path::new("assets/levels/microban_155.xsb")).unwrap();
+        let levels =
+            Level::load_from_string(&fs::read_to_string("assets/levels/microban_155.xsb").unwrap())
+                .collect::<Result<Vec<_>, _>>()
+                .unwrap();
         assert!(
             solve(
                 &levels,
@@ -88,7 +87,11 @@ mod tests {
     #[test]
     #[cfg(not(debug_assertions))]
     fn solve_box_world() {
-        let levels = Level::load_from_file(Path::new("assets/levels/box_world_100.xsb")).unwrap();
+        let levels = Level::load_from_string(
+            &fs::read_to_string("assets/levels/box_world_100.xsb").unwrap(),
+        )
+        .collect::<Result<Vec<_>, _>>()
+        .unwrap();
         assert!(
             solve(
                 &levels,

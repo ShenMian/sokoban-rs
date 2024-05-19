@@ -174,11 +174,11 @@ pub fn update_tile_grid_position(
 ) {
     let board = &board.single().board;
     let mut player_grid_positions = player_grid_positions.single_mut();
-    **player_grid_positions = board.level.player_position;
+    **player_grid_positions = board.level.player_position();
 
     for (mut crate_grid_position, crate_position) in crate_grid_positions
         .iter_mut()
-        .zip(board.level.crate_positions.iter())
+        .zip(board.level.box_positions().iter())
     {
         **crate_grid_position = *crate_position;
     }
