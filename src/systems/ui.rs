@@ -4,7 +4,6 @@ use crate::Action;
 
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
-use soukoban::Actions;
 
 /// Sets up the version information text on the screen.
 pub fn setup_version_info(mut commands: Commands) {
@@ -81,14 +80,14 @@ pub fn update_hud(
             "{}\n",
             database
                 .best_move_solution(**level_id)
-                .unwrap_or(Actions::new())
+                .unwrap_or_default()
                 .moves()
         );
         hud.sections[9].value = format!(
             "{}\n",
             database
                 .best_push_solution(**level_id)
-                .unwrap_or(Actions::new())
+                .unwrap_or_default()
                 .pushes()
         );
     }

@@ -214,14 +214,8 @@ impl State {
             ];
 
             // Checks if any immovable walls on the axis.
-            if solver
-                .level
-                .get(&neighbors[0])
-                .intersects(Tile::Wall)
-                || solver
-                    .level
-                    .get(&neighbors[1])
-                    .intersects(Tile::Wall)
+            if solver.level.get(&neighbors[0]).intersects(Tile::Wall)
+                || solver.level.get(&neighbors[1]).intersects(Tile::Wall)
             {
                 continue;
             }
@@ -261,8 +255,7 @@ impl State {
 
     /// Checks if a position can block the player's movement.
     fn can_block_player(&self, position: &Vector2<i32>, solver: &Solver) -> bool {
-        solver.level.get(position).intersects(Tile::Wall)
-            || self.crate_positions.contains(position)
+        solver.level.get(position).intersects(Tile::Wall) || self.crate_positions.contains(position)
     }
 
     /// Checks if a position can block a crate's movement.
