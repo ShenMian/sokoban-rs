@@ -1050,7 +1050,7 @@ dependencies = [
  "bitflags 2.5.0",
  "cexpr",
  "clang-sys",
- "itertools",
+ "itertools 0.12.1",
  "lazy_static",
  "lazycell",
  "proc-macro2",
@@ -2261,6 +2261,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "itertools"
+version = "0.13.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "jni"
 version = "0.21.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2358,7 +2367,7 @@ checksum = "def515aa1461ed6ed5d55d53cea6c7149a3076c331cfea1d920682884bfaf839"
 dependencies = [
  "bevy",
  "derive_more",
- "itertools",
+ "itertools 0.12.1",
  "leafwing_input_manager_macros",
  "serde",
 ]
@@ -3279,7 +3288,7 @@ dependencies = [
  "built",
  "cfg-if",
  "interpolate_name",
- "itertools",
+ "itertools 0.12.1",
  "libc",
  "libfuzzer-sys",
  "log",
@@ -3702,14 +3711,14 @@ version = "0.1.0"
 source = "git+https://github.com/ShenMian/soukoban#b27551f3098d0399873cf483049deab820f41172"
 dependencies = [
  "bitflags 2.5.0",
- "itertools",
+ "itertools 0.12.1",
  "nalgebra",
  "thiserror",
 ]
 
 [[package]]
 name = "soukoban-rs"
-version = "0.1.14"
+version = "0.1.15"
 dependencies = [
  "arboard",
  "benimator",
@@ -3717,7 +3726,7 @@ dependencies = [
  "bevy_kira_audio",
  "bitflags 2.5.0",
  "image 0.25.1",
- "itertools",
+ "itertools 0.13.0",
  "leafwing-input-manager",
  "nalgebra",
  "rusqlite",
