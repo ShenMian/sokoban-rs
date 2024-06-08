@@ -18,6 +18,11 @@ A sokoban with solver.
 - **Player character animation**: Player character has smooth movement and animations in different directions.
 - **Front-end and back-end separation**: Backend code (such as solvers) is decoupled from the frontend (such as Bevy).
 
+## Acknowledgements
+
+- anian <<anianwu@gmail.com>>: For providing comprehensive answers to numerous inquiries regarding Sokoban and offering insightful recommendations.
+- [@PaperPlaneLSY](https://github.com/PaperPlaneLSY): For testing, improving the skin, and additional support.
+
 ## Keymap
 
 ### Mouse
