@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use soukoban::{Level, Map};
 
 use crate::database;
-use crate::level::PushState;
+use crate::utils::PushState;
 use crate::solve::solver::*;
 use soukoban::direction::Direction;
 

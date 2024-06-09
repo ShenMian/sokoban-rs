@@ -9,7 +9,7 @@ use nalgebra::Vector2;
 use soukoban::{Level, Tiles};
 
 use crate::events::*;
-use crate::level::PushState;
+use crate::utils::PushState;
 use crate::resources::*;
 use crate::solve::solver::*;
 use crate::systems::level::*;
