@@ -373,7 +373,7 @@ pub fn mouse_input(
                             && board.level.box_positions().contains(&grid_position)
                         {
                             // crate_position = grid_position;
-                            // FIXME: Re-entering AppState::AutoCratePush https://github.com/bevyengine/bevy/issues/9130
+                            // FIXME: Re-entering AppState::AutoCratePush https://github.com/bevyengine/bevy/issues/9130 https://github.com/bevyengine/bevy/pull/13579
                             // next_state.set(AppState::AutoCratePush);
                             next_state.set(AppState::Main);
                             return;
