@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use itertools::Itertools;
-use soukoban::path_finding::reachable_area;
 use soukoban::Tiles;
+use soukoban::{deadlock::calculate_dead_positions, path_finding::reachable_area};
 
 use crate::components::*;
 use crate::crate_pushable_paths;
@@ -28,6 +28,10 @@ pub fn spawn_auto_move_marks(
             paths,
         } => {
             *paths = crate_pushable_paths(&board.level, crate_position);
+
+            // remove dead positions
+            let dead_positions = calculate_dead_positions(&board.level);
+            paths.retain(|state, _| !dead_positions.contains(&state.box_position));
 
             // spawn crate pushable marks
             for crate_position in paths.keys().map(|state| state.box_position).unique() {
