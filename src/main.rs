@@ -6,20 +6,19 @@ mod components;
 mod database;
 mod events;
 mod input_map;
-mod utils;
 mod plugins;
 mod resources;
 mod solve;
 mod state;
 mod systems;
 mod test;
+mod utils;
 
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 use events::*;
 use input_map::*;
 use leafwing_input_manager::prelude::*;
-use utils::*;
 use plugins::performance_matrix::*;
 use resources::*;
 use state::*;
@@ -32,6 +31,7 @@ use systems::input::*;
 use systems::level::*;
 use systems::render::*;
 use systems::ui::*;
+use utils::*;
 
 const CONFIG_FILE_PATH: &str = "config.toml";
 
@@ -97,6 +97,7 @@ fn main() {
             update_button_state,
             handle_audio_event,
             adjust_viewport,
+            adjust_camera_scale,
             save_config.run_if(resource_changed_or_removed::<Config>()),
             (button_input_to_action, handle_actions).chain(),
         ),

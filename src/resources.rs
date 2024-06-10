@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use soukoban::{Level, Map};
 
 use crate::database;
-use crate::utils::PushState;
 use crate::solve::solver::*;
+use crate::utils::PushState;
 use soukoban::direction::Direction;
 
 use std::collections::{HashMap, VecDeque};

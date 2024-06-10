@@ -1,12 +1,14 @@
 use benimator::{Animation, FrameRate};
 use bevy::prelude::*;
+use bevy::window::WindowResized;
 use bevy::winit::WinitWindows;
 use nalgebra::Vector2;
+use soukoban::direction::Direction;
+use soukoban::Level;
 
 use crate::components::*;
 use crate::events::*;
 use crate::resources::*;
-use soukoban::direction::Direction;
 
 use std::cmp::Ordering;
 use std::collections::HashSet;
@@ -248,4 +250,34 @@ pub fn update_grid_position_from_board(
             }
         }
     }
+}
+
+pub fn adjust_camera_scale(
+    mut camera: Query<&mut MainCamera>,
+    window: Query<&Window>,
+    board: Query<&Board>,
+    mut events: EventReader<WindowResized>,
+) {
+    if events.is_empty() {
+        return;
+    }
+    events.clear();
+
+    camera.single_mut().target_scale =
+        calculate_camera_default_scale(window.single(), &board.single().board.level);
+}
+
+/// Adjust the camera zoom to fit the entire board.
+pub fn calculate_camera_default_scale(window: &Window, level: &Level) -> f32 {
+    let tile_size = Vector2::new(128.0, 128.0);
+    let board_size = tile_size.x * level.dimensions().map(|x| x as f32);
+
+    let width_scale = board_size.x / window.resolution.width();
+    let height_scale = board_size.y / window.resolution.height();
+    let scale = if width_scale > height_scale {
+        width_scale
+    } else {
+        height_scale
+    };
+    scale / 0.9
 }

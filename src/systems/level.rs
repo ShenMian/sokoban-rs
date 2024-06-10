@@ -5,6 +5,7 @@ use soukoban::Level;
 use soukoban::Tiles;
 
 use crate::board;
+use crate::calculate_camera_default_scale;
 use crate::components::*;
 use crate::database;
 use crate::resources::*;
@@ -80,15 +81,7 @@ pub fn spawn_board(
     transform.translation.x = (board_size.x - tile_size.x) / 2.0;
     transform.translation.y = (board_size.y + tile_size.y) / 2.0;
 
-    let window = window.single();
-    let width_scale = board_size.x / window.resolution.width();
-    let height_scale = board_size.y / window.resolution.height();
-    let scale = if width_scale > height_scale {
-        width_scale
-    } else {
-        height_scale
-    };
-    main_camera.target_scale = scale / 0.9;
+    main_camera.target_scale = calculate_camera_default_scale(window.single(), &level);
 
     // despawn the previous `Board`
     commands.entity(board.single()).despawn_recursive();
