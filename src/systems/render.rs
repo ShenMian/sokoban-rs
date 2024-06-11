@@ -252,6 +252,7 @@ pub fn update_grid_position_from_board(
     }
 }
 
+/// Adjust the camera scale to ensure the level is fully visible.
 pub fn adjust_camera_scale(
     mut camera: Query<&mut MainCamera>,
     window: Query<&Window>,
