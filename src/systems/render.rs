@@ -17,7 +17,7 @@ use std::time::Duration;
 /// Sets the window icon for all windows
 pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
     let (icon_rgba, icon_width, icon_height) = {
-        let image = image::open("assets/textures/crate.png")
+        let image = image::open("assets/textures/box.png")
             .expect("failed to open icon path")
             .into_rgba8();
         let (width, height) = image.dimensions();
@@ -79,16 +79,16 @@ pub fn animate_player(
     sprite.index = animation_state.frame_index();
 }
 
-/// Handles player movement and interacts with crates on the board.
+/// Handles player movement and interacts with boxes on the board.
 pub fn handle_player_movement(
     mut player: Query<&mut GridPosition, With<Player>>,
-    mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
+    mut boxes: Query<&mut GridPosition, (With<Box>, Without<Player>)>,
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
     config: Res<Config>,
-    mut crate_enter_target_events: EventWriter<CrateEnterTarget>,
-    mut crate_leave_target_events: EventWriter<CrateLeaveTarget>,
+    mut box_enter_target_events: EventWriter<BoxEnterTarget>,
+    mut box_leave_target_events: EventWriter<BoxLeaveTarget>,
     mut level_solved_events: EventWriter<LevelSolved>,
 ) {
     if player_movement.directions.is_empty() {
@@ -116,21 +116,21 @@ pub fn handle_player_movement(
                 .intersection(board.level.box_positions())
                 .count();
             match new_occupied_targets_count.cmp(&occupied_targets_count) {
-                Ordering::Greater => drop(crate_enter_target_events.send_default()),
-                Ordering::Less => drop(crate_leave_target_events.send_default()),
+                Ordering::Greater => drop(box_enter_target_events.send_default()),
+                Ordering::Less => drop(box_leave_target_events.send_default()),
                 _ => (),
             }
 
             player_grid_position.x += Into::<Vector2<i32>>::into(direction).x;
             player_grid_position.y += Into::<Vector2<i32>>::into(direction).y;
 
-            let old_crate_position = *player_grid_position;
-            let new_crate_position = old_crate_position + &direction.into();
-            let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
-            if crate_grid_positions.contains(player_grid_position) {
-                for mut crate_grid_position in crates.iter_mut() {
-                    if crate_grid_position.0 == old_crate_position {
-                        crate_grid_position.0 = new_crate_position;
+            let old_box_position = *player_grid_position;
+            let new_box_position = old_box_position + &direction.into();
+            let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
+            if box_grid_positions.contains(player_grid_position) {
+                for mut box_grid_position in boxes.iter_mut() {
+                    if box_grid_position.0 == old_box_position {
+                        box_grid_position.0 = new_box_position;
                     }
                 }
             }
@@ -142,13 +142,13 @@ pub fn handle_player_movement(
             player_grid_position.x += Into::<Vector2<i32>>::into(direction).x;
             player_grid_position.y += Into::<Vector2<i32>>::into(direction).y;
 
-            let old_crate_position = *player_grid_position;
-            let new_crate_position = old_crate_position + &direction.into();
-            let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
-            if crate_grid_positions.contains(player_grid_position) {
-                for mut crate_grid_position in crates.iter_mut() {
-                    if crate_grid_position.0 == old_crate_position {
-                        crate_grid_position.0 = new_crate_position;
+            let old_box_position = *player_grid_position;
+            let new_box_position = old_box_position + &direction.into();
+            let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
+            if box_grid_positions.contains(player_grid_position) {
+                for mut box_grid_position in boxes.iter_mut() {
+                    if box_grid_position.0 == old_box_position {
+                        box_grid_position.0 = new_box_position;
                     }
                 }
             }
@@ -213,7 +213,7 @@ pub fn smooth_camera_motion(
 pub fn update_grid_position_from_board(
     mut update_grid_position_events: EventReader<UpdateGridPositionEvent>,
     mut player: Query<&mut GridPosition, With<Player>>,
-    mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
+    mut boxes: Query<&mut GridPosition, (With<Box>, Without<Player>)>,
     board: Query<&Board>,
 ) {
     update_grid_position_events.clear();
@@ -224,14 +224,14 @@ pub fn update_grid_position_from_board(
     player_grid_position.x = board.level.player_position().x;
     player_grid_position.y = board.level.player_position().y;
 
-    let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
+    let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
     debug_assert!(
-        crate_grid_positions
+        box_grid_positions
             .difference(board.level.box_positions())
             .count()
             <= 1
     );
-    if let Some(old_position) = crate_grid_positions
+    if let Some(old_position) = box_grid_positions
         .difference(board.level.box_positions())
         .collect::<Vec<_>>()
         .first()
@@ -239,14 +239,14 @@ pub fn update_grid_position_from_board(
         let new_position = *board
             .level
             .box_positions()
-            .difference(&crate_grid_positions)
+            .difference(&box_grid_positions)
             .collect::<Vec<_>>()
             .first()
             .unwrap();
-        for mut crate_grid_position in crates.iter_mut() {
-            let crate_grid_position = &mut crate_grid_position;
-            if crate_grid_position.0 == **old_position {
-                crate_grid_position.0 = *new_position;
+        for mut box_grid_position in boxes.iter_mut() {
+            let box_grid_position = &mut box_grid_position;
+            if box_grid_position.0 == **old_position {
+                box_grid_position.0 = *new_position;
             }
         }
     }

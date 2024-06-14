@@ -311,8 +311,8 @@ pub fn mouse_input(
         match state.get() {
             AppState::Main => {
                 if board.level.box_positions().contains(&grid_position) {
-                    *auto_move_state = AutoMoveState::Crate {
-                        crate_position: grid_position,
+                    *auto_move_state = AutoMoveState::Box {
+                        position: grid_position,
                         paths: HashMap::new(),
                     };
                     next_state.set(AppState::AutoMove);
@@ -325,11 +325,11 @@ pub fn mouse_input(
             }
             AppState::AutoMove => {
                 match &mut *auto_move_state {
-                    AutoMoveState::Crate {
-                        crate_position,
+                    AutoMoveState::Box {
+                        position: box_position,
                         paths,
                     } => {
-                        let mut crate_paths = Vec::new();
+                        let mut box_paths = Vec::new();
                         for push_direction in [
                             Direction::Up,
                             Direction::Down,
@@ -341,23 +341,23 @@ pub fn mouse_input(
                                 box_position: grid_position,
                             };
                             if paths.contains_key(&push_state) {
-                                if *crate_position == grid_position {
+                                if *box_position == grid_position {
                                     next_state.set(AppState::Main);
                                     return;
                                 }
-                                let crate_path = paths[&push_state].clone();
-                                crate_paths.push(crate_path);
+                                let box_path = paths[&push_state].clone();
+                                box_paths.push(box_path);
                             }
                         }
-                        if let Some(min_crate_path) =
-                            crate_paths.iter().min_by_key(|crate_path| crate_path.len())
+                        if let Some(min_box_path) =
+                            box_paths.iter().min_by_key(|box_path| box_path.len())
                         {
                             let mut board_clone = board.clone();
-                            for (crate_position, push_direction) in min_crate_path
+                            for (box_position, push_direction) in min_box_path
                                 .windows(2)
                                 .map(|pos| (pos[0], Direction::try_from(pos[1] - pos[0]).unwrap()))
                             {
-                                let player_position = crate_position - &push_direction.into();
+                                let player_position = box_position - &push_direction.into();
                                 instant_player_move_to(
                                     &player_position,
                                     &mut board_clone,
@@ -369,12 +369,12 @@ pub fn mouse_input(
                                     &mut player_movement,
                                 );
                             }
-                        } else if grid_position != *crate_position
+                        } else if grid_position != *box_position
                             && board.level.box_positions().contains(&grid_position)
                         {
-                            // crate_position = grid_position;
-                            // FIXME: Re-entering AppState::AutoCratePush https://github.com/bevyengine/bevy/issues/9130 https://github.com/bevyengine/bevy/pull/13579
-                            // next_state.set(AppState::AutoCratePush);
+                            // box_position = grid_position;
+                            // FIXME: Re-entering AppState::AutoBoxPush https://github.com/bevyengine/bevy/issues/9130 https://github.com/bevyengine/bevy/pull/13579
+                            // next_state.set(AppState::AutoBoxPush);
                             next_state.set(AppState::Main);
                             return;
                         }

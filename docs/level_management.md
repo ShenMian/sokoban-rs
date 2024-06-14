@@ -2,15 +2,15 @@
 
 ## XSB format
 
-| Tile             | Symbol      |
-| ---------------- | ----------- |
-| Wall             | `#`         |
-| Player           | `@`         |
-| Player on target | `+`         |
-| Crate            | `$`         |
-| Crate on target  | `*`         |
-| Target           | `.`         |
-| Floor            | ` `/`-`/`_` |
+| Tile             | Symbol       |
+| ---------------- | ------------ |
+| Wall             | `#`          |
+| Player           | `@`          |
+| Player on target | `+`          |
+| Box              | `$`          |
+| Box on target    | `*`          |
+| Target           | `.`          |
+| Floor            | ``/`-`/`_` | |
 
 ## Import
 

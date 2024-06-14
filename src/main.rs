@@ -167,8 +167,8 @@ fn main() {
     app.init_resource::<ActionState<Action>>()
         .insert_resource(input_map);
 
-    app.add_event::<CrateEnterTarget>()
-        .add_event::<CrateLeaveTarget>()
+    app.add_event::<BoxEnterTarget>()
+        .add_event::<BoxLeaveTarget>()
         .add_event::<LevelSolved>()
         .add_event::<UpdateGridPositionEvent>();
 

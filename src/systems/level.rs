@@ -129,7 +129,7 @@ pub fn spawn_board(
                             if tile == Tiles::Player {
                                 entity.insert((Player, AnimationState::default()));
                             } else if tile == Tiles::Box {
-                                entity.insert(Crate);
+                                entity.insert(Box);
                             }
                         }
                     }

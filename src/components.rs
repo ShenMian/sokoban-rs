@@ -33,13 +33,13 @@ pub struct Player;
 pub struct AnimationState(benimator::State);
 
 #[derive(Component)]
-pub struct Crate;
+pub struct Box;
 
 #[derive(Component)]
 pub struct PlayerMovableMark;
 
 #[derive(Component)]
-pub struct CratePushableMark;
+pub struct BoxPushableMark;
 
 #[derive(Component)]
 pub struct LowerBoundMark;

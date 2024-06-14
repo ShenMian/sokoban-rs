@@ -169,17 +169,17 @@ pub fn update_tile_translation(
 
 pub fn update_tile_grid_position(
     mut player_grid_positions: Query<&mut GridPosition, With<Player>>,
-    mut crate_grid_positions: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
+    mut box_grid_positions: Query<&mut GridPosition, (With<Box>, Without<Player>)>,
     board: Query<&Board>,
 ) {
     let board = &board.single().board;
     let mut player_grid_positions = player_grid_positions.single_mut();
     **player_grid_positions = board.level.player_position();
 
-    for (mut crate_grid_position, crate_position) in crate_grid_positions
+    for (mut box_grid_position, box_position) in box_grid_positions
         .iter_mut()
         .zip(board.level.box_positions().iter())
     {
-        **crate_grid_position = *crate_position;
+        **box_grid_position = *box_position;
     }
 }

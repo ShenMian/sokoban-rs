@@ -25,15 +25,15 @@ impl Board {
             return false;
         }
         if self.level[player_next_position].intersects(Tiles::Box) {
-            let crate_next_position = player_next_position + &direction.into();
-            if self.level[crate_next_position].intersects(Tiles::Box | Tiles::Wall) {
+            let box_next_position = player_next_position + &direction.into();
+            if self.level[box_next_position].intersects(Tiles::Box | Tiles::Wall) {
                 return false;
             }
         }
         true
     }
 
-    /// Moves the player or pushes a crate in the specified direction.
+    /// Moves the player or pushes a box in the specified direction.
     pub fn move_or_push(&mut self, direction: Direction) {
         let direction_vector = &direction.into();
         let player_next_position = self.level.player_position() + direction_vector;
@@ -41,11 +41,11 @@ impl Board {
             return;
         }
         if self.level[player_next_position].intersects(Tiles::Box) {
-            let crate_next_position = player_next_position + direction_vector;
-            if self.level[crate_next_position].intersects(Tiles::Wall | Tiles::Box) {
+            let box_next_position = player_next_position + direction_vector;
+            if self.level[box_next_position].intersects(Tiles::Wall | Tiles::Box) {
                 return;
             }
-            self.move_crate(player_next_position, crate_next_position);
+            self.move_box(player_next_position, box_next_position);
 
             self.actions.push(Action::Push(direction));
         } else {
@@ -72,8 +72,8 @@ impl Board {
         let history = self.actions.pop().unwrap();
         let direction = history.direction();
         if history.is_push() {
-            let crate_position = self.level.player_position() + &direction.into();
-            self.move_crate(crate_position, self.level.player_position());
+            let box_position = self.level.player_position() + &direction.into();
+            self.move_box(box_position, self.level.player_position());
         }
         let player_prev_position = self.level.player_position() - &direction.into();
         self.move_player(player_prev_position);
@@ -124,7 +124,7 @@ impl Board {
         self.level.set_player_position(to);
     }
 
-    fn move_crate(&mut self, from: Vector2<i32>, to: Vector2<i32>) {
+    fn move_box(&mut self, from: Vector2<i32>, to: Vector2<i32>) {
         self.level[from].remove(Tiles::Box);
         self.level[to].insert(Tiles::Box);
         self.level.set_box_position(from, to);

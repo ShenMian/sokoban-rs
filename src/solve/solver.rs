@@ -6,7 +6,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::crate_pushable_paths_with_crate_positions;
+use crate::box_pushable_paths_with_positions;
 use crate::solve::state::*;
 use soukoban::{direction::Direction, path_finding::reachable_area, Level};
 
@@ -210,11 +210,11 @@ impl Solver {
                 Direction::Down,
                 Direction::Left,
             ] {
-                let next_crate_position = target_position + &pull_direction.into();
-                let next_player_position = next_crate_position + &pull_direction.into();
+                let next_box_position = target_position + &pull_direction.into();
+                let next_player_position = next_box_position + &pull_direction.into();
                 if self.level.in_bounds(next_player_position)
                     && !self.level[next_player_position].intersects(Tiles::Wall)
-                    && !self.level[next_crate_position].intersects(Tiles::Wall)
+                    && !self.level[next_box_position].intersects(Tiles::Wall)
                 {
                     player_position = Some(next_player_position);
                     break;
@@ -250,12 +250,12 @@ impl Solver {
             Direction::Down,
             Direction::Left,
         ] {
-            let next_crate_position = box_position + &pull_direction.into();
-            if self.level[next_crate_position].intersects(Tiles::Wall) {
+            let next_box_position = box_position + &pull_direction.into();
+            if self.level[next_box_position].intersects(Tiles::Wall) {
                 continue;
             }
 
-            let next_player_position = next_crate_position + &pull_direction.into();
+            let next_player_position = next_box_position + &pull_direction.into();
             if !self.level.in_bounds(next_player_position)
                 || self.level[next_player_position].intersects(Tiles::Wall)
             {
@@ -265,18 +265,16 @@ impl Solver {
                 continue;
             }
 
-            let lower_bound = *lower_bounds
-                .get(&next_crate_position)
-                .unwrap_or(&usize::MAX);
+            let lower_bound = *lower_bounds.get(&next_box_position).unwrap_or(&usize::MAX);
             let new_lower_bound = lower_bounds[&box_position] + 1;
-            if !visited.insert((next_crate_position, pull_direction)) {
+            if !visited.insert((next_box_position, pull_direction)) {
                 continue;
             }
             if new_lower_bound < lower_bound {
-                lower_bounds.insert(next_crate_position, new_lower_bound);
+                lower_bounds.insert(next_box_position, new_lower_bound);
             }
             self.minimum_push_to(
-                next_crate_position,
+                next_box_position,
                 next_player_position,
                 lower_bounds,
                 visited,
@@ -302,11 +300,8 @@ impl Solver {
                     continue;
                 }
 
-                let paths = crate_pushable_paths_with_crate_positions(
-                    &self.level,
-                    &position,
-                    &HashSet::new(),
-                );
+                let paths =
+                    box_pushable_paths_with_positions(&self.level, &position, &HashSet::new());
                 if let Some(lower_bound) = paths
                     .iter()
                     .filter(|path| self.level[path.0.box_position].intersects(Tiles::Goal))
@@ -341,7 +336,7 @@ impl Solver {
                     .level
                     .goal_positions()
                     .iter()
-                    .map(|crate_pos| manhattan_distance(crate_pos, &position))
+                    .map(|box_pos| manhattan_distance(box_pos, &position))
                     .min()
                     .unwrap() as usize;
                 lower_bounds.insert(position, lower_bound);

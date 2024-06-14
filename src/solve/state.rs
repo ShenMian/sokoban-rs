@@ -10,6 +10,7 @@ use crate::solve::solver::*;
 use nalgebra::Vector2;
 use siphasher::sip::SipHasher24;
 use soukoban::{
+    deadlock,
     direction::Direction,
     path_finding::{normalized_area, reachable_area},
     Action, Actions, Tiles,
@@ -54,13 +55,13 @@ impl PartialOrd for State {
 impl State {
     pub fn new(
         player_position: Vector2<i32>,
-        crate_positions: HashSet<Vector2<i32>>,
+        box_positions: HashSet<Vector2<i32>>,
         movements: Actions,
         solver: &Solver,
     ) -> Self {
         let mut instance = Self {
             player_position,
-            box_positions: crate_positions,
+            box_positions,
             movements,
             heuristic: 0,
             lower_bound: OnceCell::new(),
@@ -91,19 +92,19 @@ impl State {
     pub fn successors(&self, solver: &Solver) -> Vec<State> {
         let mut successors = Vec::new();
         let player_reachable_area = self.player_reachable_area(solver);
-        for crate_position in &self.box_positions {
+        for box_position in &self.box_positions {
             for push_direction in [
                 Direction::Up,
                 Direction::Down,
                 Direction::Left,
                 Direction::Right,
             ] {
-                let mut new_crate_position = crate_position + &push_direction.into();
-                if self.can_block_crate(new_crate_position, solver) {
+                let mut new_box_position = box_position + &push_direction.into();
+                if self.can_block_box(new_box_position, solver) {
                     continue;
                 }
 
-                let next_player_position = crate_position - &push_direction.into();
+                let next_player_position = box_position - &push_direction.into();
                 if self.can_block_player(next_player_position, solver)
                     || !player_reachable_area.contains(&next_player_position)
                 {
@@ -123,38 +124,38 @@ impl State {
                 new_movements.push(Action::Push(push_direction));
 
                 // skip tunnels
-                while solver.tunnels().contains(&(
-                    (new_crate_position - &push_direction.into()),
-                    push_direction,
-                )) {
-                    if self.can_block_crate(new_crate_position + &push_direction.into(), solver) {
+                while solver
+                    .tunnels()
+                    .contains(&((new_box_position - &push_direction.into()), push_direction))
+                {
+                    if self.can_block_box(new_box_position + &push_direction.into(), solver) {
                         break;
                     }
-                    new_crate_position += &push_direction.into();
+                    new_box_position += &push_direction.into();
                     new_movements.push(Action::Push(push_direction));
                 }
 
-                let mut new_crate_positions = self.box_positions.clone();
-                new_crate_positions.remove(crate_position);
-                new_crate_positions.insert(new_crate_position);
+                let mut new_box_positions = self.box_positions.clone();
+                new_box_positions.remove(box_position);
+                new_box_positions.insert(new_box_position);
 
                 // skip deadlocks
-                if !solver.level[new_crate_position].intersects(Tiles::Goal)
-                    && Self::is_freeze_deadlock(
-                        &new_crate_position,
-                        &new_crate_positions,
-                        solver,
+                if !solver.level[new_box_position].intersects(Tiles::Goal)
+                    && deadlock::is_freeze_deadlock(
+                        &solver.level,
+                        new_box_position,
+                        &new_box_positions,
                         &mut HashSet::new(),
                     )
                 {
                     continue;
                 }
 
-                let new_player_position = new_crate_position - &push_direction.into();
+                let new_player_position = new_box_position - &push_direction.into();
 
                 let new_state = State::new(
                     new_player_position,
-                    new_crate_positions,
+                    new_box_positions,
                     new_movements,
                     solver,
                 );
@@ -188,51 +189,6 @@ impl State {
         hasher.finish()
     }
 
-    /// Checks if the new crate position leads to a freeze deadlock.
-    fn is_freeze_deadlock(
-        crate_position: &Vector2<i32>,
-        crate_positions: &HashSet<Vector2<i32>>,
-        solver: &Solver,
-        visited: &mut HashSet<Vector2<i32>>,
-    ) -> bool {
-        if !visited.insert(*crate_position) {
-            return true;
-        }
-
-        for direction in [
-            Direction::Up,
-            Direction::Down,
-            Direction::Left,
-            Direction::Right,
-        ]
-        .chunks(2)
-        {
-            let neighbors = [
-                crate_position + &direction[0].into(),
-                crate_position + &direction[1].into(),
-            ];
-
-            // Checks if any immovable walls on the axis.
-            if solver.level[neighbors[0]].intersects(Tiles::Wall)
-                || solver.level[neighbors[1]].intersects(Tiles::Wall)
-            {
-                continue;
-            }
-
-            // Checks if any immovable crates on the axis.
-            if (crate_positions.contains(&neighbors[0])
-                && Self::is_freeze_deadlock(&neighbors[0], crate_positions, solver, visited))
-                || (crate_positions.contains(&neighbors[1])
-                    && Self::is_freeze_deadlock(&neighbors[1], crate_positions, solver, visited))
-            {
-                continue;
-            }
-
-            return false;
-        }
-        true
-    }
-
     /// Returns the lower bound value for the current state.
     fn lower_bound(&self, solver: &Solver) -> usize {
         *self
@@ -243,8 +199,8 @@ impl State {
     /// Calculates and returns the lower bound value for the current state.
     fn calculate_lower_bound(&self, solver: &Solver) -> usize {
         let mut sum: usize = 0;
-        for crate_position in &self.box_positions {
-            match solver.lower_bounds().get(crate_position) {
+        for box_position in &self.box_positions {
+            match solver.lower_bounds().get(box_position) {
                 Some(lower_bound) => sum += lower_bound,
                 None => return 10_000 - 1,
             }
@@ -257,8 +213,8 @@ impl State {
         solver.level[position].intersects(Tiles::Wall) || self.box_positions.contains(&position)
     }
 
-    /// Checks if a position can block a crate's movement.
-    fn can_block_crate(&self, position: Vector2<i32>, solver: &Solver) -> bool {
+    /// Checks if a position can block a box's movement.
+    fn can_block_box(&self, position: Vector2<i32>, solver: &Solver) -> bool {
         solver.level[position].intersects(Tiles::Wall /* | Tiles::Deadlock */)
             || !solver.lower_bounds().contains_key(&position)
             || self.box_positions.contains(&position)

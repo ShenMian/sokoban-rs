@@ -14,8 +14,8 @@ The solver can automatically solve levels of moderate complexity.
 ## Lower bound calculation method
 
 - `MinimumPush`: Minimum push count to nearest target.
-- `MinimumMove`: Minimum move count to nearest target. (This method is slow, especially on maps with many crates or large areas)
-- `ManhattanDistance`: Manhattan distance to nearest target. (This method is fast, suitable for maps with many crates or large areas)
+- `MinimumMove`: Minimum move count to nearest target. (This method is slow, especially on maps with many boxes or large areas)
+- `ManhattanDistance`: Manhattan distance to nearest target. (This method is fast, suitable for maps with many boxes or large areas)
 
 ## Optimization
 

@@ -9,17 +9,17 @@ pub fn handle_audio_event(
     audio: Res<Audio>,
     asset_server: Res<AssetServer>,
     config: Res<Config>,
-    mut crate_enter_target_events: EventReader<CrateEnterTarget>,
-    mut _crate_leave_target_events: EventReader<CrateLeaveTarget>,
+    mut box_enter_target_events: EventReader<BoxEnterTarget>,
+    mut _box_leave_target_events: EventReader<BoxLeaveTarget>,
     mut level_solved_events: EventReader<LevelSolved>,
 ) {
     for _ in level_solved_events.read() {
         audio
             .play(asset_server.load("audio/success.ogg"))
             .with_volume(config.volume);
-        crate_enter_target_events.clear();
+        box_enter_target_events.clear();
     }
-    for _ in crate_enter_target_events.read() {
+    for _ in box_enter_target_events.read() {
         audio
             .play(asset_server.load("audio/correct.ogg"))
             .with_volume(config.volume);

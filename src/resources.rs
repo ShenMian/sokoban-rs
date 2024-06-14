@@ -71,8 +71,8 @@ impl PlayerMovement {
 pub enum AutoMoveState {
     #[default]
     Player,
-    Crate {
-        crate_position: Vector2<i32>,
+    Box {
+        position: Vector2<i32>,
         paths: HashMap<PushState, Vec<Vector2<i32>>>,
     },
 }
