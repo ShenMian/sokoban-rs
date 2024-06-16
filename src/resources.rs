@@ -4,6 +4,7 @@ use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
 use soukoban::{Level, Map};
 
+use crate::board::Board;
 use crate::database;
 use crate::solve::solver::*;
 use crate::utils::PushState;
@@ -80,8 +81,8 @@ pub enum AutoMoveState {
 #[derive(Resource)]
 pub struct SolverState {
     pub solver: Mutex<Solver>,
-    pub level: Level,
     pub stopwatch: Stopwatch,
+    pub origin_board: Board,
 }
 
 impl Default for SolverState {
@@ -92,8 +93,10 @@ impl Default for SolverState {
                 Strategy::default(),
                 LowerBoundMethod::default(),
             )),
-            level: Level::from_map(Map::with_dimensions(Vector2::new(0, 0))),
             stopwatch: Stopwatch::new(),
+            origin_board: Board::with_level(Level::from_map(Map::with_dimensions(Vector2::new(
+                0, 0,
+            )))),
         }
     }
 }

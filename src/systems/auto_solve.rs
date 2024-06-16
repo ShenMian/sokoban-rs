@@ -17,13 +17,13 @@ pub fn load_solver(
     let board = &board.single().board;
     let SolverState {
         solver,
-        level,
         stopwatch,
+        origin_board,
     } = &mut *solver_state;
-    *level = board.level.clone();
+    *origin_board = board.clone();
     let solver = solver.get_mut().unwrap();
     *solver = Solver::new(
-        level.clone(),
+        origin_board.level.clone(),
         config.solver.strategy,
         config.solver.lower_bound_method,
     );
@@ -81,7 +81,7 @@ pub fn despawn_lowerbound_marks(
 /// Resets the board to the state before automatic solution
 pub fn reset_board(mut board: Query<&mut Board>, solver_state: Res<SolverState>) {
     let board = &mut board.single_mut().board;
-    *board = crate::board::Board::with_level(solver_state.level.clone());
+    *board = solver_state.origin_board.clone();
 }
 
 pub fn update_solver(
@@ -94,11 +94,11 @@ pub fn update_solver(
     let board = &mut board.single_mut().board;
     let SolverState {
         solver,
-        level,
         stopwatch,
+        origin_board,
     } = &mut *solver_state;
 
-    *board = crate::board::Board::with_level(level.clone());
+    *board = crate::board::Board::with_level(origin_board.level.clone());
 
     let solver = solver.get_mut().unwrap();
     let timeout = Duration::from_millis(50);
