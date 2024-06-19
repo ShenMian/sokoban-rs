@@ -1,9 +1,8 @@
-use std::hash::{Hash, Hasher};
+use std::hash::{DefaultHasher, Hash, Hasher};
 use std::path::Path;
 use std::str::FromStr;
 
 use rusqlite::Connection;
-use siphasher::sip::SipHasher24;
 use soukoban::{Actions, Level};
 
 pub struct Database {
@@ -223,7 +222,7 @@ impl Database {
 
     /// Computes a normalized hash for the provided level.
     fn normalized_hash(level: &Level) -> String {
-        let mut hasher = SipHasher24::new();
+        let mut hasher = DefaultHasher::new();
         let mut normalized_level = level.clone();
         normalized_level.normalize();
         normalized_level.hash(&mut hasher);

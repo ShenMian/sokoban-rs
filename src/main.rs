@@ -52,7 +52,8 @@ fn load_input_map() -> InputMap<Action> {
         fs::write(KEYMAP_FILE_PATH, default_keymap_toml).unwrap();
     }
     let keymap_toml = fs::read_to_string(KEYMAP_FILE_PATH).unwrap();
-    let input_map: InputMap<Action> = toml::from_str(keymap_toml.as_str()).unwrap();
+    let input_map: InputMap<Action> =
+        toml::from_str(keymap_toml.as_str()).expect("failed to parse `keymap.toml`");
     input_map
 }
 

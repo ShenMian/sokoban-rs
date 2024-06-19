@@ -2,13 +2,12 @@ use std::{
     cell::OnceCell,
     cmp::Ordering,
     collections::HashSet,
-    hash::{Hash, Hasher},
+    hash::{DefaultHasher, Hash, Hasher},
 };
 
 use crate::solve::solver::*;
 
 use nalgebra::Vector2;
-use siphasher::sip::SipHasher24;
 use soukoban::{
     deadlock,
     direction::Direction,
@@ -184,7 +183,7 @@ impl State {
 
     /// Returns a normalized hash of the current state.
     pub fn normalized_hash(&self, solver: &Solver) -> u64 {
-        let mut hasher = SipHasher24::new();
+        let mut hasher = DefaultHasher::new();
         self.normalized(solver).hash(&mut hasher);
         hasher.finish()
     }
