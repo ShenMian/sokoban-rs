@@ -35,12 +35,12 @@ impl PerformanceBundle {
         };
         PerformanceBundle {
             text: TextBundle::from_sections([
-                text_section(Color::GREEN.with_a(ALPHA), "FPS     : "),
-                text_section(Color::CYAN.with_a(ALPHA), ""),
-                text_section(Color::GREEN.with_a(ALPHA), "FPS(SMA): "),
-                text_section(Color::CYAN.with_a(ALPHA), ""),
-                text_section(Color::GREEN.with_a(ALPHA), "FPS(EMA): "),
-                text_section(Color::CYAN.with_a(ALPHA), ""),
+                text_section(Color::CYAN.with_a(ALPHA), "FPS     : "),
+                text_section(Color::default().with_a(ALPHA), ""),
+                text_section(Color::CYAN.with_a(ALPHA), "FPS(SMA): "),
+                text_section(Color::default().with_a(ALPHA), ""),
+                text_section(Color::CYAN.with_a(ALPHA), "FPS(EMA): "),
+                text_section(Color::default().with_a(ALPHA), ""),
             ])
             .with_style(Style {
                 position_type: PositionType::Absolute,
@@ -64,13 +64,22 @@ fn update_performance_matrix(
     let mut text = query.single_mut();
     if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(raw) = fps.value() {
-            text.sections[1].value = format!("{raw:.2}\n");
+            update_fps(raw, &mut text.sections[1]);
         }
         if let Some(sma) = fps.average() {
-            text.sections[3].value = format!("{sma:.2}\n");
+            update_fps(sma, &mut text.sections[3]);
         }
         if let Some(ema) = fps.smoothed() {
-            text.sections[5].value = format!("{ema:.2}\n");
+            update_fps(ema, &mut text.sections[5]);
         }
     }
+}
+
+fn update_fps(value: f64, section: &mut TextSection) {
+    section.value = format!("{value:.2}\n");
+    section.style.color = match value {
+        v if v < 30.0 => Color::RED,
+        v if v < 60.0 => Color::YELLOW,
+        _ => Color::GREEN,
+    };
 }
