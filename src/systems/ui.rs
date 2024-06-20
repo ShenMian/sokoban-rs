@@ -73,20 +73,20 @@ pub fn update_hud(
     let board = &board.single().board;
 
     if level_id.is_changed() {
-        hud.sections[1].value = format!("#{}\n", **level_id);
+        hud.sections[1].value = format!("#{}\n", level_id.0);
 
         let database = database.lock().unwrap();
         hud.sections[7].value = format!(
             "{}\n",
             database
-                .best_move_solution(**level_id)
+                .best_move_solution(level_id.0)
                 .unwrap_or_default()
                 .moves()
         );
         hud.sections[9].value = format!(
             "{}\n",
             database
-                .best_push_solution(**level_id)
+                .best_push_solution(level_id.0)
                 .unwrap_or_default()
                 .pushes()
         );

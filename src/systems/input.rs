@@ -443,7 +443,7 @@ pub fn file_drag_and_drop(
                 Ok(levels) => {
                     info!("Done, {} levels loaded", levels.len());
                     database.import_levels(&levels);
-                    **level_id = database.get_level_id(&levels[0]).unwrap();
+                    level_id.0 = database.get_level_id(&levels[0]).unwrap();
                 }
                 Err(msg) => warn!("Failed to load levels from file: {}", msg),
             }

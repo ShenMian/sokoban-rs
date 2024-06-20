@@ -61,7 +61,7 @@ pub fn spawn_board(
     mut spritesheet_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
     let database = database.lock().unwrap();
-    let level = database.get_level_by_id(**level_id).unwrap();
+    let level = database.get_level_by_id(level_id.0).unwrap();
 
     let spritesheet_handle = asset_server.load("textures/tilesheet.png");
     let tile_size = Vector2::new(128.0, 128.0);
@@ -151,11 +151,11 @@ pub fn auto_switch_to_next_unsolved_level(
     let board = &mut board.single_mut().board;
     debug_assert!(board.is_solved());
     info!("{}", "=".repeat(15));
-    info!("#{} Sloved!", **level_id);
+    info!("#{} Sloved!", level_id.0);
     info!("Moves   : {}", board.actions().moves());
     info!("Pushes  : {}", board.actions().pushes());
     info!("Solution: {}", board.actions().to_string());
-    database.update_solution(**level_id, board.actions());
+    database.update_solution(level_id.0, board.actions());
     switch_to_next_unsolved_level(&mut level_id, &database);
 }
 
@@ -170,7 +170,7 @@ pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Databa
             }
             info!("import {} levels from clipboard", levels.len());
             database.import_levels(&levels);
-            **level_id = database.get_level_id(&levels[0]).unwrap();
+            level_id.0 = database.get_level_id(&levels[0]).unwrap();
         }
         Err(msg) => error!("failed to import levels from clipboard: {}", msg),
     }
@@ -199,14 +199,14 @@ pub fn switch_to_previous_unsolved_level(level_id: &mut LevelId, database: &data
 
 /// Switches to the next level based on the current level ID.
 pub fn switch_to_next_level(level_id: &mut LevelId, database: &database::Database) {
-    if **level_id < database.max_level_id().unwrap() {
-        **level_id += 1;
+    if level_id.0 < database.max_level_id().unwrap() {
+        level_id.0 += 1;
     }
 }
 
 /// Switches to the previous level based on the current level ID.
 pub fn switch_to_previous_level(level_id: &mut LevelId, database: &database::Database) {
-    if **level_id > database.min_level_id().unwrap() {
-        **level_id -= 1;
+    if level_id.0 > database.min_level_id().unwrap() {
+        level_id.0 -= 1;
     }
 }
