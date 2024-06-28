@@ -15,7 +15,7 @@ categories = ["games"]
 [dependencies]
 soukoban = { git = "https://github.com/ShenMian/soukoban" }
 bitflags = "2.4"
-nalgebra = "0.32"
+nalgebra = "0.33"
 itertools = "0.13"
 
 leafwing-input-manager = "0.13"
