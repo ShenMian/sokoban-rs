@@ -171,9 +171,9 @@ pub fn smooth_tile_motion(
         if !config.instant_move {
             let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
 
-            let target_x = grid_position.x as f32 * tile_size.x;
-            let target_y = board.level.dimensions().y as f32 * tile_size.y
-                - grid_position.y as f32 * tile_size.y;
+            let target_x = grid_position.x as f32 * tile_size.x as f32;
+            let target_y = board.level.dimensions().y as f32 * tile_size.y as f32
+                - grid_position.y as f32 * tile_size.y as f32;
 
             if (transform.translation.x - target_x).abs() > 0.001 {
                 transform.translation.x = lerp(transform.translation.x, target_x, 0.3);
@@ -186,9 +186,9 @@ pub fn smooth_tile_motion(
                 transform.translation.y = target_y;
             }
         } else {
-            transform.translation.x = grid_position.x as f32 * tile_size.x;
-            transform.translation.y = board.level.dimensions().y as f32 * tile_size.y
-                - grid_position.y as f32 * tile_size.y;
+            transform.translation.x = grid_position.x as f32 * tile_size.x as f32;
+            transform.translation.y = board.level.dimensions().y as f32 * tile_size.y as f32
+                - grid_position.y as f32 * tile_size.y as f32;
         }
     }
 }
@@ -271,7 +271,7 @@ pub fn adjust_camera_scale(
 /// Adjust the camera zoom to fit the entire board.
 pub fn calculate_camera_default_scale(window: &Window, level: &Level) -> f32 {
     let tile_size = Vector2::new(128.0, 128.0);
-    let board_size = tile_size.x * level.dimensions().map(|x| x as f32);
+    let board_size = tile_size.x as f32 * level.dimensions().map(|x| x as f32);
 
     let width_scale = board_size.x / window.resolution.width();
     let height_scale = board_size.y / window.resolution.height();

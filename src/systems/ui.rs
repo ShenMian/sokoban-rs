@@ -1,9 +1,9 @@
+use bevy::{color::palettes::css::*, prelude::*};
+use leafwing_input_manager::prelude::*;
+
 use crate::components::*;
 use crate::resources::*;
 use crate::Action;
-
-use bevy::prelude::*;
-use leafwing_input_manager::prelude::*;
 
 /// Sets up the version information text on the screen.
 pub fn setup_version_info(mut commands: Commands) {
@@ -13,7 +13,7 @@ pub fn setup_version_info(mut commands: Commands) {
             "version: ".to_string() + env!("CARGO_PKG_VERSION"),
             TextStyle {
                 font_size: 14.0,
-                color: Color::GRAY.with_a(ALPHA),
+                color: GRAY.with_alpha(ALPHA).into(),
                 ..default()
             },
         )])
@@ -42,16 +42,16 @@ pub fn setup_hud(mut commands: Commands) {
     commands.spawn((
         Hud,
         TextBundle::from_sections([
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Level : "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Moves : "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Pushes: "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Best moves : "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Best pushes: "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
+            text_section(SEA_GREEN.with_alpha(ALPHA).into(), "Level : "),
+            text_section(GOLD.with_alpha(ALPHA).into(), ""),
+            text_section(SEA_GREEN.with_alpha(ALPHA).into(), "Moves : "),
+            text_section(GOLD.with_alpha(ALPHA).into(), ""),
+            text_section(SEA_GREEN.with_alpha(ALPHA).into(), "Pushes: "),
+            text_section(GOLD.with_alpha(ALPHA).into(), ""),
+            text_section(SEA_GREEN.with_alpha(ALPHA).into(), "Best moves : "),
+            text_section(GOLD.with_alpha(ALPHA).into(), ""),
+            text_section(SEA_GREEN.with_alpha(ALPHA).into(), "Best pushes: "),
+            text_section(GOLD.with_alpha(ALPHA).into(), ""),
         ])
         .with_style(Style {
             position_type: PositionType::Absolute,
@@ -108,7 +108,7 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
                         height: Val::Px(64.0),
                         justify_content: JustifyContent::Center,
                         align_items: AlignItems::Center,
-                        border: UiRect::all(Val::Px(5.0)),
+                        border: UiRect::all(Val::Px(3.0)),
                         ..default()
                     },
                     border_color: Color::NONE.into(),
@@ -119,8 +119,8 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
             .with_children(|parent| {
                 parent.spawn(ImageBundle {
                     style: Style {
-                        width: Val::Percent(100.0),
-                        height: Val::Percent(100.0),
+                        width: Val::Percent(90.0),
+                        height: Val::Percent(90.0),
                         ..default()
                     },
                     image: asset_server.load(img_path).into(),
@@ -177,9 +177,9 @@ pub fn update_button_state(
     }
 }
 
-const BUTTON_NORMAL_COLOR: Color = Color::rgba(0.7, 0.7, 0.7, 0.8);
-const BUTTON_HOVERED_COLOR: Color = Color::rgba(0.55, 0.55, 0.55, 0.8);
-const BUTTON_PRESSED_COLOR: Color = Color::rgba(0.35, 0.75, 0.35, 0.8);
+const BUTTON_NORMAL_COLOR: Color = Color::srgba(0.7, 0.7, 0.7, 0.8);
+const BUTTON_HOVERED_COLOR: Color = Color::srgba(0.55, 0.55, 0.55, 0.8);
+const BUTTON_PRESSED_COLOR: Color = Color::srgba(0.35, 0.75, 0.35, 0.8);
 
 /// Applies visual effects to buttons based on user interaction.
 pub fn button_visual_effect(
