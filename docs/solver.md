@@ -40,7 +40,7 @@ Time limit: 10 seconds.
 
 Supports visualizing the automatic solution process. This feature can be used to intuitively view the working status of the solver.
 
-- Displays the optimal state obtained by the current solver.
-- Display the lower bound as a heat map.
+- Display the best state found by the solver.
+- Display the lower bounds as a heat map.
 
 <p align="center"><img src="assets/solver_visualization.png" width=70%></p>
