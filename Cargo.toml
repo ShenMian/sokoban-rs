@@ -19,7 +19,6 @@ nalgebra = "0.33"
 itertools = "0.13"
 
 bevy = "0.14"
-# leafwing-input-manager = "0.14"
 leafwing-input-manager = { version = "0.14", git = "https://github.com/dead-money/leafwing-input-manager", branch = "v0.14-rc" }
 bevy_kira_audio = "0.20.0"
 benimator = "4.1"
@@ -31,8 +30,6 @@ image = "0.25"
 toml = "0.8"
 
 winit = "0.30" # The version needs to be consistent with the one used in bevy
-
-# features = ["multi-threaded", "png", "x11", "default_font"]
 
 [profile.dev.package."*"]
 opt-level = 3

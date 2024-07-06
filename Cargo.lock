@@ -2580,7 +2580,7 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 [[package]]
 name = "leafwing-input-manager"
 version = "0.14.0"
-source = "git+https://github.com/dead-money/leafwing-input-manager?branch=v0.14-rc#8f60f0da81676ee44454c338fb7c1ca5ab6b94fd"
+source = "git+https://github.com/dead-money/leafwing-input-manager?branch=v0.14-rc#03619e496b39775df737833f75b8df5ce22de476"
 dependencies = [
  "bevy",
  "derive_more",
@@ -2592,7 +2592,7 @@ dependencies = [
 [[package]]
 name = "leafwing_input_manager_macros"
 version = "0.13.1"
-source = "git+https://github.com/dead-money/leafwing-input-manager?branch=v0.14-rc#8f60f0da81676ee44454c338fb7c1ca5ab6b94fd"
+source = "git+https://github.com/dead-money/leafwing-input-manager?branch=v0.14-rc#03619e496b39775df737833f75b8df5ce22de476"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
