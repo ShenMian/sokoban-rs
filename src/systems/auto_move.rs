@@ -1,7 +1,6 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::*, prelude::*};
 use itertools::Itertools;
-use soukoban::Tiles;
-use soukoban::{deadlock::calculate_dead_positions, path_finding::reachable_area};
+use soukoban::{deadlock::calculate_dead_positions, path_finding::reachable_area, Tiles};
 
 use crate::box_pushable_paths;
 use crate::components::*;
@@ -19,8 +18,8 @@ pub fn spawn_auto_move_marks(
 ) {
     let Board { board, tile_size } = board.single();
 
-    const MARK_COLOR: Color = Color::GREEN;
-    const HIGHLIGHT_COLOR: Color = Color::TURQUOISE;
+    const MARK_COLOR: Srgba = LIME;
+    const HIGHLIGHT_COLOR: Srgba = TURQUOISE;
 
     match &mut *auto_move_state {
         AutoMoveState::Box {
@@ -38,13 +37,17 @@ pub fn spawn_auto_move_marks(
                 commands.spawn((
                     SpriteBundle {
                         sprite: Sprite {
-                            color: MARK_COLOR.with_a(0.8),
-                            custom_size: Some(Vec2::new(tile_size.x / 4.0, tile_size.y / 4.0)),
+                            color: MARK_COLOR.with_alpha(0.8).into(),
+                            custom_size: Some(Vec2::new(
+                                tile_size.x as f32 / 4.0,
+                                tile_size.y as f32 / 4.0,
+                            )),
                             ..default()
                         },
                         transform: Transform::from_xyz(
-                            box_position.x as f32 * tile_size.x,
-                            (board.level.dimensions().y - box_position.y) as f32 * tile_size.y,
+                            box_position.x as f32 * tile_size.x as f32,
+                            (board.level.dimensions().y - box_position.y) as f32
+                                * tile_size.y as f32,
                             10.0,
                         ),
                         ..default()
@@ -62,7 +65,7 @@ pub fn spawn_auto_move_marks(
             boxes
                 .iter_mut()
                 .filter(|(grid_position, ..)| ***grid_position == *box_position)
-                .for_each(|(_, mut sprite)| sprite.color = HIGHLIGHT_COLOR);
+                .for_each(|(_, mut sprite)| sprite.color = HIGHLIGHT_COLOR.into());
         }
         AutoMoveState::Player => {
             let mut reachable_area = reachable_area(board.level.player_position(), |position| {
@@ -76,13 +79,17 @@ pub fn spawn_auto_move_marks(
                 commands.spawn((
                     SpriteBundle {
                         sprite: Sprite {
-                            color: MARK_COLOR.with_a(0.8),
-                            custom_size: Some(Vec2::new(tile_size.x / 4.0, tile_size.y / 4.0)),
+                            color: MARK_COLOR.with_alpha(0.8).into(),
+                            custom_size: Some(Vec2::new(
+                                tile_size.x as f32 / 4.0,
+                                tile_size.y as f32 / 4.0,
+                            )),
                             ..default()
                         },
                         transform: Transform::from_xyz(
-                            box_position.x as f32 * tile_size.x,
-                            (board.level.dimensions().y - box_position.y) as f32 * tile_size.y,
+                            box_position.x as f32 * tile_size.x as f32,
+                            (board.level.dimensions().y - box_position.y) as f32
+                                * tile_size.y as f32,
                             10.0,
                         ),
                         ..default()
@@ -93,7 +100,7 @@ pub fn spawn_auto_move_marks(
 
             // highlight selected player
             let mut sprite = player.single_mut();
-            sprite.color = HIGHLIGHT_COLOR;
+            sprite.color = HIGHLIGHT_COLOR.into();
         }
     }
 }

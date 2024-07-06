@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::*, prelude::*};
 
 use crate::components::*;
 use crate::resources::*;
@@ -48,17 +48,17 @@ pub fn spawn_lowerbound_marks(
     let max_lowerbound = lowerbounds.values().cloned().max().unwrap();
     for (position, lowerbound) in lowerbounds {
         let alpha = lowerbound as f32 / max_lowerbound as f32;
-        let color = Color::BLUE * alpha + Color::RED * (1.0 - alpha);
+        let color = BLUE * alpha + RED * (1.0 - alpha);
         commands.spawn((
             SpriteBundle {
                 sprite: Sprite {
-                    color: color.with_a(0.5),
-                    custom_size: Some(Vec2::new(tile_size.x, tile_size.y)),
+                    color: color.with_alpha(0.5).into(),
+                    custom_size: Some(Vec2::new(tile_size.x as f32, tile_size.y as f32)),
                     ..default()
                 },
                 transform: Transform::from_xyz(
-                    position.x as f32 * tile_size.x,
-                    (board.level.dimensions().y - position.y) as f32 * tile_size.y,
+                    position.x as f32 * tile_size.x as f32,
+                    (board.level.dimensions().y - position.y) as f32 * tile_size.y as f32,
                     10.0,
                 ),
                 ..default()
@@ -161,9 +161,9 @@ pub fn update_tile_translation(
 ) {
     let Board { board, tile_size } = &board.single();
     for (mut transform, grid_position) in tiles.iter_mut() {
-        transform.translation.x = grid_position.x as f32 * tile_size.x;
-        transform.translation.y =
-            board.level.dimensions().y as f32 * tile_size.y - grid_position.y as f32 * tile_size.y;
+        transform.translation.x = grid_position.x as f32 * tile_size.x as f32;
+        transform.translation.y = board.level.dimensions().y as f32 * tile_size.y as f32
+            - grid_position.y as f32 * tile_size.y as f32;
     }
 }
 

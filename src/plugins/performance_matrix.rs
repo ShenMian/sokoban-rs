@@ -1,5 +1,8 @@
-use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
-use bevy::prelude::*;
+use bevy::{
+    color::palettes::css::*,
+    diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin},
+    prelude::*,
+};
 
 pub struct PerformanceMatrixPlugin;
 
@@ -35,12 +38,12 @@ impl PerformanceBundle {
         };
         PerformanceBundle {
             text: TextBundle::from_sections([
-                text_section(Color::CYAN.with_a(ALPHA), "FPS     : "),
-                text_section(Color::default().with_a(ALPHA), ""),
-                text_section(Color::CYAN.with_a(ALPHA), "FPS(SMA): "),
-                text_section(Color::default().with_a(ALPHA), ""),
-                text_section(Color::CYAN.with_a(ALPHA), "FPS(EMA): "),
-                text_section(Color::default().with_a(ALPHA), ""),
+                text_section(AQUA.with_alpha(ALPHA).into(), "FPS     : "),
+                text_section(Color::default().with_alpha(ALPHA), ""),
+                text_section(AQUA.with_alpha(ALPHA).into(), "FPS(SMA): "),
+                text_section(Color::default().with_alpha(ALPHA), ""),
+                text_section(AQUA.with_alpha(ALPHA).into(), "FPS(EMA): "),
+                text_section(Color::default().with_alpha(ALPHA), ""),
             ])
             .with_style(Style {
                 position_type: PositionType::Absolute,
@@ -78,8 +81,8 @@ fn update_performance_matrix(
 fn update_fps(value: f64, section: &mut TextSection) {
     section.value = format!("{value:.2}\n");
     section.style.color = match value {
-        v if v < 30.0 => Color::RED,
-        v if v < 60.0 => Color::YELLOW,
-        _ => Color::GREEN,
+        v if v < 30.0 => RED.into(),
+        v if v < 60.0 => YELLOW.into(),
+        _ => LIME.into(),
     };
 }

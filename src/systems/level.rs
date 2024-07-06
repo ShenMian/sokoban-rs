@@ -1,8 +1,8 @@
 use arboard::Clipboard;
+use bevy::color::palettes::css::*;
 use bevy::prelude::*;
 use nalgebra::Vector2;
-use soukoban::Level;
-use soukoban::Tiles;
+use soukoban::{Level, Tiles};
 
 use crate::board;
 use crate::calculate_camera_default_scale;
@@ -10,10 +10,7 @@ use crate::components::*;
 use crate::database;
 use crate::resources::*;
 
-use std::collections::HashMap;
-use std::fs;
-use std::path::Path;
-use std::sync::Mutex;
+use std::{collections::HashMap, fs, path::Path, sync::Mutex};
 
 /// Sets up the database, initializes it, and loads levels from files into the database.
 pub fn setup_database(mut commands: Commands) {
@@ -64,22 +61,25 @@ pub fn spawn_board(
     let level = database.get_level_by_id(level_id.0).unwrap();
 
     let spritesheet_handle = asset_server.load("textures/tilesheet.png");
-    let tile_size = Vector2::new(128.0, 128.0);
+    let tile_size = Vector2::new(128, 128);
     let spritesheet_layout = TextureAtlasLayout::from_grid(
-        Vec2::new(tile_size.x, tile_size.y),
+        UVec2::new(tile_size.x, tile_size.y),
         6,
         3,
-        Some(Vec2::new(1.0, 1.0)),
+        Some(UVec2::new(1, 1)),
         None,
     );
     let spritesheet_layout_handle = spritesheet_layouts.add(spritesheet_layout);
 
-    let board_size = tile_size.x * level.dimensions().map(|x| x as f32);
+    let board_size = Vector2::new(
+        tile_size.x * level.dimensions().x as u32,
+        tile_size.y * level.dimensions().y as u32,
+    );
 
     // move the camera to the center of the board
     let (mut transform, mut main_camera) = camera.single_mut();
-    transform.translation.x = (board_size.x - tile_size.x) / 2.0;
-    transform.translation.y = (board_size.y + tile_size.y) / 2.0;
+    transform.translation.x = (board_size.x - tile_size.x) as f32 / 2.0;
+    transform.translation.y = (board_size.y + tile_size.y) as f32 / 2.0;
 
     main_camera.target_scale = calculate_camera_default_scale(window.single(), &level);
 
@@ -111,18 +111,18 @@ pub fn spawn_board(
                                 && tile == Tiles::Floor
                                 && (x + y) % 2 == 0
                             {
-                                sprite.color = Color::WHITE * (1.0 - config.even_square_shades);
+                                sprite.color = (WHITE * (1.0 - config.even_square_shades)).into();
                             }
                             let mut entity = parent.spawn((
-                                SpriteSheetBundle {
-                                    atlas: TextureAtlas {
-                                        layout: spritesheet_layout_handle.clone(),
-                                        index: sprite_index,
-                                    },
+                                SpriteBundle {
                                     texture: spritesheet_handle.clone(),
                                     sprite,
                                     transform: Transform::from_xyz(0.0, 0.0, z_order),
                                     ..default()
+                                },
+                                TextureAtlas {
+                                    layout: spritesheet_layout_handle.clone(),
+                                    index: sprite_index,
                                 },
                                 GridPosition(position),
                             ));

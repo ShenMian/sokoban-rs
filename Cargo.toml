@@ -18,8 +18,10 @@ bitflags = "2.4"
 nalgebra = "0.33"
 itertools = "0.13"
 
-leafwing-input-manager = "0.13"
-bevy_kira_audio = "0.19"
+bevy = "0.14"
+# leafwing-input-manager = "0.14"
+leafwing-input-manager = { version = "0.14", git = "https://github.com/dead-money/leafwing-input-manager", branch = "v0.14-rc" }
+bevy_kira_audio = "0.20.0"
 benimator = "4.1"
 
 serde = { version = "1.0", features = ["derive"] }
@@ -28,12 +30,9 @@ arboard = "3.3"                                         # System clipboard
 image = "0.25"
 toml = "0.8"
 
-winit = "0.29" # The version needs to be consistent with the one used in bevy
+winit = "0.30" # The version needs to be consistent with the one used in bevy
 
-[dependencies.bevy]
-version = "0.13"
-default-features = false
-features = ["multi-threaded", "png", "x11", "default_font"]
+# features = ["multi-threaded", "png", "x11", "default_font"]
 
 [profile.dev.package."*"]
 opt-level = 3

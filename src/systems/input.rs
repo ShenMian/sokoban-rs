@@ -302,7 +302,8 @@ pub fn mouse_input(
         let position = camera
             .viewport_to_world_2d(camera_transform, cursor_position)
             .unwrap();
-        let grid_position = ((position + (tile_size.x / 2.0)) / tile_size.x).as_ivec2();
+        let grid_position =
+            ((position + (tile_size.x as f32 / 2.0)) / tile_size.x as f32).as_ivec2();
         let grid_position = Vector2::new(
             grid_position.x,
             board.level.dimensions().y - grid_position.y,
