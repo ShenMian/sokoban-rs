@@ -128,12 +128,12 @@ impl Solver {
         let mut tunnels = HashSet::new();
         for x in 1..self.level.dimensions().x - 1 {
             for y in 1..self.level.dimensions().y - 1 {
-                let player_position = Vector2::new(x, y);
-                if !self.level[player_position].intersects(Tiles::Floor) {
+                let box_position = Vector2::new(x, y);
+                if !self.level[box_position].intersects(Tiles::Floor) {
                     continue;
                 }
 
-                for (up, right, _down, left) in [
+                for (up, right, down, left) in [
                     Direction::Up,
                     Direction::Right,
                     Direction::Down,
@@ -143,43 +143,46 @@ impl Solver {
                     Direction::Down,
                 ]
                 .into_iter()
-                .tuple_windows::<(_, _, _, _)>()
+                .tuple_windows()
                 {
+                    let player_position = box_position + &down.into();
+
+                    //  .
                     // #$#
                     // #@#
                     if self.level[player_position + &left.into()].intersects(Tiles::Wall)
                         && self.level[player_position + &right.into()].intersects(Tiles::Wall)
-                        && self.level[player_position + &up.into() + &left.into()]
-                            .intersects(Tiles::Wall)
-                        && self.level[player_position + &up.into() + &right.into()]
-                            .intersects(Tiles::Wall)
-                        && self.level[player_position + &up.into()].intersects(Tiles::Floor)
-                        && !self.level[player_position + &up.into()].intersects(Tiles::Goal)
+                        && self.level[box_position + &left.into()].intersects(Tiles::Wall)
+                        && self.level[box_position + &right.into()].intersects(Tiles::Wall)
+                        && self.level[box_position].intersects(Tiles::Floor)
+                        && self
+                            .lower_bounds()
+                            .contains_key(&(box_position + &up.into()))
+                        && !self.level[box_position].intersects(Tiles::Goal)
                     {
                         tunnels.insert((player_position, up));
                     }
 
-                    // #$_ _$#
-                    // #@# #@#
+                    //  .      .
+                    // #$_ or _$#
+                    // #@#    #@#
                     if self.level[player_position + &left.into()].intersects(Tiles::Wall)
                         && self.level[player_position + &right.into()].intersects(Tiles::Wall)
-                        && (self.level[player_position + &up.into() + &right.into()]
-                            .intersects(Tiles::Wall)
-                            && self.level[player_position + &up.into() + &left.into()]
-                                .intersects(Tiles::Floor)
-                            || self.level[player_position + &up.into() + &right.into()]
-                                .intersects(Tiles::Floor)
-                                && self.level[player_position + &up.into() + &left.into()]
-                                    .intersects(Tiles::Wall))
-                        && self.level[player_position + &up.into()].intersects(Tiles::Floor)
-                        && !self.level[player_position + &up.into()].intersects(Tiles::Goal)
+                        && (self.level[box_position + &right.into()].intersects(Tiles::Wall)
+                            && self.level[box_position + &left.into()].intersects(Tiles::Floor)
+                            || self.level[box_position + &right.into()].intersects(Tiles::Floor)
+                                && self.level[box_position + &left.into()].intersects(Tiles::Wall))
+                        && self.level[box_position].intersects(Tiles::Floor)
+                        && self
+                            .lower_bounds()
+                            .contains_key(&(box_position + &up.into()))
+                        && !self.level[box_position].intersects(Tiles::Goal)
                     {
                         tunnels.insert((player_position, up));
                     }
                 }
             }
         }
-        tunnels.shrink_to_fit();
         tunnels
     }
 
