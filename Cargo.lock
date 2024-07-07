@@ -1324,9 +1324,9 @@ dependencies = [
 
 [[package]]
 name = "built"
-version = "0.7.3"
+version = "0.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c6a6c0b39c38fd754ac338b00a88066436389c0f029da5d37d1e01091d9b7c17"
+checksum = "236e6289eda5a812bc6b53c3b024039382a2895fbbeef2d748b2931546d392c4"
 
 [[package]]
 name = "bumpalo"
@@ -1465,9 +1465,9 @@ dependencies = [
 
 [[package]]
 name = "clipboard-win"
-version = "5.3.1"
+version = "5.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "79f4473f5144e20d9aceaf2972478f06ddf687831eafeeb434fbaf0acc4144ad"
+checksum = "15efe7a882b08f34e38556b14f2fb3daa98769d06c7f0c1b076dfd0d983bc892"
 dependencies = [
  "error-code",
 ]
@@ -2580,7 +2580,7 @@ checksum = "830d08ce1d1d941e6b30645f1a0eb5643013d835ce3779a5fc208261dbe10f55"
 [[package]]
 name = "leafwing-input-manager"
 version = "0.14.0"
-source = "git+https://github.com/dead-money/leafwing-input-manager?branch=v0.14-rc#03619e496b39775df737833f75b8df5ce22de476"
+source = "git+https://github.com/Leafwing-Studios/leafwing-input-manager?branch=v0.14-rc#df3111c1a8a85486921ff96bf4db62db1564f2be"
 dependencies = [
  "bevy",
  "derive_more",
@@ -2592,7 +2592,7 @@ dependencies = [
 [[package]]
 name = "leafwing_input_manager_macros"
 version = "0.13.1"
-source = "git+https://github.com/dead-money/leafwing-input-manager?branch=v0.14-rc#03619e496b39775df737833f75b8df5ce22de476"
+source = "git+https://github.com/Leafwing-Studios/leafwing-input-manager?branch=v0.14-rc#df3111c1a8a85486921ff96bf4db62db1564f2be"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -3651,9 +3651,9 @@ dependencies = [
 
 [[package]]
 name = "ravif"
-version = "0.11.7"
+version = "0.11.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67376f469e7e7840d0040bbf4b9b3334005bb167f814621326e4c7ab8cd6e944"
+checksum = "c6ba61c28ba24c0cf8406e025cb29a742637e3f70776e61c27a8a8b72a042d12"
 dependencies = [
  "avif-serialize",
  "imgref",
@@ -3772,9 +3772,9 @@ checksum = "19b30a45b0cd0bcca8037f3d0dc3421eaf95327a17cad11964fb8179b4fc4832"
 
 [[package]]
 name = "rgb"
-version = "0.8.40"
+version = "0.8.42"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a7439be6844e40133eda024efd85bf07f59d0dd2f59b10c00dd6cfb92cc5c741"
+checksum = "3eeba50c58624afb3be6d04abad8cb7a259d52017068c9f828975aa870a5daf5"
 dependencies = [
  "bytemuck",
 ]
