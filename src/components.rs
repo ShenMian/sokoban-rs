@@ -34,12 +34,3 @@ pub struct AnimationState(benimator::State);
 
 #[derive(Component)]
 pub struct Box;
-
-#[derive(Component)]
-pub struct PlayerMovableMark;
-
-#[derive(Component)]
-pub struct BoxPushableMark;
-
-#[derive(Component)]
-pub struct LowerBoundMark;

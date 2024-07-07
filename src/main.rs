@@ -74,6 +74,7 @@ fn main() {
         InputManagerPlugin::<Action>::default(),
     ))
     .init_state::<AppState>()
+    .enable_state_scoped_entities::<AppState>()
     .add_systems(PreStartup, (setup_camera, setup_database))
     .add_systems(
         Startup,
@@ -143,7 +144,6 @@ fn main() {
             update_tile_grid_position,
             update_tile_translation,
             unload_solver,
-            despawn_lowerbound_marks,
         )
             .chain(),
     )
@@ -151,7 +151,7 @@ fn main() {
 
     app.add_systems(OnEnter(AppState::AutoMove), spawn_auto_move_marks)
         .add_systems(Update, mouse_input.run_if(in_state(AppState::AutoMove)))
-        .add_systems(OnExit(AppState::AutoMove), despawn_auto_move_marks);
+        .add_systems(OnExit(AppState::AutoMove), cleanup_sprite_color);
 
     let config = load_config();
     let player_movement = PlayerMovement::new(config.player_move_speed);

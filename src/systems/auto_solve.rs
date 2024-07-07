@@ -46,6 +46,7 @@ pub fn spawn_lowerbound_marks(
         let alpha = lowerbound as f32 / max_lowerbound as f32;
         let color = BLUE * alpha + RED * (1.0 - alpha);
         commands.spawn((
+            StateScoped(AppState::AutoSolve),
             SpriteBundle {
                 sprite: Sprite {
                     color: color.with_alpha(0.5).into(),
@@ -59,19 +60,8 @@ pub fn spawn_lowerbound_marks(
                 ),
                 ..default()
             },
-            LowerBoundMark,
         ));
     }
-}
-
-/// Despawns lower bound marks on the board.
-pub fn despawn_lowerbound_marks(
-    mut commands: Commands,
-    marks: Query<Entity, With<LowerBoundMark>>,
-) {
-    marks
-        .iter()
-        .for_each(|entity| commands.entity(entity).despawn());
 }
 
 /// Resets the board to the state before automatic solution

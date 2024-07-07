@@ -32,6 +32,7 @@ pub fn spawn_auto_move_marks(
             // spawn box pushable marks
             for box_position in paths.keys().map(|state| state.box_position).unique() {
                 commands.spawn((
+                    StateScoped(AppState::AutoMove),
                     SpriteBundle {
                         sprite: Sprite {
                             color: MARK_COLOR.with_alpha(0.8).into(),
@@ -49,7 +50,6 @@ pub fn spawn_auto_move_marks(
                         ),
                         ..default()
                     },
-                    BoxPushableMark,
                 ));
             }
 
@@ -74,6 +74,7 @@ pub fn spawn_auto_move_marks(
             // spawn player movable marks
             for box_position in reachable_area {
                 commands.spawn((
+                    StateScoped(AppState::AutoMove),
                     SpriteBundle {
                         sprite: Sprite {
                             color: MARK_COLOR.with_alpha(0.8).into(),
@@ -91,7 +92,6 @@ pub fn spawn_auto_move_marks(
                         ),
                         ..default()
                     },
-                    PlayerMovableMark,
                 ));
             }
 
@@ -102,12 +102,10 @@ pub fn spawn_auto_move_marks(
     }
 }
 
-/// Despawns the auto-move reachable marks on the board.
-pub fn despawn_auto_move_marks(
-    mut commands: Commands,
+/// Cleans up the visual representation of boxes or the player sprite.
+pub fn cleanup_sprite_color(
     mut boxes: Query<(&GridPosition, &mut Sprite), (With<Box>, Without<Player>)>,
     mut player: Query<&mut Sprite, With<Player>>,
-    marks: Query<Entity, Or<(With<BoxPushableMark>, With<PlayerMovableMark>)>>,
     auto_move_state: Res<AutoMoveState>,
 ) {
     match *auto_move_state {
@@ -125,8 +123,4 @@ pub fn despawn_auto_move_marks(
             sprite.color = Color::WHITE;
         }
     }
-
-    marks
-        .iter()
-        .for_each(|entity| commands.entity(entity).despawn());
 }
