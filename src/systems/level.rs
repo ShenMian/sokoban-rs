@@ -1,14 +1,9 @@
 use arboard::Clipboard;
-use bevy::color::palettes::css::*;
-use bevy::prelude::*;
+use bevy::{color::palettes::css::*, prelude::*};
 use nalgebra::Vector2;
 use soukoban::{Level, Tiles};
 
-use crate::board;
-use crate::calculate_camera_default_scale;
-use crate::components::*;
-use crate::database;
-use crate::resources::*;
+use crate::{board, calculate_camera_default_scale, components::*, database, resources::*};
 
 use std::{collections::HashMap, fs, path::Path, sync::Mutex};
 

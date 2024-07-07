@@ -6,14 +6,12 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::box_pushable_paths_with_positions;
-use crate::solve::state::*;
-use soukoban::{direction::Direction, path_finding::reachable_area, Level};
+use crate::{box_pushable_paths_with_positions, solve::state::*};
 
 use itertools::Itertools;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
-use soukoban::{Actions, Tiles};
+use soukoban::{direction::Direction, path_finding::reachable_area, Actions, Level, Tiles};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum Strategy {

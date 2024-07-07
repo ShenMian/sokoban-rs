@@ -2,10 +2,7 @@ use bevy::{color::palettes::css::*, prelude::*};
 use itertools::Itertools;
 use soukoban::{deadlock::calculate_dead_positions, path_finding::reachable_area, Tiles};
 
-use crate::box_pushable_paths;
-use crate::components::*;
-use crate::resources::*;
-use crate::AppState;
+use crate::{box_pushable_paths, components::*, resources::*, AppState};
 
 /// Spawns auto-move reachable marks for boxes or the player.
 pub fn spawn_auto_move_marks(

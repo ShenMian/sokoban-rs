@@ -14,24 +14,19 @@ mod systems;
 mod test;
 mod utils;
 
-use bevy::prelude::*;
-use bevy_kira_audio::prelude::*;
+use std::{fs, path::Path};
+
 use events::*;
 use input_map::*;
 use leafwing_input_manager::prelude::*;
 use plugins::performance_matrix::*;
 use resources::*;
 use state::*;
-use std::fs;
-use std::path::Path;
-use systems::audio::*;
-use systems::auto_move::*;
-use systems::auto_solve::*;
-use systems::input::*;
-use systems::level::*;
-use systems::render::*;
-use systems::ui::*;
+use systems::{audio::*, auto_move::*, auto_solve::*, input::*, level::*, render::*, ui::*};
 use utils::*;
+
+use bevy::prelude::*;
+use bevy_kira_audio::prelude::*;
 
 const CONFIG_FILE_PATH: &str = "config.toml";
 

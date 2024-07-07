@@ -1,6 +1,8 @@
-use std::hash::{DefaultHasher, Hash, Hasher};
-use std::path::Path;
-use std::str::FromStr;
+use std::{
+    hash::{DefaultHasher, Hash, Hasher},
+    path::Path,
+    str::FromStr,
+};
 
 use rusqlite::Connection;
 use soukoban::{Actions, Level};

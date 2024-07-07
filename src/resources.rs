@@ -1,17 +1,14 @@
-use bevy::prelude::*;
-use bevy::time::Stopwatch;
+use bevy::{prelude::*, time::Stopwatch};
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
-use soukoban::{Level, Map};
+use soukoban::{direction::Direction, Level, Map};
 
-use crate::board::Board;
-use crate::database;
-use crate::solve::solver::*;
-use crate::utils::PushState;
-use soukoban::direction::Direction;
+use crate::{board::Board, database, solve::solver::*, utils::PushState};
 
-use std::collections::{HashMap, VecDeque};
-use std::sync::Mutex;
+use std::{
+    collections::{HashMap, VecDeque},
+    sync::Mutex,
+};
 
 #[derive(Resource, Serialize, Deserialize)]
 pub struct Config {

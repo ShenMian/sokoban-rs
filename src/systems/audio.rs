@@ -1,8 +1,7 @@
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
-use crate::events::*;
-use crate::resources::*;
+use crate::{events::*, resources::*};
 
 /// Play audio based on events.
 pub fn handle_audio_event(

@@ -1,10 +1,6 @@
 use bevy::{color::palettes::css::*, prelude::*};
 
-use crate::components::*;
-use crate::resources::*;
-use crate::solve::solver::*;
-use crate::systems::input::*;
-use crate::AppState;
+use crate::{components::*, resources::*, solve::solver::*, systems::input::*, AppState};
 
 use std::time::{Duration, Instant};
 

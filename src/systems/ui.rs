@@ -1,9 +1,7 @@
 use bevy::{color::palettes::css::*, prelude::*};
 use leafwing_input_manager::prelude::*;
 
-use crate::components::*;
-use crate::resources::*;
-use crate::Action;
+use crate::{components::*, resources::*, Action};
 
 /// Sets up the version information text on the screen.
 pub fn setup_version_info(mut commands: Commands) {

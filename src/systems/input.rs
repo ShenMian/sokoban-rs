@@ -1,21 +1,14 @@
-use std::collections::HashMap;
-use std::fs;
+use std::{collections::HashMap, fs};
 
-use bevy::input::mouse::MouseMotion;
-use bevy::prelude::*;
-use bevy::window::WindowMode;
+use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
 use leafwing_input_manager::prelude::*;
 use nalgebra::Vector2;
-use soukoban::{Level, Tiles};
+use soukoban::{direction::Direction, Level, Tiles};
 
-use crate::events::*;
-use crate::resources::*;
-use crate::solve::solver::*;
-use crate::systems::level::*;
-use crate::utils::PushState;
-use crate::AppState;
-use crate::{components::*, Action};
-use soukoban::direction::Direction;
+use crate::{
+    components::*, events::*, resources::*, solve::solver::*, systems::level::*, utils::PushState,
+    Action, AppState,
+};
 
 /// Clears the action state by consuming all stored actions.
 pub fn clear_action_state(mut action_state: ResMut<ActionState<Action>>) {

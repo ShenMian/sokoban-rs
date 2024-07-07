@@ -3,11 +3,9 @@
 #[cfg(test)]
 mod tests {
     // use super::test::Bencher;
-    use crate::board::Board;
-    use crate::solve::solver::*;
+    use crate::{board::Board, solve::solver::*};
     use soukoban::Level;
-    use std::ops::RangeBounds;
-    use std::time::Duration;
+    use std::{ops::RangeBounds, time::Duration};
 
     #[cfg(not(debug_assertions))]
     use std::fs;

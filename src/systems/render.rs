@@ -1,18 +1,11 @@
 use benimator::{Animation, FrameRate};
-use bevy::prelude::*;
-use bevy::window::WindowResized;
-use bevy::winit::WinitWindows;
+use bevy::{prelude::*, window::WindowResized, winit::WinitWindows};
 use nalgebra::Vector2;
-use soukoban::direction::Direction;
-use soukoban::Level;
+use soukoban::{direction::Direction, Level};
 
-use crate::components::*;
-use crate::events::*;
-use crate::resources::*;
+use crate::{components::*, events::*, resources::*};
 
-use std::cmp::Ordering;
-use std::collections::HashSet;
-use std::time::Duration;
+use std::{cmp::Ordering, collections::HashSet, time::Duration};
 
 /// Sets the window icon for all windows
 pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
