@@ -22,10 +22,10 @@ image = "0.25"
 toml = "0.8"
 
 bevy = "0.14"
-leafwing-input-manager = { version = "0.14", git = "https://github.com/Leafwing-Studios/leafwing-input-manager", branch = "v0.14-rc" }
+leafwing-input-manager = "0.14"
 bevy_kira_audio = "0.20.0"
 benimator = "4.1"
-winit = "0.30"                                                                                                                         # The version needs to be consistent with the one used in bevy
+winit = "0.30"                  # The version needs to be consistent with the one used in bevy
 
 # Enable a small amount of optimization in debug mode.
 [profile.dev]
