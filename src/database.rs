@@ -86,14 +86,11 @@ impl Database {
     /// Returns the level ID by the provided level.
     pub fn get_level_id(&self, level: &Level) -> Option<u64> {
         let hash = Database::normalized_hash(level);
-        match self
-            .connection
+        self.connection
             .query_row("SELECT id FROM tb_level WHERE hash = ?", [hash], |row| {
                 row.get(0)
-            }) {
-            Ok(level_id) => level_id,
-            Err(_) => None,
-        }
+            })
+            .ok()
     }
 
     /// Returns a level based by ID.
