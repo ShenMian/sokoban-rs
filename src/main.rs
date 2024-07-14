@@ -29,19 +29,15 @@ use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
 const CONFIG_FILE_PATH: &str = "config.toml";
+const KEYMAP_FILE_PATH: &str = "keymap.toml";
 
 fn load_config() -> Config {
-    if !Path::new(CONFIG_FILE_PATH).is_file() {
-        let default_config_toml = toml::to_string(&Config::default()).unwrap();
-        fs::write(CONFIG_FILE_PATH, default_config_toml).unwrap();
-    }
     let config_toml = fs::read_to_string(CONFIG_FILE_PATH).unwrap();
     let config: Config = toml::from_str(config_toml.as_str()).unwrap();
     config
 }
 
 fn load_input_map() -> InputMap<Action> {
-    const KEYMAP_FILE_PATH: &str = "keymap.toml";
     if !Path::new(KEYMAP_FILE_PATH).is_file() {
         let default_keymap_toml = toml::to_string(&default_input_map()).unwrap();
         fs::write(KEYMAP_FILE_PATH, default_keymap_toml).unwrap();
@@ -52,9 +48,13 @@ fn load_input_map() -> InputMap<Action> {
     input_map
 }
 
-fn save_config(config: Res<Config>) {
-    let config_toml = toml::to_string(&*config).unwrap();
+fn save_config(config: &Config) {
+    let config_toml = toml::to_string(&config).unwrap();
     fs::write(CONFIG_FILE_PATH, config_toml).unwrap();
+}
+
+fn save_config_system(config: Res<Config>) {
+    save_config(&config);
 }
 
 #[bevy_main]
@@ -95,7 +95,7 @@ fn main() {
             handle_audio_event,
             adjust_viewport,
             adjust_camera_scale,
-            save_config.run_if(resource_changed_or_removed::<Config>()),
+            save_config_system.run_if(resource_changed_or_removed::<Config>()),
             (button_input_to_action, handle_actions).chain(),
         ),
     )
@@ -153,6 +153,11 @@ fn main() {
         .add_systems(Update, mouse_input.run_if(in_state(AppState::AutoMove)))
         .add_systems(OnExit(AppState::AutoMove), cleanup_sprite_color);
 
+    if !Path::new(CONFIG_FILE_PATH).is_file() {
+        let default_config_toml = toml::to_string(&Config::default()).unwrap();
+        fs::write(CONFIG_FILE_PATH, default_config_toml).unwrap();
+        save_config(&Config::default());
+    }
     let config = load_config();
     let player_movement = PlayerMovement::new(config.player_move_speed);
     app.insert_resource(config)
