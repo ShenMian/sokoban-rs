@@ -146,7 +146,7 @@ pub fn auto_switch_to_next_unsolved_level(
     let board = &mut board.single_mut().board;
     debug_assert!(board.is_solved());
     info!("{}", "=".repeat(15));
-    info!("#{} Sloved!", level_id.0);
+    info!("#{} Solved!", level_id.0);
     info!("Moves   : {}", board.actions().moves());
     info!("Pushes  : {}", board.actions().pushes());
     info!("Solution: {}", board.actions().to_string());
