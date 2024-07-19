@@ -1,6 +1,6 @@
 use bevy::{color::palettes::css::*, prelude::*};
 use itertools::Itertools;
-use soukoban::{deadlock::calculate_dead_positions, path_finding::reachable_area, Tiles};
+use soukoban::{deadlock::calculate_static_deadlocks, path_finding::reachable_area, Tiles};
 
 use crate::{box_pushable_paths, components::*, resources::*, AppState};
 
@@ -25,9 +25,9 @@ pub fn spawn_auto_move_marks(
         } => {
             *paths = box_pushable_paths(&board.level, box_position);
 
-            // remove dead positions
-            let dead_positions = calculate_dead_positions(&board.level);
-            paths.retain(|state, _| !dead_positions.contains(&state.box_position));
+            // remove static deadlock positions
+            let static_deadlocks = calculate_static_deadlocks(&board.level);
+            paths.retain(|state, _| !static_deadlocks.contains(&state.box_position));
 
             // spawn box pushable marks
             for box_position in paths.keys().map(|state| state.box_position).unique() {
