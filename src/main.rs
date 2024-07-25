@@ -20,6 +20,7 @@ use events::*;
 use input_map::*;
 use leafwing_input_manager::prelude::*;
 use plugins::performance_matrix::*;
+use plugins::version_info::*;
 use resources::*;
 use state::*;
 use systems::{audio::*, auto_move::*, auto_solve::*, input::*, level::*, render::*, ui::*};
@@ -71,6 +72,7 @@ fn main() {
         }),
         AudioPlugin,
         PerformanceMatrixPlugin,
+        VersionInfoPlugin,
         InputManagerPlugin::<Action>::default(),
     ))
     .init_state::<AppState>()
@@ -78,13 +80,7 @@ fn main() {
     .add_systems(PreStartup, (setup_camera, setup_database))
     .add_systems(
         Startup,
-        (
-            set_windows_icon,
-            setup_version_info,
-            setup_button,
-            setup_hud,
-            setup_level,
-        ),
+        (set_windows_icon, setup_button, setup_hud, setup_level),
     );
 
     app.add_systems(

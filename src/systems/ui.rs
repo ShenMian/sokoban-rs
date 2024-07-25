@@ -3,27 +3,6 @@ use leafwing_input_manager::prelude::*;
 
 use crate::{components::*, resources::*, Action};
 
-/// Sets up the version information text on the screen.
-pub fn setup_version_info(mut commands: Commands) {
-    const ALPHA: f32 = 0.8;
-    commands.spawn(
-        TextBundle::from_sections([TextSection::new(
-            "version: ".to_string() + env!("CARGO_PKG_VERSION"),
-            TextStyle {
-                font_size: 14.0,
-                color: GRAY.with_alpha(ALPHA).into(),
-                ..default()
-            },
-        )])
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            bottom: Val::Px(5.0),
-            right: Val::Px(5.0),
-            ..default()
-        }),
-    );
-}
-
 /// Sets up the heads-up display (HUD) on the screen.
 pub fn setup_hud(mut commands: Commands) {
     const ALPHA: f32 = 0.8;
