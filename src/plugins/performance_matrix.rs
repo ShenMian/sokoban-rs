@@ -9,8 +9,8 @@ pub struct PerformanceMatrixPlugin;
 impl Plugin for PerformanceMatrixPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(FrameTimeDiagnosticsPlugin)
-            .add_systems(Startup, setup_performance_matrix)
-            .add_systems(Update, update_performance_matrix);
+            .add_systems(Startup, setup)
+            .add_systems(Update, update);
     }
 }
 
@@ -56,11 +56,11 @@ impl PerformanceBundle {
     }
 }
 
-fn setup_performance_matrix(mut commands: Commands) {
+fn setup(mut commands: Commands) {
     commands.spawn(PerformanceBundle::new());
 }
 
-fn update_performance_matrix(
+fn update(
     diagnostics: Res<DiagnosticsStore>,
     mut query: Query<&mut Text, With<PerformanceCounter>>,
 ) {
