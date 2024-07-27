@@ -1,8 +1,8 @@
 use bevy::{color::palettes::css::*, prelude::*};
 
-pub struct VersionInfoPlugin;
+pub struct VersionInformationPlugin;
 
-impl Plugin for VersionInfoPlugin {
+impl Plugin for VersionInformationPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, setup);
     }

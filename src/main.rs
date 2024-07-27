@@ -20,7 +20,7 @@ use events::*;
 use input_map::*;
 use leafwing_input_manager::prelude::*;
 use plugins::performance_matrix::*;
-use plugins::version_info::*;
+use plugins::version_information::*;
 use resources::*;
 use state::*;
 use systems::{audio::*, auto_move::*, auto_solve::*, input::*, level::*, render::*, ui::*};
@@ -72,7 +72,7 @@ fn main() {
         }),
         AudioPlugin,
         PerformanceMatrixPlugin,
-        VersionInfoPlugin,
+        VersionInformationPlugin,
         InputManagerPlugin::<Action>::default(),
     ))
     .init_state::<AppState>()
