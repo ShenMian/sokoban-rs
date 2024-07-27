@@ -89,7 +89,6 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
                         ..default()
                     },
                     border_color: Color::NONE.into(),
-                    background_color: BUTTON_NORMAL_COLOR.into(),
                     ..default()
                 },
             ))
@@ -154,10 +153,6 @@ pub fn update_button_state(
     }
 }
 
-const BUTTON_NORMAL_COLOR: Color = Color::srgba(0.7, 0.7, 0.7, 0.8);
-const BUTTON_HOVERED_COLOR: Color = Color::srgba(0.55, 0.55, 0.55, 0.8);
-const BUTTON_PRESSED_COLOR: Color = Color::srgba(0.35, 0.75, 0.35, 0.8);
-
 /// Applies visual effects to buttons based on user interaction.
 pub fn button_visual_effect(
     mut interaction_query: Query<
@@ -165,12 +160,17 @@ pub fn button_visual_effect(
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, mut color) in &mut interaction_query {
-        match *interaction {
-            Interaction::Pressed => *color = BUTTON_PRESSED_COLOR.into(),
-            Interaction::Hovered => *color = BUTTON_HOVERED_COLOR.into(),
-            Interaction::None => *color = BUTTON_NORMAL_COLOR.into(),
+    const BUTTON_NORMAL_COLOR: Color = Color::srgba(0.7, 0.7, 0.7, 0.8);
+    const BUTTON_HOVERED_COLOR: Color = Color::srgba(0.55, 0.55, 0.55, 0.8);
+    const BUTTON_PRESSED_COLOR: Color = Color::srgba(0.35, 0.75, 0.35, 0.8);
+
+    for (interaction, mut background_color) in &mut interaction_query {
+        *background_color = match *interaction {
+            Interaction::Pressed => BUTTON_PRESSED_COLOR,
+            Interaction::Hovered => BUTTON_HOVERED_COLOR,
+            Interaction::None => BUTTON_NORMAL_COLOR,
         }
+        .into();
     }
 }
 
