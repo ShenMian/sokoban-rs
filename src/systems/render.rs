@@ -99,14 +99,16 @@ pub fn handle_player_movement(
         if let Some(direction) = player_movement.directions.pop_back() {
             let occupied_targets_count = board
                 .level
+                .map()
                 .goal_positions()
-                .intersection(board.level.box_positions())
+                .intersection(board.level.map().box_positions())
                 .count();
             board.move_or_push(direction);
             let new_occupied_targets_count = board
                 .level
+                .map()
                 .goal_positions()
-                .intersection(board.level.box_positions())
+                .intersection(board.level.map().box_positions())
                 .count();
             match new_occupied_targets_count.cmp(&occupied_targets_count) {
                 Ordering::Greater => drop(box_enter_target_events.send_default()),
@@ -165,7 +167,7 @@ pub fn smooth_tile_motion(
             let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
 
             let target_x = grid_position.x as f32 * tile_size.x as f32;
-            let target_y = board.level.dimensions().y as f32 * tile_size.y as f32
+            let target_y = board.level.map().dimensions().y as f32 * tile_size.y as f32
                 - grid_position.y as f32 * tile_size.y as f32;
 
             if (transform.translation.x - target_x).abs() > 0.001 {
@@ -180,7 +182,7 @@ pub fn smooth_tile_motion(
             }
         } else {
             transform.translation.x = grid_position.x as f32 * tile_size.x as f32;
-            transform.translation.y = board.level.dimensions().y as f32 * tile_size.y as f32
+            transform.translation.y = board.level.map().dimensions().y as f32 * tile_size.y as f32
                 - grid_position.y as f32 * tile_size.y as f32;
         }
     }
@@ -212,25 +214,22 @@ pub fn update_grid_position_from_board(
     update_grid_position_events.clear();
 
     let board = &board.single().board;
+    let map = board.level.map();
 
     let player_grid_position = &mut player.single_mut().0;
-    player_grid_position.x = board.level.player_position().x;
-    player_grid_position.y = board.level.player_position().y;
+    player_grid_position.x = map.player_position().x;
+    player_grid_position.y = map.player_position().y;
 
     let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
-    debug_assert!(
-        box_grid_positions
-            .difference(board.level.box_positions())
-            .count()
-            <= 1
-    );
+    debug_assert!(box_grid_positions.difference(map.box_positions()).count() <= 1);
     if let Some(old_position) = box_grid_positions
-        .difference(board.level.box_positions())
+        .difference(map.box_positions())
         .collect::<Vec<_>>()
         .first()
     {
         let new_position = *board
             .level
+            .map()
             .box_positions()
             .difference(&box_grid_positions)
             .collect::<Vec<_>>()
@@ -264,7 +263,7 @@ pub fn adjust_camera_scale(
 /// Adjust the camera zoom to fit the entire board.
 pub fn calculate_camera_default_scale(window: &Window, level: &Level) -> f32 {
     let tile_size = Vector2::new(128.0, 128.0);
-    let board_size = tile_size.x as f32 * level.dimensions().map(|x| x as f32);
+    let board_size = tile_size.x as f32 * level.map().dimensions().map(|x| x as f32);
 
     let width_scale = board_size.x / window.resolution.width();
     let height_scale = board_size.y / window.resolution.height();

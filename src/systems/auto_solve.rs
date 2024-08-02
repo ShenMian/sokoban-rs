@@ -55,7 +55,7 @@ pub fn spawn_lowerbound_marks(
                 },
                 transform: Transform::from_xyz(
                     position.x as f32 * tile_size.x as f32,
-                    (board.level.dimensions().y - position.y) as f32 * tile_size.y as f32,
+                    (board.level.map().dimensions().y - position.y) as f32 * tile_size.y as f32,
                     10.0,
                 ),
                 ..default()
@@ -148,7 +148,7 @@ pub fn update_tile_translation(
     let Board { board, tile_size } = &board.single();
     for (mut transform, grid_position) in tiles.iter_mut() {
         transform.translation.x = grid_position.x as f32 * tile_size.x as f32;
-        transform.translation.y = board.level.dimensions().y as f32 * tile_size.y as f32
+        transform.translation.y = board.level.map().dimensions().y as f32 * tile_size.y as f32
             - grid_position.y as f32 * tile_size.y as f32;
     }
 }
@@ -159,12 +159,13 @@ pub fn update_tile_grid_position(
     board: Query<&Board>,
 ) {
     let board = &board.single().board;
+    let map = board.level.map();
     let mut player_grid_positions = player_grid_positions.single_mut();
-    **player_grid_positions = board.level.player_position();
+    **player_grid_positions = map.player_position();
 
     for (mut box_grid_position, box_position) in box_grid_positions
         .iter_mut()
-        .zip(board.level.box_positions().iter())
+        .zip(map.box_positions().iter())
     {
         **box_grid_position = *box_position;
     }

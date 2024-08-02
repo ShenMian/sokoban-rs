@@ -14,6 +14,7 @@ pub fn spawn_auto_move_marks(
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     let Board { board, tile_size } = board.single();
+    let map = board.level.map();
 
     const MARK_COLOR: Srgba = LIME;
     const HIGHLIGHT_COLOR: Srgba = TURQUOISE;
@@ -26,7 +27,7 @@ pub fn spawn_auto_move_marks(
             *paths = box_pushable_paths(&board.level, box_position);
 
             // remove static deadlock positions
-            let static_deadlocks = calculate_static_deadlocks(&board.level);
+            let static_deadlocks = calculate_static_deadlocks(map);
             paths.retain(|state, _| !static_deadlocks.contains(&state.box_position));
 
             // spawn box pushable marks
@@ -44,8 +45,7 @@ pub fn spawn_auto_move_marks(
                         },
                         transform: Transform::from_xyz(
                             box_position.x as f32 * tile_size.x as f32,
-                            (board.level.dimensions().y - box_position.y) as f32
-                                * tile_size.y as f32,
+                            (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
                             10.0,
                         ),
                         ..default()
@@ -65,11 +65,10 @@ pub fn spawn_auto_move_marks(
                 .for_each(|(_, mut sprite)| sprite.color = HIGHLIGHT_COLOR.into());
         }
         AutoMoveState::Player => {
-            let mut reachable_area = reachable_area(board.level.player_position(), |position| {
-                !board.level[position].intersects(Tiles::Wall)
-                    && !board.level.box_positions().contains(&position)
+            let mut reachable_area = reachable_area(map.player_position(), |position| {
+                !map[position].intersects(Tiles::Wall) && !map.box_positions().contains(&position)
             });
-            reachable_area.remove(&board.level.player_position());
+            reachable_area.remove(&map.player_position());
 
             // spawn player movable marks
             for box_position in reachable_area {
@@ -86,8 +85,7 @@ pub fn spawn_auto_move_marks(
                         },
                         transform: Transform::from_xyz(
                             box_position.x as f32 * tile_size.x as f32,
-                            (board.level.dimensions().y - box_position.y) as f32
-                                * tile_size.y as f32,
+                            (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
                             10.0,
                         ),
                         ..default()

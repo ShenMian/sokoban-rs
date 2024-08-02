@@ -67,8 +67,8 @@ pub fn spawn_board(
     let spritesheet_layout_handle = spritesheet_layouts.add(spritesheet_layout);
 
     let board_size = Vector2::new(
-        tile_size.x * level.dimensions().x as u32,
-        tile_size.y * level.dimensions().y as u32,
+        tile_size.x * level.map().dimensions().x as u32,
+        tile_size.y * level.map().dimensions().y as u32,
     );
 
     // move the camera to the center of the board
@@ -86,10 +86,10 @@ pub fn spawn_board(
     commands
         .spawn((Board { board, tile_size }, SpatialBundle::default()))
         .with_children(|parent| {
-            for y in 0..level.dimensions().y {
-                for x in 0..level.dimensions().x {
+            for y in 0..level.map().dimensions().y {
+                for x in 0..level.map().dimensions().x {
                     let position = Vector2::<i32>::new(x, y);
-                    if level[position].is_empty() {
+                    if level.map()[position].is_empty() {
                         continue;
                     }
                     let tiles = HashMap::from([
@@ -100,7 +100,7 @@ pub fn spawn_board(
                         (Tiles::Player, (0, 4.0)),
                     ]);
                     for (tile, (sprite_index, z_order)) in tiles.into_iter() {
-                        if level[position].intersects(tile) {
+                        if level.map()[position].intersects(tile) {
                             let mut sprite = Sprite::default();
                             if config.even_square_shades > 0.0
                                 && tile == Tiles::Floor

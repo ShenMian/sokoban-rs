@@ -1,4 +1,3 @@
-use nalgebra::Vector2;
 use soukoban::{direction::Direction, Action, Actions, Level, Tiles};
 
 #[derive(Clone)]
@@ -20,13 +19,14 @@ impl Board {
 
     /// Checks if the player can move or push in the specified direction.
     pub fn moveable(&self, direction: Direction) -> bool {
-        let player_next_position = self.level.player_position() + &direction.into();
-        if self.level[player_next_position].intersects(Tiles::Wall) {
+        let map = self.level.map();
+        let player_next_position = map.player_position() + &direction.into();
+        if map[player_next_position].intersects(Tiles::Wall) {
             return false;
         }
-        if self.level[player_next_position].intersects(Tiles::Box) {
+        if map[player_next_position].intersects(Tiles::Box) {
             let box_next_position = player_next_position + &direction.into();
-            if self.level[box_next_position].intersects(Tiles::Box | Tiles::Wall) {
+            if map[box_next_position].intersects(Tiles::Box | Tiles::Wall) {
                 return false;
             }
         }
@@ -35,23 +35,24 @@ impl Board {
 
     /// Moves the player or pushes a box in the specified direction.
     pub fn move_or_push(&mut self, direction: Direction) {
+        let map = self.level.map_mut();
         let direction_vector = &direction.into();
-        let player_next_position = self.level.player_position() + direction_vector;
-        if self.level[player_next_position].intersects(Tiles::Wall) {
+        let player_next_position = map.player_position() + direction_vector;
+        if map[player_next_position].intersects(Tiles::Wall) {
             return;
         }
-        if self.level[player_next_position].intersects(Tiles::Box) {
+        if map[player_next_position].intersects(Tiles::Box) {
             let box_next_position = player_next_position + direction_vector;
-            if self.level[box_next_position].intersects(Tiles::Wall | Tiles::Box) {
+            if map[box_next_position].intersects(Tiles::Wall | Tiles::Box) {
                 return;
             }
-            self.move_box(player_next_position, box_next_position);
+            map.set_box_position(player_next_position, box_next_position);
 
             self.actions.push(Action::Push(direction));
         } else {
             self.actions.push(Action::Move(direction));
         }
-        self.move_player(player_next_position);
+        map.set_player_position(player_next_position);
         self.undone_actions.clear();
     }
 
@@ -69,14 +70,16 @@ impl Board {
     /// Undoes the last move.
     pub fn undo_move(&mut self) {
         debug_assert!(!self.actions.is_empty());
+        let map = self.level.map_mut();
         let history = self.actions.pop().unwrap();
         let direction = history.direction();
         if history.is_push() {
-            let box_position = self.level.player_position() + &direction.into();
-            self.move_box(box_position, self.level.player_position());
+            let box_position = map.player_position() + &direction.into();
+            let player_position = map.player_position();
+            map.set_box_position(box_position, player_position);
         }
-        let player_prev_position = self.level.player_position() - &direction.into();
-        self.move_player(player_prev_position);
+        let player_prev_position = map.player_position() - &direction.into();
+        map.set_player_position(player_prev_position);
         self.undone_actions.push(history);
     }
 
@@ -102,7 +105,7 @@ impl Board {
 
     /// Checks if the level is solved.
     pub fn is_solved(&self) -> bool {
-        self.level.box_positions() == self.level.goal_positions()
+        self.level.map().box_positions() == self.level.map().goal_positions()
     }
 
     pub fn actions(&self) -> &Actions {
@@ -115,18 +118,5 @@ impl Board {
             .last()
             .map(|action| action.direction())
             .unwrap_or(Direction::Down)
-    }
-
-    fn move_player(&mut self, to: Vector2<i32>) {
-        let player_position = self.level.player_position();
-        self.level[player_position].remove(Tiles::Player);
-        self.level[to].insert(Tiles::Player);
-        self.level.set_player_position(to);
-    }
-
-    fn move_box(&mut self, from: Vector2<i32>, to: Vector2<i32>) {
-        self.level[from].remove(Tiles::Box);
-        self.level[to].insert(Tiles::Box);
-        self.level.set_box_position(from, to);
     }
 }

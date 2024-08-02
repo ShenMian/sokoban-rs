@@ -35,7 +35,10 @@ pub fn handle_actions(
     let board = &mut board.single_mut().board;
     let main_camera = &mut *camera.single_mut();
     let database = database.lock().unwrap();
-    let window = &mut *window.single_mut();
+    let Ok(mut window) = window.get_single_mut() else {
+        return;
+    };
+    let window = &mut *window;
     match state.get() {
         AppState::Main => {
             handle_viewport_zoom_action(&action_state, main_camera);
@@ -97,8 +100,8 @@ fn player_move_to(
     player_movement: &mut PlayerMovement,
     board: &crate::board::Board,
 ) {
-    if let Some(path) = find_path(&board.level.player_position(), target, |position| {
-        board.level[*position].intersects(Tiles::Wall | Tiles::Box)
+    if let Some(path) = find_path(&board.level.map().player_position(), target, |position| {
+        board.level.map()[*position].intersects(Tiles::Wall | Tiles::Box)
     }) {
         let directions = path
             .windows(2)
@@ -126,9 +129,11 @@ fn instant_player_move_to(
     board_clone: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
 ) {
-    if let Some(path) = find_path(&board_clone.level.player_position(), target, |position| {
-        board_clone.level[*position].intersects(Tiles::Wall | Tiles::Box)
-    }) {
+    if let Some(path) = find_path(
+        &board_clone.level.map().player_position(),
+        target,
+        |position| board_clone.level.map()[*position].intersects(Tiles::Wall | Tiles::Box),
+    ) {
         let directions = path
             .windows(2)
             .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap());
@@ -284,6 +289,7 @@ pub fn mouse_input(
     mut auto_move_state: ResMut<AutoMoveState>,
 ) {
     let Board { board, tile_size } = &mut *board.single_mut();
+    let map = board.level.map();
     let (camera, camera_transform) = camera.single_mut();
 
     if mouse_buttons.just_pressed(MouseButton::Left) && player_movement.directions.is_empty() {
@@ -297,21 +303,18 @@ pub fn mouse_input(
             .unwrap();
         let grid_position =
             ((position + (tile_size.x as f32 / 2.0)) / tile_size.x as f32).as_ivec2();
-        let grid_position = Vector2::new(
-            grid_position.x,
-            board.level.dimensions().y - grid_position.y,
-        );
+        let grid_position = Vector2::new(grid_position.x, map.dimensions().y - grid_position.y);
 
         match state.get() {
             AppState::Main => {
-                if board.level.box_positions().contains(&grid_position) {
+                if map.box_positions().contains(&grid_position) {
                     *auto_move_state = AutoMoveState::Box {
                         position: grid_position,
                         paths: HashMap::new(),
                     };
                     next_state.set(AppState::AutoMove);
                     return;
-                } else if board.level.player_position() == grid_position {
+                } else if map.player_position() == grid_position {
                     *auto_move_state = AutoMoveState::Player;
                     next_state.set(AppState::AutoMove);
                     return;
@@ -364,7 +367,7 @@ pub fn mouse_input(
                                 );
                             }
                         } else if grid_position != *box_position
-                            && board.level.box_positions().contains(&grid_position)
+                            && map.box_positions().contains(&grid_position)
                         {
                             // box_position = grid_position;
                             // FIXME: Re-entering AppState::AutoMove https://github.com/bevyengine/bevy/issues/9130 https://github.com/bevyengine/bevy/pull/13579

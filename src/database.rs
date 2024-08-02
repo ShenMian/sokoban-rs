@@ -79,7 +79,7 @@ impl Database {
 
         let _ = self.connection.execute(
             "INSERT INTO tb_level(title, author, comments, map, width, height, hash, date) VALUES (?, ?, ?, ?, ?, ?, ?, DATE('now'))",
-            (title, author, comments, level.map().to_string(), level.dimensions().x, level.dimensions().y, hash),
+            (title, author, comments, level.map().to_string(), level.map().dimensions().x, level.map().dimensions().y, hash),
         );
     }
 
@@ -223,8 +223,8 @@ impl Database {
     fn normalized_hash(level: &Level) -> String {
         let mut hasher = DefaultHasher::new();
         let mut normalized_level = level.clone();
-        normalized_level.normalize();
-        normalized_level.hash(&mut hasher);
+        normalized_level.map_mut().normalize();
+        normalized_level.map_mut().hash(&mut hasher);
         let hash = hasher.finish();
         // Must convert the hash to a string first, otherwise rusqlite may throw an error.
         hash.to_string()
