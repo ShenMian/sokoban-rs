@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs};
 
 use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
-use leafwing_input_manager::prelude::*;
+use leafwing_input_manager::{action_diff::ActionDiffEvent, prelude::*};
 use nalgebra::Vector2;
 use soukoban::{direction::Direction, Level, Tiles};
 
@@ -11,8 +11,8 @@ use crate::{
 };
 
 /// Clears the action state by consuming all stored actions.
-pub fn clear_action_state(mut action_state: ResMut<ActionState<Action>>) {
-    action_state.consume_all();
+pub fn clear_action_state(mut action_diff_events: EventReader<ActionDiffEvent<Action>>) {
+    action_diff_events.clear();
 }
 
 pub fn handle_actions(
