@@ -12,16 +12,16 @@ A sokoban with solver.
 
   <p align="center"><img src="./docs/assets/auto_box_push.gif" width=50%></p>
 
-- **Level management**: Levels and solutions are stored in the database. [More details](docs/level_management.md).
-- **Customizing**: Options can be customized via configuration file. [More details](docs/customizing.md).
-- **Map viewing**: Supports moving and zooming the map. When switching levels, the zoom will be automatically adjusted to fit the window size.
-- **Player character animation**: Player character has smooth movement and animations in different directions.
+- **Level management**: Levels and solutions are stored in a database. [More details](docs/level_management.md).
+- **Customization**: Options can be customized via a configuration file. [More details](docs/customization.md).
+- **Map viewing**: Supports moving and zooming the map. When switching levels, the zoom will automatically adjust to fit the window size.
+- **Player character animation**: The player character has smooth movement and animations in different directions.
 - **Front-end and back-end separation**: Backend code (such as solvers) is decoupled from the frontend (such as Bevy).
 
 ## Acknowledgements
 
 - anian <<anianwu@gmail.com>>: For providing comprehensive answers to numerous inquiries regarding Sokoban and offering insightful recommendations.
-- [@PaperPlaneLSY](https://github.com/PaperPlaneLSY): For testing, improving the skin, and additional support.
+- [@PaperPlaneLSY](https://github.com/PaperPlaneLSY): For testing, improving the skin, and providing additional support.
 
 ## Keymap
 
@@ -76,4 +76,4 @@ A sokoban with solver.
 | `X`/`Square`   | Toggle instant move[^1]           |
 | `Y`/`Triangle` | Toggle automatic solution         |
 
-[^1]: Turn off character and boxes movement animations.
+[^1]: Disables character and box movement animations.
