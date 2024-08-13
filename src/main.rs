@@ -18,9 +18,8 @@ use std::{fs, path::Path};
 
 use events::*;
 use input_map::*;
-use leafwing_input_manager::prelude::*;
-use plugins::performance_matrix::*;
-use plugins::version_information::*;
+use leafwing_input_manager::{action_diff::ActionDiffEvent, prelude::*};
+use plugins::{performance_matrix::*, version_information::*};
 use resources::*;
 use state::*;
 use systems::{audio::*, auto_move::*, auto_solve::*, input::*, level::*, render::*, ui::*};
@@ -30,23 +29,11 @@ use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
 
 const CONFIG_FILE_PATH: &str = "config.toml";
-const KEYMAP_FILE_PATH: &str = "keymap.toml";
 
 fn load_config() -> Config {
     let config_toml = fs::read_to_string(CONFIG_FILE_PATH).unwrap();
     let config: Config = toml::from_str(config_toml.as_str()).unwrap();
     config
-}
-
-fn load_input_map() -> InputMap<Action> {
-    if !Path::new(KEYMAP_FILE_PATH).is_file() {
-        let default_keymap_toml = toml::to_string(&default_input_map()).unwrap();
-        fs::write(KEYMAP_FILE_PATH, default_keymap_toml).unwrap();
-    }
-    let keymap_toml = fs::read_to_string(KEYMAP_FILE_PATH).unwrap();
-    let input_map: InputMap<Action> =
-        toml::from_str(keymap_toml.as_str()).expect("failed to parse `keymap.toml`");
-    input_map
 }
 
 fn save_config(config: &Config) {
@@ -160,9 +147,9 @@ fn main() {
         .insert_resource(player_movement)
         .insert_resource(AutoMoveState::default());
 
-    let input_map = load_input_map();
     app.init_resource::<ActionState<Action>>()
-        .insert_resource(input_map);
+        .insert_resource(default_input_map())
+        .add_event::<ActionDiffEvent<Action>>();
 
     app.add_event::<BoxEnterTarget>()
         .add_event::<BoxLeaveTarget>()

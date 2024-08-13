@@ -3,7 +3,7 @@ use leafwing_input_manager::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(
-    Actionlike, Component, Reflect, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize,
+    Actionlike, Component, Reflect, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Debug,
 )]
 pub enum Action {
     MoveUp,
@@ -32,208 +32,84 @@ pub enum Action {
 }
 
 pub fn default_input_map() -> InputMap<Action> {
-    use leafwing_input_manager::user_input::InputKind::*;
-    let mouse_input_map = InputMap::new([
-        (
-            Action::Undo,
-            UserInput::Single(Mouse(MouseButton::Other(1))),
-        ),
-        (
-            Action::Redo,
-            UserInput::Single(Mouse(MouseButton::Other(2))),
-        ),
-        (
-            Action::ZoomOut,
-            UserInput::Single(MouseWheel(MouseWheelDirection::Down)),
-        ),
-        (
-            Action::ZoomIn,
-            UserInput::Single(MouseWheel(MouseWheelDirection::Up)),
-        ),
-    ]);
-    let keyboard_input_map = InputMap::new([
-        (
-            Action::MoveUp,
-            UserInput::Single(PhysicalKey(KeyCode::KeyW)),
-        ),
-        (
-            Action::MoveDown,
-            UserInput::Single(PhysicalKey(KeyCode::KeyS)),
-        ),
-        (
-            Action::MoveLeft,
-            UserInput::Single(PhysicalKey(KeyCode::KeyA)),
-        ),
-        (
-            Action::MoveRight,
-            UserInput::Single(PhysicalKey(KeyCode::KeyD)),
-        ),
-        (
-            Action::MoveUp,
-            UserInput::Single(PhysicalKey(KeyCode::ArrowUp)),
-        ),
-        (
-            Action::MoveDown,
-            UserInput::Single(PhysicalKey(KeyCode::ArrowDown)),
-        ),
-        (
-            Action::MoveLeft,
-            UserInput::Single(PhysicalKey(KeyCode::ArrowLeft)),
-        ),
-        (
-            Action::MoveRight,
-            UserInput::Single(PhysicalKey(KeyCode::ArrowRight)),
-        ),
-        (
-            Action::Undo,
-            UserInput::Chord(vec![
-                PhysicalKey(KeyCode::ControlLeft),
-                PhysicalKey(KeyCode::KeyZ),
-            ]),
-        ),
-        (
-            Action::Redo,
-            UserInput::Chord(vec![
-                PhysicalKey(KeyCode::ControlLeft),
-                PhysicalKey(KeyCode::ShiftLeft),
-                PhysicalKey(KeyCode::KeyZ),
-            ]),
-        ),
-        (
-            Action::ResetLevel,
-            UserInput::Single(PhysicalKey(KeyCode::Escape)),
-        ),
-        (
-            Action::NextLevel,
-            UserInput::Single(PhysicalKey(KeyCode::BracketRight)),
-        ),
-        (
-            Action::PreviousLevel,
-            UserInput::Single(PhysicalKey(KeyCode::BracketLeft)),
-        ),
-        (
-            Action::NextUnsolvedLevel,
-            UserInput::Chord(vec![
-                PhysicalKey(KeyCode::ControlLeft),
-                PhysicalKey(KeyCode::BracketRight),
-            ]),
-        ),
-        (
-            Action::PreviousUnsolvedLevel,
-            UserInput::Chord(vec![
-                PhysicalKey(KeyCode::ControlLeft),
-                PhysicalKey(KeyCode::BracketLeft),
-            ]),
-        ),
-        (
-            Action::ZoomIn,
-            UserInput::Single(PhysicalKey(KeyCode::Equal)),
-        ),
-        (
-            Action::ZoomOut,
-            UserInput::Single(PhysicalKey(KeyCode::Minus)),
-        ),
-        (
-            Action::ToggleInstantMove,
-            UserInput::Single(PhysicalKey(KeyCode::KeyI)),
-        ),
-        (
-            Action::ToggleAutomaticSolution,
-            UserInput::Single(PhysicalKey(KeyCode::KeyP)),
-        ),
-        (
-            Action::ToggleFullscreen,
-            UserInput::Single(PhysicalKey(KeyCode::F11)),
-        ),
-        (
-            Action::ImportLevelsFromClipboard,
-            UserInput::Chord(vec![
-                PhysicalKey(KeyCode::ControlLeft),
-                PhysicalKey(KeyCode::KeyV),
-            ]),
-        ),
-        (
-            Action::ExportLevelToClipboard,
-            UserInput::Chord(vec![
-                PhysicalKey(KeyCode::ControlLeft),
-                PhysicalKey(KeyCode::KeyC),
-            ]),
-        ),
-        // PhysicalKey (Vim)
-        (
-            Action::MoveUp,
-            UserInput::Single(PhysicalKey(KeyCode::KeyK)),
-        ),
-        (
-            Action::MoveDown,
-            UserInput::Single(PhysicalKey(KeyCode::KeyJ)),
-        ),
-        (
-            Action::MoveLeft,
-            UserInput::Single(PhysicalKey(KeyCode::KeyH)),
-        ),
-        (
-            Action::MoveRight,
-            UserInput::Single(PhysicalKey(KeyCode::KeyL)),
-        ),
-        (Action::Undo, UserInput::Single(PhysicalKey(KeyCode::KeyU))),
-        (
-            Action::Redo,
-            UserInput::Chord(vec![
-                PhysicalKey(KeyCode::ControlLeft),
-                PhysicalKey(KeyCode::KeyR),
-            ]),
-        ),
-    ]);
-    let gamepad_input_map = InputMap::new([
-        (
-            Action::MoveUp,
-            UserInput::Single(GamepadButton(GamepadButtonType::DPadUp)),
-        ),
-        (
-            Action::MoveDown,
-            UserInput::Single(GamepadButton(GamepadButtonType::DPadDown)),
-        ),
-        (
-            Action::MoveLeft,
-            UserInput::Single(GamepadButton(GamepadButtonType::DPadLeft)),
-        ),
-        (
-            Action::MoveRight,
-            UserInput::Single(GamepadButton(GamepadButtonType::DPadRight)),
-        ),
-        (
-            Action::Undo,
-            UserInput::Single(GamepadButton(GamepadButtonType::East)),
-        ),
-        (
-            Action::Redo,
-            UserInput::Single(GamepadButton(GamepadButtonType::South)),
-        ),
-        (
-            Action::NextLevel,
-            UserInput::Single(GamepadButton(GamepadButtonType::RightTrigger)),
-        ),
-        (
-            Action::PreviousLevel,
-            UserInput::Single(GamepadButton(GamepadButtonType::LeftTrigger)),
-        ),
-        (
-            Action::ZoomIn,
-            UserInput::Single(GamepadButton(GamepadButtonType::RightTrigger2)),
-        ),
-        (
-            Action::ZoomOut,
-            UserInput::Single(GamepadButton(GamepadButtonType::LeftTrigger2)),
-        ),
-        (
-            Action::ToggleInstantMove,
-            UserInput::Single(GamepadButton(GamepadButtonType::West)),
-        ),
-        (
-            Action::ToggleAutomaticSolution,
-            UserInput::Single(GamepadButton(GamepadButtonType::North)),
-        ),
+    let mouse_input_map = InputMap::default()
+        .with_multiple([
+            (Action::Undo, MouseButton::Other(1)),
+            (Action::Redo, MouseButton::Other(2)),
+        ])
+        .with_multiple([
+            (Action::ZoomOut, MouseScrollDirection::DOWN),
+            (Action::ZoomIn, MouseScrollDirection::UP),
+        ]);
+    let keyboard_input_map = InputMap::default()
+        .with_multiple([
+            (Action::MoveUp, KeyCode::KeyW),
+            (Action::MoveDown, KeyCode::KeyS),
+            (Action::MoveLeft, KeyCode::KeyA),
+            (Action::MoveRight, KeyCode::KeyD),
+            (Action::MoveUp, KeyCode::ArrowUp),
+            (Action::MoveDown, KeyCode::ArrowDown),
+            (Action::MoveLeft, KeyCode::ArrowLeft),
+            (Action::MoveRight, KeyCode::ArrowRight),
+            (Action::ResetLevel, KeyCode::Escape),
+            (Action::NextLevel, KeyCode::BracketRight),
+            (Action::PreviousLevel, KeyCode::BracketLeft),
+            (Action::ZoomIn, KeyCode::Equal),
+            (Action::ZoomOut, KeyCode::Minus),
+            (Action::ToggleInstantMove, KeyCode::KeyI),
+            (Action::ToggleAutomaticSolution, KeyCode::KeyP),
+            (Action::ToggleFullscreen, KeyCode::F11),
+            // Vim
+            (Action::MoveUp, KeyCode::KeyK),
+            (Action::MoveDown, KeyCode::KeyJ),
+            (Action::MoveLeft, KeyCode::KeyH),
+            (Action::MoveRight, KeyCode::KeyL),
+            (Action::Undo, KeyCode::KeyU),
+        ])
+        .with_multiple([
+            (
+                Action::Undo,
+                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::KeyZ]),
+            ),
+            (
+                Action::Redo,
+                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::ShiftLeft, KeyCode::KeyZ]),
+            ),
+            (
+                Action::NextUnsolvedLevel,
+                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::BracketRight]),
+            ),
+            (
+                Action::PreviousUnsolvedLevel,
+                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::BracketLeft]),
+            ),
+            (
+                Action::ImportLevelsFromClipboard,
+                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::KeyV]),
+            ),
+            (
+                Action::ExportLevelToClipboard,
+                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::KeyC]),
+            ),
+            // Vim
+            (
+                Action::Redo,
+                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::KeyR]),
+            ),
+        ]);
+    let gamepad_input_map = InputMap::default().with_multiple([
+        (Action::MoveUp, GamepadButtonType::DPadUp),
+        (Action::MoveDown, GamepadButtonType::DPadDown),
+        (Action::MoveLeft, GamepadButtonType::DPadLeft),
+        (Action::MoveRight, GamepadButtonType::DPadRight),
+        (Action::Undo, GamepadButtonType::East),
+        (Action::Redo, GamepadButtonType::South),
+        (Action::NextLevel, GamepadButtonType::RightTrigger),
+        (Action::PreviousLevel, GamepadButtonType::LeftTrigger),
+        (Action::ZoomIn, GamepadButtonType::RightTrigger2),
+        (Action::ZoomOut, GamepadButtonType::LeftTrigger2),
+        (Action::ToggleInstantMove, GamepadButtonType::West),
+        (Action::ToggleAutomaticSolution, GamepadButtonType::North),
     ]);
     InputMap::default()
         .merge(&mouse_input_map)
