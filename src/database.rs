@@ -113,7 +113,7 @@ impl Database {
             metadata.push_str(&format!("author: {author}\n"));
         }
         if let Ok(comments) = row.get::<_, String>(5) {
-            metadata.push_str(&format!("comments: {comments}\n"));
+            metadata.push_str(&format!("comment:\n{comments}\ncomment-end:\n"));
         }
         let level = Level::from_str(&(map + &metadata)).unwrap();
         Some(level)
