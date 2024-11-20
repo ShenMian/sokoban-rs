@@ -36,10 +36,10 @@ impl Database {
                 author   TEXT,
                 comments TEXT,
                 map      TEXT NOT NULL,
-                width    INTEGER NOT NULL,
-                height   INTEGER NOT NULL,
+                width    INTEGER NOT NULL CHECK(width > 0),
+                height   INTEGER NOT NULL CHECK(width > 0),
                 hash     INTEGER NOT NULL UNIQUE,
-                date     DATE NOT NULL
+                datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         ";
         const CREATE_LEVEL_INDICES: &str =
@@ -47,12 +47,12 @@ impl Database {
         const CREATE_SNAPSHOT_TABLE: &str = "
             CREATE TABLE IF NOT EXISTS tb_snapshot (
                 level_id  INTEGER,
-                movements TEXT,
-                datetime  DATETIME NOT NULL,
+                actions   TEXT,
+                datetime  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 best_move BOOLEAN NOT NULL DEFAULT 0 CHECK (best_move IN (0, 1)),
                 best_push BOOLEAN NOT NULL DEFAULT 0 CHECK (best_push IN (0, 1)),
                 PRIMARY KEY (level_id, best_move, best_push),
-                FOREIGN KEY (level_id) REFERENCES tb_level(id)
+                FOREIGN KEY (level_id) REFERENCES tb_level(id) ON DELETE CASCADE
             )
         ";
 
@@ -78,7 +78,7 @@ impl Database {
         let hash = Database::normalized_hash(level);
 
         let _ = self.connection.execute(
-            "INSERT INTO tb_level(title, author, comments, map, width, height, hash, date) VALUES (?, ?, ?, ?, ?, ?, ?, DATE('now'))",
+            "INSERT INTO tb_level(title, author, comments, map, width, height, hash) VALUES (?, ?, ?, ?, ?, ?, ?)",
             (title, author, comments, level.map().to_string(), level.map().dimensions().x, level.map().dimensions().y, hash),
         );
     }
@@ -144,7 +144,7 @@ impl Database {
     pub fn best_move_solution(&self, level_id: u64) -> Option<Actions> {
         let mut statement = self
             .connection
-            .prepare("SELECT movements FROM tb_snapshot WHERE level_id = ? AND best_move = 1")
+            .prepare("SELECT actions FROM tb_snapshot WHERE level_id = ? AND best_move = 1")
             .unwrap();
         let mut rows = statement.query([level_id]).unwrap();
         let row = rows.next().unwrap()?;
@@ -155,7 +155,7 @@ impl Database {
     pub fn best_push_solution(&self, level_id: u64) -> Option<Actions> {
         let mut statement = self
             .connection
-            .prepare("SELECT movements FROM tb_snapshot WHERE level_id = ? AND best_push = 1")
+            .prepare("SELECT actions FROM tb_snapshot WHERE level_id = ? AND best_push = 1")
             .unwrap();
         let mut rows = statement.query([level_id]).unwrap();
         let row = rows.next().unwrap()?;
@@ -171,7 +171,7 @@ impl Database {
             if solution.moves() < best_move_solution.moves() {
                 self.connection
                     .execute(
-                        "UPDATE tb_snapshot SET movements = ? WHERE level_id = ?",
+                        "UPDATE tb_snapshot SET actions = ? WHERE level_id = ?",
                         (lurd.clone(), level_id),
                     )
                     .unwrap();
@@ -179,7 +179,7 @@ impl Database {
         } else {
             self.connection
                 .execute(
-                    "INSERT INTO tb_snapshot (level_id, movements, best_move, datetime) VALUES (?, ?, 1, DATE('now'))",
+                    "INSERT INTO tb_snapshot (level_id, actions, best_move) VALUES (?, ?, 1)",
                     (level_id, lurd.clone()),
                 )
                 .unwrap();
@@ -190,7 +190,7 @@ impl Database {
             if solution.pushes() < best_push_solution.pushes() {
                 self.connection
                     .execute(
-                        "UPDATE tb_snapshot SET movements = ? WHERE level_id = ?",
+                        "UPDATE tb_snapshot SET actions = ? WHERE level_id = ?",
                         (lurd.clone(), level_id),
                     )
                     .unwrap();
@@ -198,7 +198,7 @@ impl Database {
         } else {
             self.connection
                 .execute(
-                    "INSERT INTO tb_snapshot (level_id, movements, best_push, datetime) VALUES (?, ?, 1, DATE('now'))",
+                    "INSERT INTO tb_snapshot (level_id, actions, best_push) VALUES (?, ?, 1)",
                     (level_id, lurd.clone()),
                 )
                 .unwrap();
