@@ -11,7 +11,7 @@ use nalgebra::Vector2;
 use soukoban::{
     deadlock,
     direction::Direction,
-    path_finding::{normalized_area, reachable_area},
+    path_finding::{find_path, normalized_area, reachable_area},
     Action, Actions, Tiles,
 };
 
@@ -111,8 +111,8 @@ impl State {
                 }
 
                 let mut new_movements = self.movements.clone();
-                let path = find_path(&self.player_position, &next_player_position, |position| {
-                    self.can_block_player(*position, solver)
+                let path = find_path(self.player_position, next_player_position, |position| {
+                    !self.can_block_player(position, solver)
                 })
                 .unwrap();
                 new_movements.extend(

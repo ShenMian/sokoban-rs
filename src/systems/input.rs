@@ -3,11 +3,10 @@ use std::{collections::HashMap, fs};
 use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
 use leafwing_input_manager::{action_diff::ActionDiffEvent, prelude::*};
 use nalgebra::Vector2;
-use soukoban::{direction::Direction, Level, Tiles};
+use soukoban::{direction::Direction, path_finding::find_path, Level, Tiles};
 
 use crate::{
-    components::*, events::*, resources::*, solve::solver::*, systems::level::*, utils::PushState,
-    Action, AppState,
+    components::*, events::*, resources::*, systems::level::*, utils::PushState, Action, AppState,
 };
 
 /// Clears the action state by consuming all stored actions.
@@ -100,8 +99,8 @@ fn player_move_to(
     player_movement: &mut PlayerMovement,
     board: &crate::board::Board,
 ) {
-    if let Some(path) = find_path(&board.level.map().player_position(), target, |position| {
-        board.level.map()[*position].intersects(Tiles::Wall | Tiles::Box)
+    if let Some(path) = find_path(board.level.map().player_position(), *target, |position| {
+        !board.level.map()[position].intersects(Tiles::Wall | Tiles::Box)
     }) {
         let directions = path
             .windows(2)
@@ -130,9 +129,9 @@ fn instant_player_move_to(
     player_movement: &mut PlayerMovement,
 ) {
     if let Some(path) = find_path(
-        &board_clone.level.map().player_position(),
-        target,
-        |position| board_clone.level.map()[*position].intersects(Tiles::Wall | Tiles::Box),
+        board_clone.level.map().player_position(),
+        *target,
+        |position| !board_clone.level.map()[position].intersects(Tiles::Wall | Tiles::Box),
     ) {
         let directions = path
             .windows(2)

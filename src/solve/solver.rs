@@ -1,8 +1,6 @@
 use std::{
     cell::OnceCell,
-    cmp::Ordering,
     collections::{BinaryHeap, HashMap, HashSet},
-    hash::Hash,
     time::{Duration, Instant},
 };
 
@@ -380,80 +378,6 @@ impl Solver {
             println!();
         }
     }
-}
-
-#[derive(Copy, Clone, Eq, PartialEq, Hash)]
-struct Node {
-    position: Vector2<i32>,
-    heuristic: i32,
-}
-
-impl Ord for Node {
-    fn cmp(&self, other: &Self) -> Ordering {
-        other.heuristic.cmp(&self.heuristic)
-    }
-}
-
-impl PartialOrd for Node {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        Some(self.cmp(other))
-    }
-}
-
-/// Finds a path from `from` point to `to` point using the A* algorithm.
-pub fn find_path(
-    from: &Vector2<i32>,
-    to: &Vector2<i32>,
-    is_block: impl Fn(&Vector2<i32>) -> bool,
-) -> Option<Vec<Vector2<i32>>> {
-    let mut open_set = BinaryHeap::new();
-    let mut came_from = HashMap::new();
-    let mut cost = HashMap::new();
-
-    open_set.push(Node {
-        position: *from,
-        heuristic: manhattan_distance(from, to),
-    });
-    cost.insert(*from, 0);
-
-    while let Some(node) = open_set.pop() {
-        if node.position == *to {
-            let mut path = Vec::new();
-            let mut current = *to;
-            while current != *from {
-                path.push(current);
-                current = came_from[&current];
-            }
-            path.push(*from);
-            path.reverse();
-            return Some(path);
-        }
-
-        for direction in [
-            Direction::Up,
-            Direction::Down,
-            Direction::Left,
-            Direction::Right,
-        ] {
-            let new_position = node.position + &direction.into();
-            if is_block(&new_position) {
-                continue;
-            }
-
-            let new_cost = cost[&node.position] + 1;
-            if !cost.contains_key(&new_position) || new_cost < cost[&new_position] {
-                cost.insert(new_position, new_cost);
-                let priority = new_cost + manhattan_distance(&new_position, to);
-                open_set.push(Node {
-                    position: new_position,
-                    heuristic: priority,
-                });
-                came_from.insert(new_position, node.position);
-            }
-        }
-    }
-
-    None
 }
 
 /// Calculates the Manhattan distance between two 2D vectors.
