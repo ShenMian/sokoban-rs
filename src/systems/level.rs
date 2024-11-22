@@ -44,6 +44,7 @@ pub fn setup_level(mut commands: Commands, database: Res<Database>) {
 pub fn spawn_board(
     mut commands: Commands,
     database: Res<Database>,
+    mut player_movement: ResMut<PlayerMovement>,
     mut camera: Query<(&mut Transform, &mut MainCamera)>,
     window: Query<&Window>,
     board: Query<Entity, With<Board>>,
@@ -52,6 +53,8 @@ pub fn spawn_board(
     asset_server: Res<AssetServer>,
     mut spritesheet_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
+    player_movement.directions.clear();
+
     let database = database.lock().unwrap();
     let level = database.get_level_by_id(level_id.0).unwrap();
 
