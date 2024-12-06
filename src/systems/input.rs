@@ -115,7 +115,7 @@ fn player_move_to(
 fn player_move(
     direction: Direction,
     player_movement: &mut PlayerMovement,
-    _board: &crate::board::Board,
+    board: &crate::board::Board,
 ) {
     player_movement.directions.push_back(direction);
 }
