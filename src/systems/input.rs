@@ -117,10 +117,7 @@ fn player_move(
     player_movement: &mut PlayerMovement,
     board: &crate::board::Board,
 ) {
-    if !board.moveable(direction) {
-        return;
-    }
-    player_movement.directions.push_front(direction);
+    player_movement.directions.push_back(direction);
 }
 
 fn instant_player_move_to(
