@@ -1,10 +1,12 @@
 use soukoban::{direction::Direction, Action, Actions, Level, Tiles};
+use std::collections::VecDeque;
 
 #[derive(Clone)]
 pub struct Board {
     pub level: Level,
     actions: Actions,
     undone_actions: Actions,
+    input_queue: VecDeque<Direction>,
 }
 
 impl Board {
@@ -14,6 +16,7 @@ impl Board {
             level,
             actions: Actions::new(),
             undone_actions: Actions::new(),
+            input_queue: VecDeque::new(),
         }
     }
 
@@ -35,25 +38,28 @@ impl Board {
 
     /// Moves the player or pushes a box in the specified direction.
     pub fn move_or_push(&mut self, direction: Direction) {
-        let map = self.level.map_mut();
-        let direction_vector = &direction.into();
-        let player_next_position = map.player_position() + direction_vector;
-        if map[player_next_position].intersects(Tiles::Wall) {
-            return;
-        }
-        if map[player_next_position].intersects(Tiles::Box) {
-            let box_next_position = player_next_position + direction_vector;
-            if map[box_next_position].intersects(Tiles::Wall | Tiles::Box) {
-                return;
+        self.input_queue.push_back(direction);
+        while let Some(direction) = self.input_queue.pop_front() {
+            let map = self.level.map_mut();
+            let direction_vector = &direction.into();
+            let player_next_position = map.player_position() + direction_vector;
+            if map[player_next_position].intersects(Tiles::Wall) {
+                continue;
             }
-            map.set_box_position(player_next_position, box_next_position);
+            if map[player_next_position].intersects(Tiles::Box) {
+                let box_next_position = player_next_position + direction_vector;
+                if map[box_next_position].intersects(Tiles::Wall | Tiles::Box) {
+                    continue;
+                }
+                map.set_box_position(player_next_position, box_next_position);
 
-            self.actions.push(Action::Push(direction));
-        } else {
-            self.actions.push(Action::Move(direction));
+                self.actions.push(Action::Push(direction));
+            } else {
+                self.actions.push(Action::Move(direction));
+            }
+            map.set_player_position(player_next_position);
+            self.undone_actions.clear();
         }
-        map.set_player_position(player_next_position);
-        self.undone_actions.clear();
     }
 
     /// Undoes the last push.
