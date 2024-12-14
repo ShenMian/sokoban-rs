@@ -33,7 +33,7 @@ pub fn spawn_auto_move_marks(
             // spawn box pushable marks
             for box_position in paths.keys().map(|state| state.box_position).unique() {
                 commands.spawn((
-                    StateScoped(AppState::AutoMove),
+                    Name::new("Pushable mark"),
                     Sprite::from_color(
                         MARK_COLOR.with_alpha(0.8),
                         Vec2::new(tile_size.x as f32 / 4.0, tile_size.y as f32 / 4.0),
@@ -43,6 +43,7 @@ pub fn spawn_auto_move_marks(
                         (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
                         10.0,
                     ),
+                    StateScoped(AppState::AutoMove),
                 ));
             }
 
@@ -66,7 +67,7 @@ pub fn spawn_auto_move_marks(
             // spawn player movable marks
             for box_position in reachable_area {
                 commands.spawn((
-                    StateScoped(AppState::AutoMove),
+                    Name::new("Movable mark"),
                     Sprite::from_color(
                         MARK_COLOR.with_alpha(0.8),
                         Vec2::new(tile_size.x as f32 / 4.0, tile_size.y as f32 / 4.0),
@@ -76,6 +77,7 @@ pub fn spawn_auto_move_marks(
                         (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
                         10.0,
                     ),
+                    StateScoped(AppState::AutoMove),
                 ));
             }
 

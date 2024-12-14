@@ -25,7 +25,7 @@ pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
 
 /// Sets up the main 2D camera.
 pub fn setup_camera(mut commands: Commands) {
-    commands.spawn((Camera2d, MainCamera::default()));
+    commands.spawn((Name::new("Camera"), Camera2d, MainCamera::default()));
 }
 
 /// Animates the player character based on the player's movement and orientation.

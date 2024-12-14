@@ -46,7 +46,7 @@ pub fn spawn_lowerbound_marks(
         let alpha = lowerbound as f32 / max_lowerbound as f32;
         let color = BLUE * alpha + RED * (1.0 - alpha);
         commands.spawn((
-            StateScoped(AppState::AutoSolve),
+            Name::new("Lower bound mark"),
             Sprite::from_color(
                 color.with_alpha(0.5),
                 Vec2::new(tile_size.x as f32, tile_size.y as f32),
@@ -56,6 +56,7 @@ pub fn spawn_lowerbound_marks(
                 (board.level.map().dimensions().y - position.y) as f32 * tile_size.y as f32,
                 10.0,
             ),
+            StateScoped(AppState::AutoSolve),
         ));
     }
 }

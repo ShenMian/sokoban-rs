@@ -8,6 +8,7 @@ pub fn setup_hud(mut commands: Commands) {
     const ALPHA: f32 = 0.8;
     commands
         .spawn((
+            Name::new("HUD"),
             Hud,
             Node {
                 position_type: PositionType::Absolute,
@@ -108,6 +109,7 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
     let button = |parent: &mut ChildBuilder, action, img_path| {
         parent
             .spawn((
+                Name::new("Button"),
                 action,
                 Button,
                 Node {

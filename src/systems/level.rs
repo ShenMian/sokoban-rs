@@ -88,6 +88,7 @@ pub fn spawn_board(
     let board = board::Board::with_level(level.clone());
     commands
         .spawn((
+            Name::new("Board"),
             Board { board, tile_size },
             Transform::default(),
             Visibility::default(),
