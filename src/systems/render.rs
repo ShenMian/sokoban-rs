@@ -25,12 +25,12 @@ pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
 
 /// Sets up the main 2D camera.
 pub fn setup_camera(mut commands: Commands) {
-    commands.spawn((Camera2dBundle::default(), MainCamera::default()));
+    commands.spawn((Camera2d, MainCamera::default()));
 }
 
 /// Animates the player character based on the player's movement and orientation.
 pub fn animate_player(
-    mut player: Query<(&mut AnimationState, &mut TextureAtlas), With<Player>>,
+    mut player: Query<(&mut AnimationState, &mut Sprite), With<Player>>,
     mut board: Query<&mut Board>,
     time: Res<Time>,
     player_movement: Res<PlayerMovement>,
@@ -69,7 +69,7 @@ pub fn animate_player(
     };
 
     animation_state.update(&animation, time.delta());
-    sprite.index = animation_state.frame_index();
+    sprite.texture_atlas.as_mut().unwrap().index = animation_state.frame_index();
 }
 
 /// Handles player movement and interacts with boxes on the board.

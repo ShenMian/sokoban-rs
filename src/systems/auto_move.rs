@@ -34,22 +34,15 @@ pub fn spawn_auto_move_marks(
             for box_position in paths.keys().map(|state| state.box_position).unique() {
                 commands.spawn((
                     StateScoped(AppState::AutoMove),
-                    SpriteBundle {
-                        sprite: Sprite {
-                            color: MARK_COLOR.with_alpha(0.8).into(),
-                            custom_size: Some(Vec2::new(
-                                tile_size.x as f32 / 4.0,
-                                tile_size.y as f32 / 4.0,
-                            )),
-                            ..default()
-                        },
-                        transform: Transform::from_xyz(
-                            box_position.x as f32 * tile_size.x as f32,
-                            (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
-                            10.0,
-                        ),
-                        ..default()
-                    },
+                    Sprite::from_color(
+                        MARK_COLOR.with_alpha(0.8),
+                        Vec2::new(tile_size.x as f32 / 4.0, tile_size.y as f32 / 4.0),
+                    ),
+                    Transform::from_xyz(
+                        box_position.x as f32 * tile_size.x as f32,
+                        (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
+                        10.0,
+                    ),
                 ));
             }
 
@@ -74,22 +67,15 @@ pub fn spawn_auto_move_marks(
             for box_position in reachable_area {
                 commands.spawn((
                     StateScoped(AppState::AutoMove),
-                    SpriteBundle {
-                        sprite: Sprite {
-                            color: MARK_COLOR.with_alpha(0.8).into(),
-                            custom_size: Some(Vec2::new(
-                                tile_size.x as f32 / 4.0,
-                                tile_size.y as f32 / 4.0,
-                            )),
-                            ..default()
-                        },
-                        transform: Transform::from_xyz(
-                            box_position.x as f32 * tile_size.x as f32,
-                            (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
-                            10.0,
-                        ),
-                        ..default()
-                    },
+                    Sprite::from_color(
+                        MARK_COLOR.with_alpha(0.8),
+                        Vec2::new(tile_size.x as f32 / 4.0, tile_size.y as f32 / 4.0),
+                    ),
+                    Transform::from_xyz(
+                        box_position.x as f32 * tile_size.x as f32,
+                        (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
+                        10.0,
+                    ),
                 ));
             }
 

@@ -20,7 +20,7 @@ impl Plugin for ConfigPlugin {
 
         app.add_systems(
             Update,
-            save_config_system.run_if(resource_changed_or_removed::<Config>()),
+            save_config_system.run_if(resource_changed_or_removed::<Config>),
         );
     }
 }

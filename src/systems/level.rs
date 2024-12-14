@@ -87,7 +87,11 @@ pub fn spawn_board(
     // spawn new `Board`
     let board = board::Board::with_level(level.clone());
     commands
-        .spawn((Board { board, tile_size }, SpatialBundle::default()))
+        .spawn((
+            Board { board, tile_size },
+            Transform::default(),
+            Visibility::default(),
+        ))
         .with_children(|parent| {
             for y in 0..level.map().dimensions().y {
                 for x in 0..level.map().dimensions().x {
@@ -112,16 +116,15 @@ pub fn spawn_board(
                                 sprite.color = (WHITE * (1.0 - config.even_square_shades)).into();
                             }
                             let mut entity = parent.spawn((
-                                SpriteBundle {
-                                    texture: spritesheet_handle.clone(),
-                                    sprite,
-                                    transform: Transform::from_xyz(0.0, 0.0, z_order),
+                                Sprite {
+                                    image: spritesheet_handle.clone(),
+                                    texture_atlas: Some(TextureAtlas {
+                                        layout: spritesheet_layout_handle.clone(),
+                                        index: sprite_index,
+                                    }),
                                     ..default()
                                 },
-                                TextureAtlas {
-                                    layout: spritesheet_layout_handle.clone(),
-                                    index: sprite_index,
-                                },
+                                Transform::from_xyz(0.0, 0.0, z_order),
                                 GridPosition(position),
                             ));
                             if tile == Tiles::Player {
