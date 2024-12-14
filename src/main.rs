@@ -19,7 +19,7 @@ use input_map::*;
 use leafwing_input_manager::{action_diff::ActionDiffEvent, prelude::*};
 use plugins::{
     auto_move::AutoMovePlugin, auto_solve::AutoSolvePlugin, camera::CameraPlugin,
-    config::ConfigPlugin, performance_matrix::*, ui::UiPlugin, version_information::*,
+    config::ConfigPlugin, performance_matrix, ui::UiPlugin, version_information,
 };
 use resources::*;
 use state::*;
@@ -42,8 +42,10 @@ fn main() {
             ..default()
         }),
         AudioPlugin,
-        PerformanceMatrixPlugin,
-        VersionInformationPlugin,
+    ))
+    .add_plugins((
+        performance_matrix::plugin,
+        version_information::plugin,
         InputManagerPlugin::<Action>::default(),
     ))
     .init_state::<AppState>()

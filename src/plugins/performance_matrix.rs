@@ -4,14 +4,10 @@ use bevy::{
     prelude::*,
 };
 
-pub struct PerformanceMatrixPlugin;
-
-impl Plugin for PerformanceMatrixPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_plugins(FrameTimeDiagnosticsPlugin)
-            .add_systems(Startup, setup)
-            .add_systems(Update, update);
-    }
+pub fn plugin(app: &mut App) {
+    app.add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_systems(Startup, setup)
+        .add_systems(Update, update);
 }
 
 #[derive(Component)]
@@ -20,6 +16,8 @@ pub struct PerformanceMatrix;
 
 fn setup(mut commands: Commands) {
     const ALPHA: f32 = 0.8;
+    const FONT_SIZE: f32 = 12.0;
+
     commands
         .spawn((
             Name::new("Performance matrix"),
@@ -33,32 +31,32 @@ fn setup(mut commands: Commands) {
         ))
         .with_child((
             TextSpan::new("FPS     : "),
-            TextFont::from_font_size(14.0),
+            TextFont::from_font_size(FONT_SIZE),
             TextColor(AQUA.with_alpha(ALPHA).into()),
         ))
         .with_child((
             TextSpan::new("\n"),
-            TextFont::from_font_size(14.0),
+            TextFont::from_font_size(FONT_SIZE),
             TextColor(Color::default().with_alpha(ALPHA)),
         ))
         .with_child((
             TextSpan::new("FPS(SMA): "),
-            TextFont::from_font_size(14.0),
+            TextFont::from_font_size(FONT_SIZE),
             TextColor(AQUA.with_alpha(ALPHA).into()),
         ))
         .with_child((
             TextSpan::new("\n"),
-            TextFont::from_font_size(14.0),
+            TextFont::from_font_size(FONT_SIZE),
             TextColor(Color::default().with_alpha(ALPHA)),
         ))
         .with_child((
             TextSpan::new("FPS(EMA): "),
-            TextFont::from_font_size(14.0),
+            TextFont::from_font_size(FONT_SIZE),
             TextColor(AQUA.with_alpha(ALPHA).into()),
         ))
         .with_child((
             TextSpan::new("\n"),
-            TextFont::from_font_size(14.0),
+            TextFont::from_font_size(FONT_SIZE),
             TextColor(Color::default().with_alpha(ALPHA)),
         ));
 }
