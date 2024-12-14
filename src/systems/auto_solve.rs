@@ -47,19 +47,15 @@ pub fn spawn_lowerbound_marks(
         let color = BLUE * alpha + RED * (1.0 - alpha);
         commands.spawn((
             StateScoped(AppState::AutoSolve),
-            SpriteBundle {
-                sprite: Sprite {
-                    color: color.with_alpha(0.5).into(),
-                    custom_size: Some(Vec2::new(tile_size.x as f32, tile_size.y as f32)),
-                    ..default()
-                },
-                transform: Transform::from_xyz(
-                    position.x as f32 * tile_size.x as f32,
-                    (board.level.map().dimensions().y - position.y) as f32 * tile_size.y as f32,
-                    10.0,
-                ),
-                ..default()
-            },
+            Sprite::from_color(
+                color.with_alpha(0.5),
+                Vec2::new(tile_size.x as f32, tile_size.y as f32),
+            ),
+            Transform::from_xyz(
+                position.x as f32 * tile_size.x as f32,
+                (board.level.map().dimensions().y - position.y) as f32 * tile_size.y as f32,
+                10.0,
+            ),
         ));
     }
 }
