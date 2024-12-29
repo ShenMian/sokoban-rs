@@ -349,7 +349,7 @@ impl Solver {
     }
 
     /// Shrinks the heap by retaining only a subset of states based on heuristics.
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     fn shrink_heap(heap: &mut BinaryHeap<State>) {
         let max_pressure = 200_000;
         if heap.len() > max_pressure {
@@ -363,7 +363,7 @@ impl Solver {
     }
 
     /// Prints the lower bounds for each position in the level.
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub fn print_lower_bounds(&self) {
         let map = self.level.map();
         for y in 0..map.dimensions().y {
