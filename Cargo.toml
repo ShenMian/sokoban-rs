@@ -14,7 +14,7 @@ categories = ["games"]
 soukoban = { git = "https://github.com/ShenMian/soukoban" }
 bitflags = "2.6"
 nalgebra = "0.33"
-itertools = "0.13"
+itertools = "0.14"
 serde = { version = "1.0", features = ["derive"] }
 rusqlite = { version = "0.32", features = ["bundled"] }
 arboard = "3.4"                                             # System clipboard
@@ -22,10 +22,10 @@ image = "0.25"
 toml = "0.8"
 
 bevy = "0.15"
-leafwing-input-manager = { git = "https://github.com/Leafwing-Studios/leafwing-input-manager" }
+leafwing-input-manager = "0.16"
 bevy_kira_audio = "0.21"
 benimator = "4.1"
-winit = "0.30"                                                                                  # The version needs to be consistent with the one used in bevy
+winit = "0.30"                  # The version needs to be consistent with the one used in bevy
 
 # Enable a small amount of optimization in debug mode.
 [profile.dev]
