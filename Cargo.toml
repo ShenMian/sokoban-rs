@@ -4,7 +4,7 @@ version = "0.1.19"
 edition = "2021"
 
 authors = ["ShenMian <sms_school@outlook.com>"]
-license = "MIT OR Apache-2.0"
+license = "Apache-2.0"
 description = "A sokoban with solver."
 repository = "https://github.com/ShenMian/sokoban-rs"
 keywords = ["sokoban", "sokoban-solver"]
