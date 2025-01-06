@@ -23,7 +23,7 @@ toml = "0.8"
 
 bevy = "0.15"
 leafwing-input-manager = "0.16"
-bevy_kira_audio = "0.21"
+bevy_kira_audio = "0.22"
 benimator = "4.1"
 winit = "0.30"                  # The version needs to be consistent with the one used in bevy
 
