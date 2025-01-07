@@ -89,8 +89,8 @@ pub fn update_solver(
     match solver.search(timeout) {
         Ok(solution) => {
             let mut verify_board = board.clone();
-            for movement in &*solution {
-                verify_board.move_or_push(movement.direction());
+            for action in &*solution {
+                verify_board.move_or_push(action.direction());
             }
             assert!(verify_board.is_solved());
 
@@ -106,8 +106,8 @@ pub fn update_solver(
             );
             info!("    Solution: {}", solution.to_string());
 
-            for movement in &*solution {
-                player_move_unchecked(movement.direction(), &mut player_movement);
+            for action in &*solution {
+                player_move_unchecked(action.direction(), &mut player_movement);
             }
             next_state.set(AppState::Main);
             return;
@@ -129,11 +129,11 @@ pub fn update_solver(
         // println!(
         //     "lower bound: {:3}, moves: {:3}, pushes: {:3}",
         //     best_state.lower_bound(&solver),
-        //     best_state.movements.moves(),
-        //     best_state.movements.pushes()
+        //     best_state.actions.moves(),
+        //     best_state.actions.pushes()
         // );
-        for movement in &*best_state.movements {
-            board.move_or_push(movement.direction());
+        for action in &*best_state.actions {
+            board.move_or_push(action.direction());
         }
     }
 }

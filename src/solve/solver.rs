@@ -89,7 +89,7 @@ impl Solver {
                 return Err(SolveError::Timeout);
             }
             if state.is_solved(self) {
-                return Ok(state.movements);
+                return Ok(state.actions);
             }
 
             for successor in state.successors(self) {
@@ -144,29 +144,15 @@ impl Solver {
                 {
                     let player_position = box_position + &down.into();
 
-                    //  .
-                    // #$#
-                    // #@#
+                    //  .      .      .
+                    // #$# or #$_ or _$#
+                    // #@#    #@#    #@#
                     if map[player_position + &left.into()].intersects(Tiles::Wall)
                         && map[player_position + &right.into()].intersects(Tiles::Wall)
-                        && map[box_position + &left.into()].intersects(Tiles::Wall)
-                        && map[box_position + &right.into()].intersects(Tiles::Wall)
-                        && map[box_position].intersects(Tiles::Floor)
-                        && self
-                            .lower_bounds()
-                            .contains_key(&(box_position + &up.into()))
-                        && !map[box_position].intersects(Tiles::Goal)
-                    {
-                        tunnels.insert((player_position, up));
-                    }
-
-                    //  .      .
-                    // #$_ or _$#
-                    // #@#    #@#
-                    if map[player_position + &left.into()].intersects(Tiles::Wall)
-                        && map[player_position + &right.into()].intersects(Tiles::Wall)
-                        && (map[box_position + &right.into()].intersects(Tiles::Wall)
-                            && map[box_position + &left.into()].intersects(Tiles::Floor)
+                        && (map[box_position + &left.into()].intersects(Tiles::Wall)
+                            && map[box_position + &right.into()].intersects(Tiles::Wall)
+                            || map[box_position + &right.into()].intersects(Tiles::Wall)
+                                && map[box_position + &left.into()].intersects(Tiles::Floor)
                             || map[box_position + &right.into()].intersects(Tiles::Floor)
                                 && map[box_position + &left.into()].intersects(Tiles::Wall))
                         && map[box_position].intersects(Tiles::Floor)
