@@ -122,7 +122,7 @@ pub fn update_solver(
             return;
         }
         Err(SolveError::Timeout) => {
-            let _ = stopwatch.tick(timer.elapsed());
+            stopwatch.tick(timer.elapsed());
         }
     }
     if let Some(best_state) = solver.best_state() {
