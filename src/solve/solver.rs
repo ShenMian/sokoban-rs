@@ -29,14 +29,14 @@ pub enum Strategy {
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum LowerBoundMethod {
-    /// Minimum push count to nearest target
+    /// Minimum push count to nearest goal
     MinimumPush,
 
-    /// Minimum move count to nearest target
+    /// Minimum move count to nearest goal
     #[default]
     MinimumMove,
 
-    /// Manhattan distance to nearest target
+    /// Manhattan distance to nearest goal
     ManhattanDistance,
 }
 
@@ -188,8 +188,8 @@ impl Solver {
     fn minimum_push_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
         let map = self.level.map();
-        for target_position in map.goal_positions() {
-            lower_bounds.insert(*target_position, 0);
+        for goal_position in map.goal_positions() {
+            lower_bounds.insert(*goal_position, 0);
             let mut player_position = None;
             for pull_direction in [
                 Direction::Up,
@@ -197,7 +197,7 @@ impl Solver {
                 Direction::Down,
                 Direction::Left,
             ] {
-                let next_box_position = target_position + &pull_direction.into();
+                let next_box_position = goal_position + &pull_direction.into();
                 let next_player_position = next_box_position + &pull_direction.into();
                 if map.in_bounds(next_player_position)
                     && !map[next_player_position].intersects(Tiles::Wall)
@@ -209,7 +209,7 @@ impl Solver {
             }
             if let Some(player_position) = player_position {
                 self.minimum_push_to(
-                    *target_position,
+                    *goal_position,
                     player_position,
                     &mut lower_bounds,
                     &mut HashSet::new(),
@@ -278,7 +278,7 @@ impl Solver {
             for y in 1..map.dimensions().y - 1 {
                 let position = Vector2::new(x, y);
                 // There may be situations in the level where the box is
-                // already on the target and cannot be reached by the player.
+                // already on the goal and cannot be reached by the player.
                 if map[position].intersects(Tiles::Goal) {
                     lower_bounds.insert(position, 0);
                     continue;
@@ -312,7 +312,7 @@ impl Solver {
             for y in 1..map.dimensions().y - 1 {
                 let position = Vector2::new(x, y);
                 // There may be situations in the level where the box is
-                // already on the target and cannot be reached by the player.
+                // already on the goal and cannot be reached by the player.
                 if map[position].intersects(Tiles::Goal) {
                     lower_bounds.insert(position, 0);
                     continue;

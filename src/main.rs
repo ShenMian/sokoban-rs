@@ -90,8 +90,8 @@ fn main() {
         .insert_resource(default_input_map())
         .add_event::<ActionDiffEvent<Action>>();
 
-    app.add_event::<BoxEnterTarget>()
-        .add_event::<BoxLeaveTarget>()
+    app.add_event::<BoxEnterGoal>()
+        .add_event::<BoxLeaveGoal>()
         .add_event::<LevelSolved>()
         .add_event::<UpdateGridPositionEvent>();
 

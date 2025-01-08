@@ -80,8 +80,8 @@ pub fn handle_player_movement(
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
     config: Res<Config>,
-    mut box_enter_target_events: EventWriter<BoxEnterTarget>,
-    mut box_leave_target_events: EventWriter<BoxLeaveTarget>,
+    mut box_enter_goal_events: EventWriter<BoxEnterGoal>,
+    mut box_leave_goal_events: EventWriter<BoxLeaveGoal>,
     mut level_solved_events: EventWriter<LevelSolved>,
 ) {
     if player_movement.directions.is_empty() {
@@ -97,22 +97,22 @@ pub fn handle_player_movement(
             return;
         }
         if let Some(direction) = player_movement.directions.pop_back() {
-            let occupied_targets_count = board
+            let occupied_goals_count = board
                 .level
                 .map()
                 .goal_positions()
                 .intersection(board.level.map().box_positions())
                 .count();
             board.move_or_push(direction);
-            let new_occupied_targets_count = board
+            let new_occupied_goals_count = board
                 .level
                 .map()
                 .goal_positions()
                 .intersection(board.level.map().box_positions())
                 .count();
-            match new_occupied_targets_count.cmp(&occupied_targets_count) {
-                Ordering::Greater => drop(box_enter_target_events.send_default()),
-                Ordering::Less => drop(box_leave_target_events.send_default()),
+            match new_occupied_goals_count.cmp(&occupied_goals_count) {
+                Ordering::Greater => drop(box_enter_goal_events.send_default()),
+                Ordering::Less => drop(box_leave_goal_events.send_default()),
                 _ => (),
             }
 
