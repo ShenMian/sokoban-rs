@@ -19,7 +19,7 @@ use soukoban::{
 pub struct State {
     pub player_position: Vector2<i32>,
     pub box_positions: HashSet<Vector2<i32>>,
-    pub movements: Actions,
+    pub actions: Actions,
     heuristic: usize,
     lower_bound: OnceCell<usize>,
 }
@@ -55,35 +55,35 @@ impl State {
     pub fn new(
         player_position: Vector2<i32>,
         box_positions: HashSet<Vector2<i32>>,
-        movements: Actions,
+        actions: Actions,
         solver: &Solver,
     ) -> Self {
         let mut instance = Self {
             player_position,
             box_positions,
-            movements,
+            actions,
             heuristic: 0,
             lower_bound: OnceCell::new(),
         };
-        debug_assert!(instance.movements.moves() < 10_000);
-        debug_assert!(instance.movements.pushes() < 10_000);
+        debug_assert!(instance.actions.moves() < 10_000);
+        debug_assert!(instance.actions.pushes() < 10_000);
         debug_assert!(instance.lower_bound(solver) < 10_000);
         instance.heuristic = match solver.strategy() {
-            Strategy::Fast => instance.lower_bound(solver) * 10_000 + instance.movements.moves(),
-            Strategy::Mixed => instance.lower_bound(solver) + instance.movements.moves(),
+            Strategy::Fast => instance.lower_bound(solver) * 10_000 + instance.actions.moves(),
+            Strategy::Mixed => instance.lower_bound(solver) + instance.actions.moves(),
             Strategy::OptimalMovePush => {
-                instance.movements.moves() * 100_000_000
-                    + instance.movements.pushes() * 10_000
+                instance.actions.moves() * 100_000_000
+                    + instance.actions.pushes() * 10_000
                     + instance.lower_bound(solver)
             }
             Strategy::OptimalPushMove => {
-                instance.movements.pushes() * 100_000_000
-                    + instance.movements.moves() * 10_000
+                instance.actions.pushes() * 100_000_000
+                    + instance.actions.moves() * 10_000
                     + instance.lower_bound(solver)
             }
         };
         instance.box_positions.shrink_to_fit();
-        instance.movements.shrink_to_fit();
+        instance.actions.shrink_to_fit();
         instance
     }
 
@@ -110,17 +110,17 @@ impl State {
                     continue;
                 }
 
-                let mut new_movements = self.movements.clone();
+                let mut new_actions = self.actions.clone();
                 let path = find_path(self.player_position, next_player_position, |position| {
                     !self.can_block_player(position, solver)
                 })
                 .unwrap();
-                new_movements.extend(
+                new_actions.extend(
                     path.windows(2)
                         .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap())
                         .map(Action::Move),
                 );
-                new_movements.push(Action::Push(push_direction));
+                new_actions.push(Action::Push(push_direction));
 
                 // skip tunnels
                 while solver
@@ -131,7 +131,7 @@ impl State {
                         break;
                     }
                     new_box_position += &push_direction.into();
-                    new_movements.push(Action::Push(push_direction));
+                    new_actions.push(Action::Push(push_direction));
                 }
 
                 let mut new_box_positions = self.box_positions.clone();
@@ -152,12 +152,8 @@ impl State {
 
                 let new_player_position = new_box_position - &push_direction.into();
 
-                let new_state = State::new(
-                    new_player_position,
-                    new_box_positions,
-                    new_movements,
-                    solver,
-                );
+                let new_state =
+                    State::new(new_player_position, new_box_positions, new_actions, solver);
                 successors.push(new_state);
             }
         }

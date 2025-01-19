@@ -4,83 +4,85 @@ use bevy::{
     prelude::*,
 };
 
-pub struct PerformanceMatrixPlugin;
-
-impl Plugin for PerformanceMatrixPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_plugins(FrameTimeDiagnosticsPlugin)
-            .add_systems(Startup, setup)
-            .add_systems(Update, update);
-    }
+pub fn plugin(app: &mut App) {
+    app.add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_systems(Startup, setup)
+        .add_systems(Update, update);
 }
 
 #[derive(Component)]
-pub struct PerformanceCounter;
+#[require(Text)]
+pub struct PerformanceMatrix;
 
-#[derive(Bundle)]
-pub struct PerformanceBundle {
-    text: TextBundle,
-    performance_counter: PerformanceCounter,
-}
+fn setup(mut commands: Commands) {
+    const ALPHA: f32 = 0.8;
+    const FONT_SIZE: f32 = 12.0;
 
-impl PerformanceBundle {
-    pub fn new() -> PerformanceBundle {
-        const ALPHA: f32 = 0.8;
-        let text_section = move |color, value: &str| {
-            TextSection::new(
-                value,
-                TextStyle {
-                    font_size: 14.0,
-                    color,
-                    ..default()
-                },
-            )
-        };
-        PerformanceBundle {
-            text: TextBundle::from_sections([
-                text_section(AQUA.with_alpha(ALPHA).into(), "FPS     : "),
-                text_section(Color::default().with_alpha(ALPHA), ""),
-                text_section(AQUA.with_alpha(ALPHA).into(), "FPS(SMA): "),
-                text_section(Color::default().with_alpha(ALPHA), ""),
-                text_section(AQUA.with_alpha(ALPHA).into(), "FPS(EMA): "),
-                text_section(Color::default().with_alpha(ALPHA), ""),
-            ])
-            .with_style(Style {
+    commands
+        .spawn((
+            Name::new("Performance matrix"),
+            PerformanceMatrix,
+            Node {
                 position_type: PositionType::Absolute,
                 top: Val::Px(5.0),
                 left: Val::Px(5.0),
                 ..default()
-            }),
-            performance_counter: PerformanceCounter,
-        }
-    }
-}
-
-fn setup(mut commands: Commands) {
-    commands.spawn(PerformanceBundle::new());
+            },
+        ))
+        .with_child((
+            TextSpan::new("FPS     : "),
+            TextFont::from_font_size(FONT_SIZE),
+            TextColor(AQUA.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new("\n"),
+            TextFont::from_font_size(FONT_SIZE),
+            TextColor(Color::default().with_alpha(ALPHA)),
+        ))
+        .with_child((
+            TextSpan::new("FPS(SMA): "),
+            TextFont::from_font_size(FONT_SIZE),
+            TextColor(AQUA.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new("\n"),
+            TextFont::from_font_size(FONT_SIZE),
+            TextColor(Color::default().with_alpha(ALPHA)),
+        ))
+        .with_child((
+            TextSpan::new("FPS(EMA): "),
+            TextFont::from_font_size(FONT_SIZE),
+            TextColor(AQUA.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new("\n"),
+            TextFont::from_font_size(FONT_SIZE),
+            TextColor(Color::default().with_alpha(ALPHA)),
+        ));
 }
 
 fn update(
     diagnostics: Res<DiagnosticsStore>,
-    mut query: Query<&mut Text, With<PerformanceCounter>>,
+    query: Query<Entity, With<PerformanceMatrix>>,
+    mut writer: TextUiWriter,
 ) {
-    let mut text = query.single_mut();
+    let text = query.single();
     if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(raw) = fps.value() {
-            update_fps(raw, &mut text.sections[1]);
+            update_text_span(2, raw, text, &mut writer);
         }
         if let Some(sma) = fps.average() {
-            update_fps(sma, &mut text.sections[3]);
+            update_text_span(4, sma, text, &mut writer);
         }
         if let Some(ema) = fps.smoothed() {
-            update_fps(ema, &mut text.sections[5]);
+            update_text_span(6, ema, text, &mut writer);
         }
     }
 }
 
-fn update_fps(value: f64, section: &mut TextSection) {
-    section.value = format!("{value:.2}\n");
-    section.style.color = match value {
+fn update_text_span(index: usize, value: f64, text: Entity, writer: &mut TextUiWriter) {
+    *writer.text(text, index) = format!("{value:.2}\n");
+    *writer.color(text, index) = match value {
         v if v < 30.0 => RED.into(),
         v if v < 60.0 => YELLOW.into(),
         _ => LIME.into(),

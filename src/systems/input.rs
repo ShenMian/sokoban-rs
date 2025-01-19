@@ -230,8 +230,8 @@ fn handle_toggle_instant_move_action(
 fn handle_toggle_fullscreen_action(action_state: &ActionState<Action>, window: &mut Window) {
     if action_state.just_pressed(&Action::ToggleFullscreen) {
         window.mode = match window.mode {
-            WindowMode::BorderlessFullscreen => WindowMode::Windowed,
-            WindowMode::Windowed => WindowMode::BorderlessFullscreen,
+            WindowMode::BorderlessFullscreen(_) => WindowMode::Windowed,
+            WindowMode::Windowed => WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
             _ => unreachable!(),
         };
     }
@@ -391,8 +391,7 @@ pub fn mouse_input(
 /// Adjusts the viewport based on various input events.
 pub fn adjust_viewport(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
-    gamepads: Res<Gamepads>,
-    axes: Res<Axis<GamepadAxis>>,
+    gamepads: Query<(Entity, &Gamepad)>,
     mut motion_events: EventReader<MouseMotion>,
     mut camera: Query<(&mut Transform, &MainCamera)>,
 ) {
@@ -406,17 +405,13 @@ pub fn adjust_viewport(
         motion_events.clear();
     }
 
-    for gamepad in gamepads.iter() {
-        if let (Some(x), Some(y)) = (
-            axes.get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickX)),
-            axes.get(GamepadAxis::new(gamepad, GamepadAxisType::RightStickY)),
-        ) {
-            let right_stick_position = Vector2::new(x, y);
-            camera_transform.translation.x +=
-                right_stick_position.x * main_camera.target_scale * 1.6;
-            camera_transform.translation.y +=
-                right_stick_position.y * main_camera.target_scale * 1.6;
-        }
+    for (_entity, gamepad) in &gamepads {
+        let right_stick = Vec2::new(
+            gamepad.get(GamepadAxis::RightStickX).unwrap(),
+            gamepad.get(GamepadAxis::RightStickY).unwrap(),
+        );
+        camera_transform.translation.x += right_stick.x * main_camera.target_scale * 1.6;
+        camera_transform.translation.y += right_stick.y * main_camera.target_scale * 1.6;
     }
 }
 
@@ -430,7 +425,7 @@ pub fn file_drag_and_drop(
         if let FileDragAndDrop::DroppedFile { path_buf, .. } = event {
             let database = database.lock().unwrap();
             info!("Load levels from file {:?}", path_buf);
-            match Level::load_from_string(&fs::read_to_string(path_buf).unwrap())
+            match Level::load_from_str(&fs::read_to_string(path_buf).unwrap())
                 .collect::<Result<Vec<_>, _>>()
             {
                 Ok(levels) => {

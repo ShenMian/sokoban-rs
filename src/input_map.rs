@@ -98,18 +98,18 @@ pub fn default_input_map() -> InputMap<Action> {
             ),
         ]);
     let gamepad_input_map = InputMap::default().with_multiple([
-        (Action::MoveUp, GamepadButtonType::DPadUp),
-        (Action::MoveDown, GamepadButtonType::DPadDown),
-        (Action::MoveLeft, GamepadButtonType::DPadLeft),
-        (Action::MoveRight, GamepadButtonType::DPadRight),
-        (Action::Undo, GamepadButtonType::East),
-        (Action::Redo, GamepadButtonType::South),
-        (Action::NextLevel, GamepadButtonType::RightTrigger),
-        (Action::PreviousLevel, GamepadButtonType::LeftTrigger),
-        (Action::ZoomIn, GamepadButtonType::RightTrigger2),
-        (Action::ZoomOut, GamepadButtonType::LeftTrigger2),
-        (Action::ToggleInstantMove, GamepadButtonType::West),
-        (Action::ToggleAutomaticSolution, GamepadButtonType::North),
+        (Action::MoveUp, GamepadButton::DPadUp),
+        (Action::MoveDown, GamepadButton::DPadDown),
+        (Action::MoveLeft, GamepadButton::DPadLeft),
+        (Action::MoveRight, GamepadButton::DPadRight),
+        (Action::Undo, GamepadButton::East),
+        (Action::Redo, GamepadButton::South),
+        (Action::NextLevel, GamepadButton::RightTrigger),
+        (Action::PreviousLevel, GamepadButton::LeftTrigger),
+        (Action::ZoomIn, GamepadButton::RightTrigger2),
+        (Action::ZoomOut, GamepadButton::LeftTrigger2),
+        (Action::ToggleInstantMove, GamepadButton::West),
+        (Action::ToggleAutomaticSolution, GamepadButton::North),
     ]);
     InputMap::default()
         .merge(&mouse_input_map)

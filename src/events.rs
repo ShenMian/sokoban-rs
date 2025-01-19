@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
 #[derive(Event, Default)]
-pub struct BoxEnterTarget;
+pub struct BoxEnterGoal;
 
 #[derive(Event, Default)]
-pub struct BoxLeaveTarget;
+pub struct BoxLeaveGoal;
 
 #[derive(Event, Default)]
 pub struct LevelSolved;

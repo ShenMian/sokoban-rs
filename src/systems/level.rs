@@ -18,7 +18,7 @@ pub fn setup_database(mut commands: Commands) {
             continue;
         }
         info!("  {:?}", path);
-        let levels: Vec<_> = Level::load_from_string(&fs::read_to_string(path).unwrap())
+        let levels: Vec<_> = Level::load_from_str(&fs::read_to_string(path).unwrap())
             .filter_map(Result::ok)
             .collect();
         database.import_levels(&levels);
@@ -87,7 +87,12 @@ pub fn spawn_board(
     // spawn new `Board`
     let board = board::Board::with_level(level.clone());
     commands
-        .spawn((Board { board, tile_size }, SpatialBundle::default()))
+        .spawn((
+            Name::new("Board"),
+            Board { board, tile_size },
+            Transform::default(),
+            Visibility::default(),
+        ))
         .with_children(|parent| {
             for y in 0..level.map().dimensions().y {
                 for x in 0..level.map().dimensions().x {
@@ -112,16 +117,15 @@ pub fn spawn_board(
                                 sprite.color = (WHITE * (1.0 - config.even_square_shades)).into();
                             }
                             let mut entity = parent.spawn((
-                                SpriteBundle {
-                                    texture: spritesheet_handle.clone(),
-                                    sprite,
-                                    transform: Transform::from_xyz(0.0, 0.0, z_order),
+                                Sprite {
+                                    image: spritesheet_handle.clone(),
+                                    texture_atlas: Some(TextureAtlas {
+                                        layout: spritesheet_layout_handle.clone(),
+                                        index: sprite_index,
+                                    }),
                                     ..default()
                                 },
-                                TextureAtlas {
-                                    layout: spritesheet_layout_handle.clone(),
-                                    index: sprite_index,
-                                },
+                                Transform::from_xyz(0.0, 0.0, z_order),
                                 GridPosition(position),
                             ));
                             if tile == Tiles::Player {
@@ -160,7 +164,7 @@ pub fn auto_switch_to_next_unsolved_level(
 /// Imports levels from the system clipboard.
 pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Database) {
     let mut clipboard = Clipboard::new().unwrap();
-    match Level::load_from_string(&clipboard.get_text().unwrap()).collect::<Result<Vec<_>, _>>() {
+    match Level::load_from_str(&clipboard.get_text().unwrap()).collect::<Result<Vec<_>, _>>() {
         Ok(levels) => {
             if levels.is_empty() {
                 error!("failed to import any level from clipboard");

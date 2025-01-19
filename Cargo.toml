@@ -1,10 +1,10 @@
 [package]
-name = "soukoban-rs"
+name = "sokoban-rs"
 version = "0.1.19"
 edition = "2021"
 
 authors = ["ShenMian <sms_school@outlook.com>"]
-license = "MIT OR Apache-2.0"
+license = "Apache-2.0"
 description = "A sokoban with solver."
 repository = "https://github.com/ShenMian/sokoban-rs"
 keywords = ["sokoban", "sokoban-solver"]
@@ -14,16 +14,16 @@ categories = ["games"]
 soukoban = { git = "https://github.com/ShenMian/soukoban" }
 bitflags = "2.6"
 nalgebra = "0.33"
-itertools = "0.13"
+itertools = "0.14"
 serde = { version = "1.0", features = ["derive"] }
-rusqlite = { version = "0.32", features = ["bundled"] }
+rusqlite = { version = "0.33", features = ["bundled"] }
 arboard = "3.4"                                             # System clipboard
 image = "0.25"
 toml = "0.8"
 
-bevy = "0.14"
-leafwing-input-manager = "0.15"
-bevy_kira_audio = "0.20"
+bevy = "0.15"
+leafwing-input-manager = "0.16"
+bevy_kira_audio = "0.22"
 benimator = "4.1"
 winit = "0.30"                  # The version needs to be consistent with the one used in bevy
 

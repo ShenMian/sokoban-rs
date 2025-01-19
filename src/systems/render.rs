@@ -25,12 +25,12 @@ pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
 
 /// Sets up the main 2D camera.
 pub fn setup_camera(mut commands: Commands) {
-    commands.spawn((Camera2dBundle::default(), MainCamera::default()));
+    commands.spawn((Name::new("Camera"), Camera2d, MainCamera::default()));
 }
 
 /// Animates the player character based on the player's movement and orientation.
 pub fn animate_player(
-    mut player: Query<(&mut AnimationState, &mut TextureAtlas), With<Player>>,
+    mut player: Query<(&mut AnimationState, &mut Sprite), With<Player>>,
     mut board: Query<&mut Board>,
     time: Res<Time>,
     player_movement: Res<PlayerMovement>,
@@ -69,7 +69,7 @@ pub fn animate_player(
     };
 
     animation_state.update(&animation, time.delta());
-    sprite.index = animation_state.frame_index();
+    sprite.texture_atlas.as_mut().unwrap().index = animation_state.frame_index();
 }
 
 /// Handles player movement and interacts with boxes on the board.
@@ -80,8 +80,8 @@ pub fn handle_player_movement(
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
     config: Res<Config>,
-    mut box_enter_target_events: EventWriter<BoxEnterTarget>,
-    mut box_leave_target_events: EventWriter<BoxLeaveTarget>,
+    mut box_enter_goal_events: EventWriter<BoxEnterGoal>,
+    mut box_leave_goal_events: EventWriter<BoxLeaveGoal>,
     mut level_solved_events: EventWriter<LevelSolved>,
 ) {
     if player_movement.directions.is_empty() {
@@ -97,22 +97,22 @@ pub fn handle_player_movement(
             return;
         }
         if let Some(direction) = player_movement.directions.pop_back() {
-            let occupied_targets_count = board
+            let occupied_goals_count = board
                 .level
                 .map()
                 .goal_positions()
                 .intersection(board.level.map().box_positions())
                 .count();
             board.move_or_push(direction);
-            let new_occupied_targets_count = board
+            let new_occupied_goals_count = board
                 .level
                 .map()
                 .goal_positions()
                 .intersection(board.level.map().box_positions())
                 .count();
-            match new_occupied_targets_count.cmp(&occupied_targets_count) {
-                Ordering::Greater => drop(box_enter_target_events.send_default()),
-                Ordering::Less => drop(box_leave_target_events.send_default()),
+            match new_occupied_goals_count.cmp(&occupied_goals_count) {
+                Ordering::Greater => drop(box_enter_goal_events.send_default()),
+                Ordering::Less => drop(box_leave_goal_events.send_default()),
                 _ => (),
             }
 

@@ -104,9 +104,9 @@ impl Board {
     pub fn redo_move(&mut self) {
         debug_assert!(!self.undone_actions.is_empty());
         let history = self.undone_actions.pop().unwrap();
-        let undone_movements = self.undone_actions.clone();
+        let undone_actions = self.undone_actions.clone();
         self.move_or_push(history.direction());
-        self.undone_actions = undone_movements;
+        self.undone_actions = undone_actions;
     }
 
     /// Checks if the level is solved.

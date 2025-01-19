@@ -46,20 +46,17 @@ pub fn spawn_lowerbound_marks(
         let alpha = lowerbound as f32 / max_lowerbound as f32;
         let color = BLUE * alpha + RED * (1.0 - alpha);
         commands.spawn((
+            Name::new("Lower bound mark"),
+            Sprite::from_color(
+                color.with_alpha(0.5),
+                Vec2::new(tile_size.x as f32, tile_size.y as f32),
+            ),
+            Transform::from_xyz(
+                position.x as f32 * tile_size.x as f32,
+                (board.level.map().dimensions().y - position.y) as f32 * tile_size.y as f32,
+                10.0,
+            ),
             StateScoped(AppState::AutoSolve),
-            SpriteBundle {
-                sprite: Sprite {
-                    color: color.with_alpha(0.5).into(),
-                    custom_size: Some(Vec2::new(tile_size.x as f32, tile_size.y as f32)),
-                    ..default()
-                },
-                transform: Transform::from_xyz(
-                    position.x as f32 * tile_size.x as f32,
-                    (board.level.map().dimensions().y - position.y) as f32 * tile_size.y as f32,
-                    10.0,
-                ),
-                ..default()
-            },
         ));
     }
 }
@@ -92,8 +89,8 @@ pub fn update_solver(
     match solver.search(timeout) {
         Ok(solution) => {
             let mut verify_board = board.clone();
-            for movement in &*solution {
-                verify_board.move_or_push(movement.direction());
+            for action in &*solution {
+                verify_board.move_or_push(action.direction());
             }
             assert!(verify_board.is_solved());
 
@@ -109,8 +106,8 @@ pub fn update_solver(
             );
             info!("    Solution: {}", solution.to_string());
 
-            for movement in &*solution {
-                player_move_unchecked(movement.direction(), &mut player_movement);
+            for action in &*solution {
+                player_move_unchecked(action.direction(), &mut player_movement);
             }
             next_state.set(AppState::Main);
             return;
@@ -125,18 +122,18 @@ pub fn update_solver(
             return;
         }
         Err(SolveError::Timeout) => {
-            let _ = stopwatch.tick(timer.elapsed());
+            stopwatch.tick(timer.elapsed());
         }
     }
     if let Some(best_state) = solver.best_state() {
         // println!(
         //     "lower bound: {:3}, moves: {:3}, pushes: {:3}",
         //     best_state.lower_bound(&solver),
-        //     best_state.movements.moves(),
-        //     best_state.movements.pushes()
+        //     best_state.actions.moves(),
+        //     best_state.actions.pushes()
         // );
-        for movement in &*best_state.movements {
-            board.move_or_push(movement.direction());
+        for action in &*best_state.actions {
+            board.move_or_push(action.direction());
         }
     }
 }

@@ -10,7 +10,7 @@ mod tests {
     #[cfg(not(debug_assertions))]
     use std::fs;
 
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     fn solve<R: RangeBounds<usize> + IntoIterator<Item = usize>>(
         levels: &[Level],
         range: R,
@@ -36,8 +36,8 @@ mod tests {
             let solution = solution.unwrap();
 
             let mut board = Board::with_level(level);
-            for movement in &*solution {
-                board.move_or_push(movement.direction());
+            for action in &*solution {
+                board.move_or_push(action.direction());
             }
             assert!(board.is_solved());
         }
