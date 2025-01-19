@@ -22,3 +22,14 @@ lower_bound_method = "MinimumMove"
 ```
 
 For `solver` related configuration options, please refer to [Solver](./solver.md).
+
+## Handling Rapid Inputs
+
+To handle rapid and continuous inputs, the game uses an input buffer. You can configure the size of this buffer by editing the `config.toml` file.
+
+```toml
+# Input buffer size for handling rapid inputs.
+input_buffer_size = 10
+```
+
+Increasing the buffer size can help in managing rapid inputs more effectively, but setting it too high may introduce input lag.
