@@ -47,11 +47,10 @@ mod tests {
     #[test]
     #[cfg(not(debug_assertions))]
     fn solve_microban_2() {
-        let levels = Level::load_from_string(
-            &fs::read_to_string("assets/levels/microban_II_135.xsb").unwrap(),
-        )
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        let levels =
+            Level::load_from_str(&fs::read_to_string("assets/levels/microban_II_135.xsb").unwrap())
+                .collect::<Result<Vec<_>, _>>()
+                .unwrap();
         assert!(
             solve(
                 &levels,
@@ -69,7 +68,7 @@ mod tests {
     #[cfg(not(debug_assertions))]
     fn solve_microban() {
         let levels =
-            Level::load_from_string(&fs::read_to_string("assets/levels/microban_155.xsb").unwrap())
+            Level::load_from_str(&fs::read_to_string("assets/levels/microban_155.xsb").unwrap())
                 .collect::<Result<Vec<_>, _>>()
                 .unwrap();
         assert!(
@@ -85,7 +84,7 @@ mod tests {
     #[test]
     #[cfg(not(debug_assertions))]
     fn solve_box_world() {
-        let levels = Level::load_from_string(
+        let levels = Level::load_from_str(
             &fs::read_to_string("assets/levels/box_world_100.xsb").unwrap(),
         )
         .collect::<Result<Vec<_>, _>>()

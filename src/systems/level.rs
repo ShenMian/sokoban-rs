@@ -18,7 +18,7 @@ pub fn setup_database(mut commands: Commands) {
             continue;
         }
         info!("  {:?}", path);
-        let levels: Vec<_> = Level::load_from_string(&fs::read_to_string(path).unwrap())
+        let levels: Vec<_> = Level::load_from_str(&fs::read_to_string(path).unwrap())
             .filter_map(Result::ok)
             .collect();
         database.import_levels(&levels);
@@ -164,7 +164,7 @@ pub fn auto_switch_to_next_unsolved_level(
 /// Imports levels from the system clipboard.
 pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Database) {
     let mut clipboard = Clipboard::new().unwrap();
-    match Level::load_from_string(&clipboard.get_text().unwrap()).collect::<Result<Vec<_>, _>>() {
+    match Level::load_from_str(&clipboard.get_text().unwrap()).collect::<Result<Vec<_>, _>>() {
         Ok(levels) => {
             if levels.is_empty() {
                 error!("failed to import any level from clipboard");
