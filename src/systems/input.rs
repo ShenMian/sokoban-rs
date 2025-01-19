@@ -428,7 +428,7 @@ pub fn file_drag_and_drop(
         if let FileDragAndDrop::DroppedFile { path_buf, .. } = event {
             let database = database.lock().unwrap();
             info!("Load levels from file {:?}", path_buf);
-            match Level::load_from_string(&fs::read_to_string(path_buf).unwrap())
+            match Level::load_from_str(&fs::read_to_string(path_buf).unwrap())
                 .collect::<Result<Vec<_>, _>>()
             {
                 Ok(levels) => {
