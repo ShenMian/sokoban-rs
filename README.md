@@ -4,44 +4,38 @@ A sokoban with solver.
 
 ## Features
 
-- [**Solver**](docs/solver.md):
-  The solver can automatically solve simple levels.
+- **Solver**: The solver can automatically solve simple levels. [More details](docs/solver.md).
 
   <p align="center"><img src="./docs/assets/auto_solve.gif" width=50%></p>
 
-- [**Auto move**](docs/auto_move.md):
-  Supports full mouse control for automatic player movement and crate pushing.
+- **Auto move**: Supports full mouse control for automatic player movement and box pushing. [More details](docs/auto_move.md).
 
-  <p align="center"><img src="./docs/assets/auto_crate_push.gif" width=50%></p>
+  <p align="center"><img src="./docs/assets/auto_box_push.gif" width=50%></p>
 
-- [**Level management**](docs/level_management.md):
-  Levels and solutions are stored in the database.
+- **Level management**: Levels and solutions are stored in a database. [More details](docs/level_management.md).
+- **Customization**: Options can be customized via a configuration file. [More details](docs/customization.md).
+- **Map viewing**: Supports moving and zooming the map. When switching levels, the zoom will automatically adjust to fit the window size.
+- **Player character animation**: The player character has smooth movement and animations in different directions.
+- **Front-end and back-end separation**: Backend code (such as solvers) is decoupled from the frontend (such as Bevy).
 
-- [**Customizing**](docs/customizing.md):
-  Options can be customized via configuration file.
+## Acknowledgements
 
-- **Map viewing**:
-  Supports moving and zooming the map. When switching levels, the zoom will be automatically adjusted to fit the window size.
-
-- **Player character animation**:
-  Player character has smooth movement and movement animations in different directions.
-
-- **Front-end and back-end separation**:
-  Backend code (such as solvers) does not depend on frontend (such as Bevy).
+- anian <<anianwu@gmail.com>>: For providing comprehensive answers to numerous inquiries regarding Sokoban and offering insightful recommendations.
+- [@PaperPlaneLSY](https://github.com/PaperPlaneLSY): For testing, improving the skin, and providing additional support.
 
 ## Keymap
 
 ### Mouse
 
-| Key                                   | Action                                   |
-| ------------------------------------- | ---------------------------------------- |
-| Click `Left` on player reachable area | Move the character to this position      |
-| Click `Left` on a crate               | Show the pushable area of the crate      |
-| Click `Left` on crate pushable area   | Push the selected crate to this position |
-| Hold `Right` and drag                 | Adjust viewport                          |
-| Click `Button 4`                      | Undo the last push                       |
-| Click `Button 5`                      | Redo the last push                       |
-| Scroll `Middle`                       | Zoom in/out                              |
+| Key                                   | Action                                 |
+| ------------------------------------- | -------------------------------------- |
+| Click `Left` on player reachable area | Move the character to this position    |
+| Click `Left` on a box                 | Show the pushable area of the box      |
+| Click `Left` on box pushable area     | Push the selected box to this position |
+| Hold `Right` and drag                 | Adjust viewport                        |
+| Click `Button 4`                      | Undo the last push                     |
+| Click `Button 5`                      | Redo the last push                     |
+| Scroll `Middle`                       | Zoom in/out                            |
 
 ### Keyboard
 
@@ -82,4 +76,4 @@ A sokoban with solver.
 | `X`/`Square`   | Toggle instant move[^1]           |
 | `Y`/`Triangle` | Toggle automatic solution         |
 
-[^1]: Turn off character and crates movement animations.
+[^1]: Disables character and box movement animations.

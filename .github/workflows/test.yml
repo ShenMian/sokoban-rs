@@ -2,20 +2,20 @@ name: Test
 
 on: [pull_request, push]
 
-env: 
+env:
   CARGO_TERM_COLOR: always
 
-jobs: 
-  test: 
+jobs:
+  test:
     strategy:
       matrix:
         os: [windows-latest, ubuntu-latest, macos-latest]
     runs-on: ${{ matrix.os }}
 
-    steps: 
+    steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.cargo/bin/
@@ -25,9 +25,7 @@ jobs:
             target/
           key: cargo-${{ runner.os }}-${{ hashFiles('**/Cargo.lock') }}
 
-      - uses: dtolnay/rust-toolchain@master
-        with:
-          toolchain: stable
+      - uses: dtolnay/rust-toolchain@stable
 
       - name: Install alsa and udev
         run: sudo apt-get update; sudo apt-get install --no-install-recommends libasound2-dev libudev-dev
@@ -36,6 +34,9 @@ jobs:
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
 
+      - name: Clippy
+        run: cargo clippy --verbose -- -D warnings
+
       - name: Test
         run: cargo test --release -- --test-threads 2
 
@@ -43,7 +44,7 @@ jobs:
         run: cargo llvm-cov --all-features --no-cfg-coverage --workspace --lcov --output-path lcov.info
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with: 
+        uses: codecov/codecov-action@v4
+        with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: lcov.info

@@ -1,100 +1,107 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::*, prelude::*};
 use leafwing_input_manager::prelude::*;
 
-use crate::components::*;
-use crate::movement::Movements;
-use crate::resources::*;
-use crate::Action;
-
-/// Sets up the version information text on the screen.
-pub fn setup_version_info(mut commands: Commands) {
-    const ALPHA: f32 = 0.8;
-    commands.spawn(
-        TextBundle::from_sections([TextSection::new(
-            "version: ".to_string() + env!("CARGO_PKG_VERSION"),
-            TextStyle {
-                font_size: 14.0,
-                color: Color::GRAY.with_a(ALPHA),
-                ..default()
-            },
-        )])
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            bottom: Val::Px(5.0),
-            right: Val::Px(5.0),
-            ..default()
-        }),
-    );
-}
+use crate::{components::*, resources::*, Action};
 
 /// Sets up the heads-up display (HUD) on the screen.
 pub fn setup_hud(mut commands: Commands) {
     const ALPHA: f32 = 0.8;
-    let text_section = move |color, value: &str| {
-        TextSection::new(
-            value,
-            TextStyle {
-                font_size: 18.0,
-                color,
+    commands
+        .spawn((
+            Name::new("HUD"),
+            Hud,
+            Node {
+                position_type: PositionType::Absolute,
+                top: Val::Px(5.0),
+                right: Val::Px(5.0),
                 ..default()
             },
-        )
-    };
-    commands.spawn((
-        HUD,
-        TextBundle::from_sections([
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Level : "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Moves : "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Pushes: "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Best moves : "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-            text_section(Color::SEA_GREEN.with_a(ALPHA), "Best pushes: "),
-            text_section(Color::GOLD.with_a(ALPHA), ""),
-        ])
-        .with_style(Style {
-            position_type: PositionType::Absolute,
-            top: Val::Px(5.0),
-            right: Val::Px(5.0),
-            ..default()
-        }),
-    ));
+        ))
+        .with_child((
+            TextSpan::new("Level : "),
+            TextFont::from_font_size(14.0),
+            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new(""),
+            TextFont::from_font_size(14.0),
+            TextColor(GOLD.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new("Moves : "),
+            TextFont::from_font_size(14.0),
+            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new(""),
+            TextFont::from_font_size(14.0),
+            TextColor(GOLD.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new("Pushes: "),
+            TextFont::from_font_size(14.0),
+            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new(""),
+            TextFont::from_font_size(14.0),
+            TextColor(GOLD.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new("Best moves : "),
+            TextFont::from_font_size(14.0),
+            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new(""),
+            TextFont::from_font_size(14.0),
+            TextColor(GOLD.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new("Best pushes: "),
+            TextFont::from_font_size(14.0),
+            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+        ))
+        .with_child((
+            TextSpan::new(""),
+            TextFont::from_font_size(14.0),
+            TextColor(GOLD.with_alpha(ALPHA).into()),
+        ));
 }
 
 /// Updates the heads-up display (HUD).
 pub fn update_hud(
-    mut hud: Query<&mut Text, With<HUD>>,
+    mut hud: Query<Entity, With<Hud>>,
+    mut writer: TextUiWriter,
     board: Query<&Board>,
     level_id: Res<LevelId>,
     database: Res<Database>,
 ) {
-    let mut hud = hud.single_mut();
+    let hud = hud.single_mut();
     let board = &board.single().board;
 
     if level_id.is_changed() {
-        hud.sections[1].value = format!("#{}\n", **level_id);
+        *writer.text(hud, 1) = format!("#{}\n", level_id.0);
 
         let database = database.lock().unwrap();
-        hud.sections[7].value = format!(
+        *writer.text(hud, 7) = format!(
             "{}\n",
             database
-                .best_move_solution(**level_id)
-                .unwrap_or(Movements::new())
-                .move_count()
+                .best_move_solution(level_id.0)
+                .unwrap_or_default()
+                .moves()
         );
-        hud.sections[9].value = format!(
+        *writer.text(hud, 9) = format!(
             "{}\n",
             database
-                .best_push_solution(**level_id)
-                .unwrap_or(Movements::new())
-                .push_count()
+                .best_push_solution(level_id.0)
+                .unwrap_or_default()
+                .pushes()
         );
     }
 
-    hud.sections[3].value = format!("{}\n", board.movements().move_count());
-    hud.sections[5].value = format!("{}\n", board.movements().push_count());
+    *writer.text(hud, 3) = format!("{}\n", board.actions().moves());
+    *writer.text(hud, 5) = format!("{}\n", board.actions().pushes());
 }
 
 /// Sets up buttons on the screen.
@@ -102,44 +109,40 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
     let button = |parent: &mut ChildBuilder, action, img_path| {
         parent
             .spawn((
+                Name::new("Button"),
                 action,
-                ButtonBundle {
-                    style: Style {
-                        width: Val::Px(64.0),
-                        height: Val::Px(64.0),
-                        justify_content: JustifyContent::Center,
-                        align_items: AlignItems::Center,
-                        border: UiRect::all(Val::Px(5.0)),
-                        ..default()
-                    },
-                    border_color: Color::NONE.into(),
-                    background_color: BUTTON_NORMAL_COLOR.into(),
+                Button,
+                Node {
+                    width: Val::Px(64.0),
+                    height: Val::Px(64.0),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
+                    border: UiRect::all(Val::Px(3.0)),
                     ..default()
                 },
+                BorderColor(Color::NONE),
             ))
             .with_children(|parent| {
-                parent.spawn(ImageBundle {
-                    style: Style {
-                        width: Val::Percent(100.0),
-                        height: Val::Percent(100.0),
+                parent.spawn((
+                    ImageNode::new(asset_server.load(img_path)),
+                    Node {
+                        width: Val::Percent(90.0),
+                        height: Val::Percent(90.0),
                         ..default()
                     },
-                    image: asset_server.load(img_path).into(),
-                    ..default()
-                });
+                ));
             });
     };
     commands
-        .spawn(NodeBundle {
-            style: Style {
+        .spawn((
+            Node {
                 position_type: PositionType::Absolute,
                 right: Val::Px(20.0),
                 bottom: Val::Px(20.0),
                 ..default()
             },
-            background_color: Color::NONE.into(),
-            ..default()
-        })
+            BackgroundColor(Color::NONE),
+        ))
         .with_children(|parent| {
             button(
                 parent,
@@ -159,7 +162,7 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
 /// Updates the state of buttons based on config.
 pub fn update_button_state(
     mut buttons: Query<(&Action, &Children), With<Button>>,
-    mut image: Query<&mut UiImage>,
+    mut image: Query<&mut ImageNode>,
     config: Res<Config>,
     asset_server: Res<AssetServer>,
 ) {
@@ -169,18 +172,14 @@ pub fn update_button_state(
     for (button, children) in &mut buttons {
         if *button == Action::ToggleInstantMove {
             let mut image = image.get_mut(children[0]).unwrap();
-            image.texture = if config.instant_move {
-                asset_server.load("textures/instant_move_on.png").into()
+            image.image = if config.instant_move {
+                asset_server.load("textures/instant_move_on.png")
             } else {
-                asset_server.load("textures/instant_move_off.png").into()
+                asset_server.load("textures/instant_move_off.png")
             };
         }
     }
 }
-
-const BUTTON_NORMAL_COLOR: Color = Color::rgba(0.7, 0.7, 0.7, 0.8);
-const BUTTON_HOVERED_COLOR: Color = Color::rgba(0.55, 0.55, 0.55, 0.8);
-const BUTTON_PRESSED_COLOR: Color = Color::rgba(0.35, 0.75, 0.35, 0.8);
 
 /// Applies visual effects to buttons based on user interaction.
 pub fn button_visual_effect(
@@ -189,12 +188,17 @@ pub fn button_visual_effect(
         (Changed<Interaction>, With<Button>),
     >,
 ) {
-    for (interaction, mut color) in &mut interaction_query {
-        match *interaction {
-            Interaction::Pressed => *color = BUTTON_PRESSED_COLOR.into(),
-            Interaction::Hovered => *color = BUTTON_HOVERED_COLOR.into(),
-            Interaction::None => *color = BUTTON_NORMAL_COLOR.into(),
+    const BUTTON_NORMAL_COLOR: Color = Color::srgba(0.7, 0.7, 0.7, 0.8);
+    const BUTTON_HOVERED_COLOR: Color = Color::srgba(0.55, 0.55, 0.55, 0.8);
+    const BUTTON_PRESSED_COLOR: Color = Color::srgba(0.35, 0.75, 0.35, 0.8);
+
+    for (interaction, mut background_color) in &mut interaction_query {
+        *background_color = match *interaction {
+            Interaction::Pressed => BUTTON_PRESSED_COLOR,
+            Interaction::Hovered => BUTTON_HOVERED_COLOR,
+            Interaction::None => BUTTON_NORMAL_COLOR,
         }
+        .into();
     }
 }
 
@@ -205,7 +209,7 @@ pub fn button_input_to_action(
 ) {
     for (interaction, action) in &buttons {
         if *interaction == Interaction::Pressed {
-            action_state.press(*action);
+            action_state.press(action);
         }
     }
 }

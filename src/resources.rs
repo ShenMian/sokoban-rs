@@ -1,15 +1,14 @@
-use bevy::prelude::*;
-use bevy::time::Stopwatch;
+use bevy::{prelude::*, time::Stopwatch};
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
+use soukoban::{direction::Direction, Level, Map};
 
-use crate::direction::Direction;
-use crate::level::PushState;
-use crate::solver::solver::*;
-use crate::{database, Level};
+use crate::{board::Board, database, solve::solver::*, utils::PushState};
 
-use std::collections::{HashMap, VecDeque};
-use std::sync::Mutex;
+use std::{
+    collections::{HashMap, VecDeque},
+    sync::Mutex,
+};
 
 #[derive(Resource, Serialize, Deserialize)]
 pub struct Config {
@@ -70,8 +69,8 @@ impl PlayerMovement {
 pub enum AutoMoveState {
     #[default]
     Player,
-    Crate {
-        crate_position: Vector2<i32>,
+    Box {
+        position: Vector2<i32>,
         paths: HashMap<PushState, Vec<Vector2<i32>>>,
     },
 }
@@ -79,20 +78,22 @@ pub enum AutoMoveState {
 #[derive(Resource)]
 pub struct SolverState {
     pub solver: Mutex<Solver>,
-    pub level: Level,
     pub stopwatch: Stopwatch,
+    pub origin_board: Board,
 }
 
 impl Default for SolverState {
     fn default() -> Self {
         Self {
             solver: Mutex::new(Solver::new(
-                Level::empty(),
+                Level::from_map(Map::with_dimensions(Vector2::new(0, 0))),
                 Strategy::default(),
                 LowerBoundMethod::default(),
             )),
-            level: Level::empty(),
             stopwatch: Stopwatch::new(),
+            origin_board: Board::with_level(Level::from_map(Map::with_dimensions(Vector2::new(
+                0, 0,
+            )))),
         }
     }
 }

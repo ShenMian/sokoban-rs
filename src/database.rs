@@ -1,13 +1,11 @@
-use nalgebra::Vector2;
+use std::{
+    hash::{DefaultHasher, Hash, Hasher},
+    path::Path,
+    str::FromStr,
+};
+
 use rusqlite::Connection;
-use siphasher::sip::SipHasher24;
-
-use crate::level::Level;
-use crate::movement::Movements;
-
-use std::collections::HashMap;
-use std::hash::{Hash, Hasher};
-use std::path::Path;
+use soukoban::{Actions, Level};
 
 pub struct Database {
     connection: Connection,
@@ -22,7 +20,7 @@ impl Database {
     }
 
     /// Creates a new Database instance with an in-memory connection.
-    #[allow(dead_code)]
+    #[expect(dead_code)]
     pub fn from_memory() -> Self {
         Self {
             connection: Connection::open_in_memory().expect("failed to open database"),
@@ -38,10 +36,10 @@ impl Database {
                 author   TEXT,
                 comments TEXT,
                 map      TEXT NOT NULL,
-                width    INTEGER NOT NULL,
-                height   INTEGER NOT NULL,
+                width    INTEGER NOT NULL CHECK(width > 0),
+                height   INTEGER NOT NULL CHECK(width > 0),
                 hash     INTEGER NOT NULL UNIQUE,
-                date     DATE NOT NULL
+                datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
         ";
         const CREATE_LEVEL_INDICES: &str =
@@ -49,12 +47,12 @@ impl Database {
         const CREATE_SNAPSHOT_TABLE: &str = "
             CREATE TABLE IF NOT EXISTS tb_snapshot (
                 level_id  INTEGER,
-                movements TEXT,
-                datetime  DATETIME NOT NULL,
+                actions   TEXT,
+                datetime  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 best_move BOOLEAN NOT NULL DEFAULT 0 CHECK (best_move IN (0, 1)),
                 best_push BOOLEAN NOT NULL DEFAULT 0 CHECK (best_push IN (0, 1)),
                 PRIMARY KEY (level_id, best_move, best_push),
-                FOREIGN KEY (level_id) REFERENCES tb_level(id)
+                FOREIGN KEY (level_id) REFERENCES tb_level(id) ON DELETE CASCADE
             )
         ";
 
@@ -74,28 +72,25 @@ impl Database {
 
     /// Imports a single level into the database.
     pub fn import_level(&self, level: &Level) {
-        let title = level.metadata.get("title");
-        let author = level.metadata.get("author");
-        let comments = level.metadata.get("comments");
+        let title = level.metadata().get("title");
+        let author = level.metadata().get("author");
+        let comments = level.metadata().get("comments");
         let hash = Database::normalized_hash(level);
 
         let _ = self.connection.execute(
-            "INSERT INTO tb_level(title, author, comments, map, width, height, hash, date) VALUES (?, ?, ?, ?, ?, ?, ?, DATE('now'))",
-            (title, author, comments, level.export_map(), level.dimensions().x, level.dimensions().y, hash),
+            "INSERT INTO tb_level(title, author, comments, map, width, height, hash) VALUES (?, ?, ?, ?, ?, ?, ?)",
+            (title, author, comments, level.map().to_string(), level.map().dimensions().x, level.map().dimensions().y, hash),
         );
     }
 
     /// Returns the level ID by the provided level.
     pub fn get_level_id(&self, level: &Level) -> Option<u64> {
         let hash = Database::normalized_hash(level);
-        match self
-            .connection
+        self.connection
             .query_row("SELECT id FROM tb_level WHERE hash = ?", [hash], |row| {
                 row.get(0)
-            }) {
-            Ok(level_id) => level_id,
-            Err(_) => None,
-        }
+            })
+            .ok()
     }
 
     /// Returns a level based by ID.
@@ -109,24 +104,18 @@ impl Database {
         let mut rows = statement.query([id]).unwrap();
         let row = rows.next().unwrap()?;
 
-        let map = row
-            .get::<_, String>(0)
-            .unwrap()
-            .split('\n')
-            .map(|x| x.to_string())
-            .collect();
-        let size = Vector2::new(row.get(1).unwrap(), row.get(2).unwrap());
-        let mut metadata = HashMap::new();
-        if let Ok(title) = row.get(3) {
-            metadata.insert("title".to_string(), title);
+        let map = row.get::<_, String>(0).unwrap();
+        let mut metadata = String::new();
+        if let Ok(title) = row.get::<_, String>(3) {
+            metadata.push_str(&format!("title: {title}\n"));
         }
-        if let Ok(author) = row.get(4) {
-            metadata.insert("author".to_string(), author);
+        if let Ok(author) = row.get::<_, String>(4) {
+            metadata.push_str(&format!("author: {author}\n"));
         }
-        if let Ok(comments) = row.get(5) {
-            metadata.insert("comments".to_string(), comments);
+        if let Ok(comments) = row.get::<_, String>(5) {
+            metadata.push_str(&format!("comment:\n{comments}\ncomment-end:\n"));
         }
-        let level = Level::new(map, size, metadata).unwrap();
+        let level = Level::from_str(&(map + &metadata)).unwrap();
         Some(level)
     }
 
@@ -152,37 +141,37 @@ impl Database {
         Some(row.get(0).unwrap())
     }
 
-    pub fn best_move_solution(&self, level_id: u64) -> Option<Movements> {
+    pub fn best_move_solution(&self, level_id: u64) -> Option<Actions> {
         let mut statement = self
             .connection
-            .prepare("SELECT movements FROM tb_snapshot WHERE level_id = ? AND best_move = 1")
+            .prepare("SELECT actions FROM tb_snapshot WHERE level_id = ? AND best_move = 1")
             .unwrap();
         let mut rows = statement.query([level_id]).unwrap();
         let row = rows.next().unwrap()?;
         let best_move: String = row.get(0).unwrap();
-        Some(Movements::from_lurd(&best_move))
+        Some(Actions::from_str(&best_move).unwrap())
     }
 
-    pub fn best_push_solution(&self, level_id: u64) -> Option<Movements> {
+    pub fn best_push_solution(&self, level_id: u64) -> Option<Actions> {
         let mut statement = self
             .connection
-            .prepare("SELECT movements FROM tb_snapshot WHERE level_id = ? AND best_push = 1")
+            .prepare("SELECT actions FROM tb_snapshot WHERE level_id = ? AND best_push = 1")
             .unwrap();
         let mut rows = statement.query([level_id]).unwrap();
         let row = rows.next().unwrap()?;
         let best_push: String = row.get(0).unwrap();
-        Some(Movements::from_lurd(&best_push))
+        Some(Actions::from_str(&best_push).unwrap())
     }
 
-    pub fn update_solution(&self, level_id: u64, solution: &Movements) {
-        let lurd: String = solution.lurd();
+    pub fn update_solution(&self, level_id: u64, solution: &Actions) {
+        let lurd = solution.to_string();
 
         if let Some(best_move_solution) = self.best_move_solution(level_id) {
             dbg!();
-            if solution.move_count() < best_move_solution.move_count() {
+            if solution.moves() < best_move_solution.moves() {
                 self.connection
                     .execute(
-                        "UPDATE tb_snapshot SET movements = ? WHERE level_id = ?",
+                        "UPDATE tb_snapshot SET actions = ? WHERE level_id = ?",
                         (lurd.clone(), level_id),
                     )
                     .unwrap();
@@ -190,7 +179,7 @@ impl Database {
         } else {
             self.connection
                 .execute(
-                    "INSERT INTO tb_snapshot (level_id, movements, best_move, datetime) VALUES (?, ?, 1, DATE('now'))",
+                    "INSERT INTO tb_snapshot (level_id, actions, best_move) VALUES (?, ?, 1)",
                     (level_id, lurd.clone()),
                 )
                 .unwrap();
@@ -198,10 +187,10 @@ impl Database {
 
         if let Some(best_push_solution) = self.best_push_solution(level_id) {
             dbg!();
-            if solution.push_count() < best_push_solution.push_count() {
+            if solution.pushes() < best_push_solution.pushes() {
                 self.connection
                     .execute(
-                        "UPDATE tb_snapshot SET movements = ? WHERE level_id = ?",
+                        "UPDATE tb_snapshot SET actions = ? WHERE level_id = ?",
                         (lurd.clone(), level_id),
                     )
                     .unwrap();
@@ -209,7 +198,7 @@ impl Database {
         } else {
             self.connection
                 .execute(
-                    "INSERT INTO tb_snapshot (level_id, movements, best_push, datetime) VALUES (?, ?, 1, DATE('now'))",
+                    "INSERT INTO tb_snapshot (level_id, actions, best_push) VALUES (?, ?, 1)",
                     (level_id, lurd.clone()),
                 )
                 .unwrap();
@@ -230,33 +219,33 @@ impl Database {
             .unwrap()
     }
 
-    pub fn snapshot(&self, level_id: u64) -> Option<Movements> {
+    pub fn snapshot(&self, level_id: u64) -> Option<Actions> {
         let lurd: String = self
             .connection
             .query_row(
-                "SELECT movements FROM tb_snapshot WHERE level_id = ?",
+                "SELECT actions FROM tb_snapshot WHERE level_id = ?",
                 [level_id],
                 |row| row.get(0),
             )
-            .unwrap_or_else(|_| return None)?;
-        Some(Movements::from_lurd(&lurd))
+            .ok()?;
+        Some(Actions::from_str(&lurd).unwrap())
     }
 
-    pub fn update_snapshot(&self, level_id: u64, movements: &Movements) {
+    pub fn update_snapshot(&self, level_id: u64, actions: &Actions) {
         self.connection
             .execute(
-                "INSERT OR REPLACE INTO tb_snapshot (level_id, movements, datetime) VALUES (?, ?, DATE('now'))",
-                (level_id, movements.lurd()),
+                "INSERT OR REPLACE INTO tb_snapshot (level_id, actions, datetime) VALUES (?, ?, DATE('now'))",
+                (level_id, actions.to_string()),
             )
             .unwrap();
     }
 
     /// Computes a normalized hash for the provided level.
     fn normalized_hash(level: &Level) -> String {
-        let mut hasher = SipHasher24::new();
+        let mut hasher = DefaultHasher::new();
         let mut normalized_level = level.clone();
-        normalized_level.normalize();
-        normalized_level.hash(&mut hasher);
+        normalized_level.map_mut().normalize();
+        normalized_level.map_mut().hash(&mut hasher);
         let hash = hasher.finish();
         // Must convert the hash to a string first, otherwise rusqlite may throw an error.
         hash.to_string()

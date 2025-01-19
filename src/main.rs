@@ -1,69 +1,33 @@
 // #![feature(test)]
+#![allow(clippy::op_ref)]
 
 mod board;
 mod components;
 mod database;
-mod direction;
 mod events;
-mod input_action_map;
-mod level;
-mod movement;
+mod input_map;
 mod plugins;
 mod resources;
-mod solver;
+mod solve;
 mod state;
 mod systems;
 mod test;
+mod utils;
+
+use events::*;
+use input_map::*;
+use leafwing_input_manager::{action_diff::ActionDiffEvent, prelude::*};
+use plugins::{
+    auto_move::AutoMovePlugin, auto_solve::AutoSolvePlugin, camera::CameraPlugin,
+    config::ConfigPlugin, performance_matrix, ui::UiPlugin, version_information,
+};
+use resources::*;
+use state::*;
+use systems::{audio::*, input::*, level::*, render::*, ui::*};
+use utils::*;
 
 use bevy::prelude::*;
 use bevy_kira_audio::prelude::*;
-use events::*;
-use input_action_map::*;
-use leafwing_input_manager::prelude::*;
-use level::*;
-use plugins::performance_matrix::*;
-use resources::*;
-use state::*;
-use std::fs;
-use std::path::Path;
-use systems::audio::*;
-use systems::auto_move::*;
-use systems::auto_solve::*;
-use systems::input::*;
-use systems::level::*;
-use systems::render::*;
-use systems::ui::*;
-
-#[allow(unused_imports)]
-use bevy_editor_pls::prelude::*;
-
-const CONFIG_FILE_PATH: &'static str = "config.toml";
-
-fn load_config() -> Config {
-    if !Path::new(CONFIG_FILE_PATH).is_file() {
-        let default_config_toml = toml::to_string(&Config::default()).unwrap();
-        fs::write(CONFIG_FILE_PATH, default_config_toml).unwrap();
-    }
-    let config_toml = fs::read_to_string(CONFIG_FILE_PATH).unwrap();
-    let config: Config = toml::from_str(config_toml.as_str()).unwrap();
-    config
-}
-
-fn load_input_action_map() -> InputMap<Action> {
-    const KEYMAP_FILE_PATH: &'static str = "keymap.toml";
-    if !Path::new(KEYMAP_FILE_PATH).is_file() {
-        let default_keymap_toml = toml::to_string(&default_input_action_map()).unwrap();
-        fs::write(KEYMAP_FILE_PATH, default_keymap_toml).unwrap();
-    }
-    let keymap_toml = fs::read_to_string(KEYMAP_FILE_PATH).unwrap();
-    let input_action_map: InputMap<Action> = toml::from_str(keymap_toml.as_str()).unwrap();
-    input_action_map
-}
-
-fn save_config(config: Res<Config>) {
-    let config_toml = toml::to_string(&*config).unwrap();
-    fs::write(CONFIG_FILE_PATH, config_toml).unwrap();
-}
 
 #[bevy_main]
 fn main() {
@@ -78,47 +42,33 @@ fn main() {
             ..default()
         }),
         AudioPlugin,
-        PerformanceMatrixPlugin,
-        InputManagerPlugin::<Action>::default(),
-        // EditorPlugin::default(),
     ))
-    .add_state::<AppState>()
-    .add_systems(PreStartup, (setup_camera, setup_database))
-    .add_systems(
-        Startup,
-        (
-            set_windows_icon,
-            setup_version_info,
-            setup_button,
-            setup_hud,
-            setup_level,
-        ),
-    );
+    .add_plugins((
+        performance_matrix::plugin,
+        version_information::plugin,
+        InputManagerPlugin::<Action>::default(),
+    ))
+    .init_state::<AppState>()
+    .enable_state_scoped_entities::<AppState>();
 
+    app.add_systems(PreStartup, (setup_camera, setup_database));
     app.add_systems(
-        Update,
-        (
-            button_visual_effect,
-            update_button_state,
-            handle_audio_event,
-            adjust_viewport,
-            save_config.run_if(resource_changed_or_removed::<Config>()),
-            (button_input_to_action, handle_actions).chain(),
-        ),
-    )
-    .add_systems(FixedUpdate, (smooth_camera_motion, animate_player));
+        Startup,
+        (set_windows_icon, setup_button, setup_hud, setup_level),
+    );
+    app.add_systems(Update, handle_audio_event);
+    app.add_systems(FixedUpdate, animate_player);
 
     app.add_systems(
         Update,
         (
             (
                 mouse_input,
-                auto_switch_to_next_unsolved_level.run_if(on_event::<LevelSolved>()),
-                spawn_board.run_if(resource_changed_or_removed::<LevelId>()),
+                auto_switch_to_next_unsolved_level.run_if(on_event::<LevelSolved>),
+                spawn_board.run_if(resource_changed_or_removed::<LevelId>),
             )
                 .chain(),
-            update_grid_position_from_board.run_if(on_event::<UpdateGridPositionEvent>()),
-            update_hud,
+            update_grid_position_from_board.run_if(on_event::<UpdateGridPositionEvent>),
             file_drag_and_drop,
         )
             .run_if(in_state(AppState::Main)),
@@ -128,51 +78,20 @@ fn main() {
         (handle_player_movement, smooth_tile_motion).run_if(in_state(AppState::Main)),
     );
 
-    app.add_systems(
-        OnEnter(AppState::AutoSolve),
-        (
-            (load_solver, spawn_lowerbound_marks).chain(),
-            clear_action_state,
-        ),
-    )
-    .add_systems(
-        Update,
-        (
-            update_solver,
-            update_tile_grid_position,
-            update_tile_translation,
-        )
-            .run_if(in_state(AppState::AutoSolve)),
-    )
-    .add_systems(
-        OnExit(AppState::AutoSolve),
-        (
-            reset_board,
-            update_tile_grid_position,
-            update_tile_translation,
-            unload_solver,
-            despawn_lowerbound_marks,
-        )
-            .chain(),
-    )
-    .insert_resource(SolverState::default());
+    app.add_plugins((
+        ConfigPlugin,
+        UiPlugin,
+        CameraPlugin,
+        AutoSolvePlugin,
+        AutoMovePlugin,
+    ));
 
-    app.add_systems(OnEnter(AppState::AutoMove), spawn_auto_move_marks)
-        .add_systems(Update, mouse_input.run_if(in_state(AppState::AutoMove)))
-        .add_systems(OnExit(AppState::AutoMove), despawn_auto_move_marks);
-
-    let config = load_config();
-    let player_movement = PlayerMovement::new(config.player_move_speed);
-    app.insert_resource(config)
-        .insert_resource(player_movement)
-        .insert_resource(AutoMoveState::default());
-
-    let input_action_map = load_input_action_map();
     app.init_resource::<ActionState<Action>>()
-        .insert_resource(input_action_map);
+        .insert_resource(default_input_map())
+        .add_event::<ActionDiffEvent<Action>>();
 
-    app.add_event::<CrateEnterTarget>()
-        .add_event::<CrateLeaveTarget>()
+    app.add_event::<BoxEnterGoal>()
+        .add_event::<BoxLeaveGoal>()
         .add_event::<LevelSolved>()
         .add_event::<UpdateGridPositionEvent>();
 

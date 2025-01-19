@@ -7,25 +7,25 @@
 | Wall             | `#`         |
 | Player           | `@`         |
 | Player on target | `+`         |
-| Crate            | `$`         |
-| Crate on target  | `*`         |
+| Box              | `$`         |
+| Box on target    | `*`         |
 | Target           | `.`         |
-| Floor            | ` `/`-`/`_` |
+| Floor            | ``/`-`/`_` |
 
 ## Import
 
-Supports importing levels in XSB format (support run-length encoding) from files or system clipboard:
+Supports importing levels in XSB format (including run-length encoding) from files or the system clipboard:
 
-- Import from files: The user can drag single or multiple level files in XSB format into the window.
-- Import from clipboard: If some levels in XSB format is already in the clipboard, it can be imported using the input action.
+- Import from files: Users can drag single or multiple level files in XSB format into the window.
+- Import from clipboard: If levels in XSB format are already in the clipboard, they can be imported using the input action.
 
-The levels will first be standardized to prevent repeated import of the same or similar levels. The standardized levels are only used for deduplication, and the final imported levels are not standardized.
+Levels are first standardized to prevent repeated imports of the same or similar levels. The standardized levels are used only for deduplication, and the final imported levels are not standardized.
 
-Levels that meet the following conditions are considered similar:
+Levels are considered similar if they meet the following conditions:
 
-- The starting positions of the player characters are different, but in the same closed area.
+- The starting positions of the player characters are different but within the same closed area.
 - After rotation and inversion.
-- The difference is only in the decorations that are inaccessible to the character. These decorations can make the level more beautiful, but do not affect the solution of the level.
+- The difference is only in decorations that are inaccessible to the character. While these decorations may enhance the appearance of the level, they do not affect the level's solution.
 
 ## Export
 

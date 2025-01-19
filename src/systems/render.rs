@@ -1,19 +1,16 @@
 use benimator::{Animation, FrameRate};
-use bevy::prelude::*;
-use bevy::winit::WinitWindows;
+use bevy::{prelude::*, window::WindowResized, winit::WinitWindows};
+use nalgebra::Vector2;
+use soukoban::{direction::Direction, Level};
 
-use crate::components::*;
-use crate::direction::Direction;
-use crate::events::*;
-use crate::resources::*;
+use crate::{components::*, events::*, resources::*};
 
-use std::collections::HashSet;
-use std::time::Duration;
+use std::{cmp::Ordering, collections::HashSet, time::Duration};
 
 /// Sets the window icon for all windows
 pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
     let (icon_rgba, icon_width, icon_height) = {
-        let image = image::open("assets/textures/crate.png")
+        let image = image::open("assets/textures/box.png")
             .expect("failed to open icon path")
             .into_rgba8();
         let (width, height) = image.dimensions();
@@ -28,12 +25,12 @@ pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
 
 /// Sets up the main 2D camera.
 pub fn setup_camera(mut commands: Commands) {
-    commands.spawn((Camera2dBundle::default(), MainCamera::default()));
+    commands.spawn((Name::new("Camera"), Camera2d, MainCamera::default()));
 }
 
 /// Animates the player character based on the player's movement and orientation.
 pub fn animate_player(
-    mut player: Query<(&mut AnimationState, &mut TextureAtlasSprite), With<Player>>,
+    mut player: Query<(&mut AnimationState, &mut Sprite), With<Player>>,
     mut board: Query<&mut Board>,
     time: Res<Time>,
     player_movement: Res<PlayerMovement>,
@@ -55,37 +52,36 @@ pub fn animate_player(
     let move_left = Animation::from_indices(15..=15 + 2, FrameRate::from_fps(6.0));
     let move_right = Animation::from_indices(12..=12 + 2, FrameRate::from_fps(6.0));
 
-    let animation;
-    if player_movement.directions.is_empty() {
-        animation = match player_orientation {
+    let animation = if player_movement.directions.is_empty() {
+        match player_orientation {
             Direction::Up => face_up,
             Direction::Right => face_right,
             Direction::Down => face_down,
             Direction::Left => face_left,
-        };
+        }
     } else {
-        animation = match player_orientation {
+        match player_orientation {
             Direction::Up => move_up,
             Direction::Right => move_right,
             Direction::Down => move_down,
             Direction::Left => move_left,
-        };
-    }
+        }
+    };
 
     animation_state.update(&animation, time.delta());
-    sprite.index = animation_state.frame_index();
+    sprite.texture_atlas.as_mut().unwrap().index = animation_state.frame_index();
 }
 
-/// Handles player movement and interacts with crates on the board.
+/// Handles player movement and interacts with boxes on the board.
 pub fn handle_player_movement(
     mut player: Query<&mut GridPosition, With<Player>>,
-    mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
+    mut boxes: Query<&mut GridPosition, (With<Box>, Without<Player>)>,
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
     config: Res<Config>,
-    mut crate_enter_target_events: EventWriter<CrateEnterTarget>,
-    mut crate_leave_target_events: EventWriter<CrateLeaveTarget>,
+    mut box_enter_goal_events: EventWriter<BoxEnterGoal>,
+    mut box_leave_goal_events: EventWriter<BoxLeaveGoal>,
     mut level_solved_events: EventWriter<LevelSolved>,
 ) {
     if player_movement.directions.is_empty() {
@@ -101,33 +97,35 @@ pub fn handle_player_movement(
             return;
         }
         if let Some(direction) = player_movement.directions.pop_back() {
-            let occupied_targets_count = board
+            let occupied_goals_count = board
                 .level
-                .target_positions
-                .intersection(&board.level.crate_positions)
+                .map()
+                .goal_positions()
+                .intersection(board.level.map().box_positions())
                 .count();
             board.move_or_push(direction);
-            let new_occupied_targets_count = board
+            let new_occupied_goals_count = board
                 .level
-                .target_positions
-                .intersection(&board.level.crate_positions)
+                .map()
+                .goal_positions()
+                .intersection(board.level.map().box_positions())
                 .count();
-            if new_occupied_targets_count > occupied_targets_count {
-                crate_enter_target_events.send_default();
-            } else if new_occupied_targets_count < occupied_targets_count {
-                crate_leave_target_events.send_default();
+            match new_occupied_goals_count.cmp(&occupied_goals_count) {
+                Ordering::Greater => drop(box_enter_goal_events.send_default()),
+                Ordering::Less => drop(box_leave_goal_events.send_default()),
+                _ => (),
             }
 
-            player_grid_position.x += direction.to_vector().x;
-            player_grid_position.y += direction.to_vector().y;
+            player_grid_position.x += Into::<Vector2<i32>>::into(direction).x;
+            player_grid_position.y += Into::<Vector2<i32>>::into(direction).y;
 
-            let old_crate_position = *player_grid_position;
-            let new_crate_position = old_crate_position + direction.to_vector();
-            let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
-            if crate_grid_positions.contains(&player_grid_position) {
-                for mut crate_grid_position in crates.iter_mut() {
-                    if crate_grid_position.0 == old_crate_position {
-                        crate_grid_position.0 = new_crate_position;
+            let old_box_position = *player_grid_position;
+            let new_box_position = old_box_position + &direction.into();
+            let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
+            if box_grid_positions.contains(player_grid_position) {
+                for mut box_grid_position in boxes.iter_mut() {
+                    if box_grid_position.0 == old_box_position {
+                        box_grid_position.0 = new_box_position;
                     }
                 }
             }
@@ -136,16 +134,16 @@ pub fn handle_player_movement(
         while let Some(direction) = player_movement.directions.pop_back() {
             board.move_or_push(direction);
 
-            player_grid_position.x += direction.to_vector().x;
-            player_grid_position.y += direction.to_vector().y;
+            player_grid_position.x += Into::<Vector2<i32>>::into(direction).x;
+            player_grid_position.y += Into::<Vector2<i32>>::into(direction).y;
 
-            let old_crate_position = *player_grid_position;
-            let new_crate_position = old_crate_position + direction.to_vector();
-            let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
-            if crate_grid_positions.contains(&player_grid_position) {
-                for mut crate_grid_position in crates.iter_mut() {
-                    if crate_grid_position.0 == old_crate_position {
-                        crate_grid_position.0 = new_crate_position;
+            let old_box_position = *player_grid_position;
+            let new_box_position = old_box_position + &direction.into();
+            let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
+            if box_grid_positions.contains(player_grid_position) {
+                for mut box_grid_position in boxes.iter_mut() {
+                    if box_grid_position.0 == old_box_position {
+                        box_grid_position.0 = new_box_position;
                     }
                 }
             }
@@ -168,9 +166,9 @@ pub fn smooth_tile_motion(
         if !config.instant_move {
             let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
 
-            let target_x = grid_position.x as f32 * tile_size.x;
-            let target_y = board.level.dimensions().y as f32 * tile_size.y
-                - grid_position.y as f32 * tile_size.y;
+            let target_x = grid_position.x as f32 * tile_size.x as f32;
+            let target_y = board.level.map().dimensions().y as f32 * tile_size.y as f32
+                - grid_position.y as f32 * tile_size.y as f32;
 
             if (transform.translation.x - target_x).abs() > 0.001 {
                 transform.translation.x = lerp(transform.translation.x, target_x, 0.3);
@@ -183,9 +181,9 @@ pub fn smooth_tile_motion(
                 transform.translation.y = target_y;
             }
         } else {
-            transform.translation.x = grid_position.x as f32 * tile_size.x;
-            transform.translation.y = board.level.dimensions().y as f32 * tile_size.y
-                - grid_position.y as f32 * tile_size.y;
+            transform.translation.x = grid_position.x as f32 * tile_size.x as f32;
+            transform.translation.y = board.level.map().dimensions().y as f32 * tile_size.y as f32
+                - grid_position.y as f32 * tile_size.y as f32;
         }
     }
 }
@@ -210,41 +208,69 @@ pub fn smooth_camera_motion(
 pub fn update_grid_position_from_board(
     mut update_grid_position_events: EventReader<UpdateGridPositionEvent>,
     mut player: Query<&mut GridPosition, With<Player>>,
-    mut crates: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
+    mut boxes: Query<&mut GridPosition, (With<Box>, Without<Player>)>,
     board: Query<&Board>,
 ) {
     update_grid_position_events.clear();
 
     let board = &board.single().board;
+    let map = board.level.map();
 
     let player_grid_position = &mut player.single_mut().0;
-    player_grid_position.x = board.level.player_position.x;
-    player_grid_position.y = board.level.player_position.y;
+    player_grid_position.x = map.player_position().x;
+    player_grid_position.y = map.player_position().y;
 
-    let crate_grid_positions: HashSet<_> = crates.iter().map(|x| x.0).collect();
-    debug_assert!(
-        crate_grid_positions
-            .difference(&board.level.crate_positions)
-            .count()
-            <= 1
-    );
-    if let Some(old_position) = crate_grid_positions
-        .difference(&board.level.crate_positions)
+    let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
+    debug_assert!(box_grid_positions.difference(map.box_positions()).count() <= 1);
+    if let Some(old_position) = box_grid_positions
+        .difference(map.box_positions())
         .collect::<Vec<_>>()
         .first()
     {
         let new_position = *board
             .level
-            .crate_positions
-            .difference(&crate_grid_positions)
+            .map()
+            .box_positions()
+            .difference(&box_grid_positions)
             .collect::<Vec<_>>()
             .first()
             .unwrap();
-        for mut crate_grid_position in crates.iter_mut() {
-            let crate_grid_position = &mut crate_grid_position;
-            if crate_grid_position.0 == **old_position {
-                crate_grid_position.0 = *new_position;
+        for mut box_grid_position in boxes.iter_mut() {
+            let box_grid_position = &mut box_grid_position;
+            if box_grid_position.0 == **old_position {
+                box_grid_position.0 = *new_position;
             }
         }
     }
+}
+
+/// Adjust the camera scale to ensure the level is fully visible.
+pub fn adjust_camera_scale(
+    mut camera: Query<&mut MainCamera>,
+    window: Query<&Window>,
+    board: Query<&Board>,
+    mut events: EventReader<WindowResized>,
+) {
+    if events.is_empty() {
+        return;
+    }
+    events.clear();
+
+    camera.single_mut().target_scale =
+        calculate_camera_default_scale(window.single(), &board.single().board.level);
+}
+
+/// Adjust the camera zoom to fit the entire board.
+pub fn calculate_camera_default_scale(window: &Window, level: &Level) -> f32 {
+    let tile_size = Vector2::new(128.0, 128.0);
+    let board_size = tile_size.x as f32 * level.map().dimensions().map(|x| x as f32);
+
+    let width_scale = board_size.x / window.resolution.width();
+    let height_scale = board_size.y / window.resolution.height();
+    let scale = if width_scale > height_scale {
+        width_scale
+    } else {
+        height_scale
+    };
+    scale / 0.9
 }

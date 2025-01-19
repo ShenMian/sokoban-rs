@@ -15,12 +15,12 @@ impl Default for MainCamera {
 }
 
 #[derive(Component)]
-pub struct HUD;
+pub struct Hud;
 
 #[derive(Component)]
 pub struct Board {
     pub board: board::Board,
-    pub tile_size: Vector2<f32>,
+    pub tile_size: Vector2<u32>,
 }
 
 #[derive(Component, Deref, DerefMut)]
@@ -33,13 +33,4 @@ pub struct Player;
 pub struct AnimationState(benimator::State);
 
 #[derive(Component)]
-pub struct Crate;
-
-#[derive(Component)]
-pub struct PlayerMovableMark;
-
-#[derive(Component)]
-pub struct CratePushableMark;
-
-#[derive(Component)]
-pub struct LowerBoundMark;
+pub struct Box;

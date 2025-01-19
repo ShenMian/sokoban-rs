@@ -1,6 +1,6 @@
 # Levels
 
-The levels included in this sokoban game program are borrowed from various other sokoban games and are the intellectual property of their respective original designers. These levels are utilized within this program solely for the purpose of testing the solver.  
+The levels included in this Sokoban game program are borrowed from various other Sokoban games and are the intellectual property of their respective original designers. These levels are used in this program solely for the purpose of testing the solver.
 We do not claim ownership of these levels, and all rights remain with the original creators.
 
 | File                | Author                                       |

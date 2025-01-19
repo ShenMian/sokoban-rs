@@ -1,10 +1,6 @@
-use bevy::prelude::*;
+use bevy::{color::palettes::css::*, prelude::*};
 
-use crate::components::*;
-use crate::resources::*;
-use crate::solver::solver::*;
-use crate::systems::input::*;
-use crate::AppState;
+use crate::{components::*, resources::*, solve::solver::*, systems::input::*, AppState};
 
 use std::time::{Duration, Instant};
 
@@ -17,13 +13,13 @@ pub fn load_solver(
     let board = &board.single().board;
     let SolverState {
         solver,
-        level,
         stopwatch,
+        origin_board,
     } = &mut *solver_state;
-    *level = board.level.clone();
-    let mut solver = solver.lock().unwrap();
+    *origin_board = board.clone();
+    let solver = solver.get_mut().unwrap();
     *solver = Solver::new(
-        level.clone(),
+        origin_board.level.clone(),
         config.solver.strategy,
         config.solver.lower_bound_method,
     );
@@ -45,45 +41,30 @@ pub fn spawn_lowerbound_marks(
     let solver = solver_state.solver.lock().unwrap();
 
     let lowerbounds = solver.lower_bounds().clone();
-    let max_lowerbound = lowerbounds
-        .iter()
-        .map(|(_, lowerbound)| *lowerbound)
-        .max()
-        .unwrap();
+    let max_lowerbound = lowerbounds.values().cloned().max().unwrap();
     for (position, lowerbound) in lowerbounds {
         let alpha = lowerbound as f32 / max_lowerbound as f32;
-        let color = Color::BLUE * alpha + Color::RED * (1.0 - alpha);
+        let color = BLUE * alpha + RED * (1.0 - alpha);
         commands.spawn((
-            SpriteBundle {
-                sprite: Sprite {
-                    color: color.with_a(0.5),
-                    custom_size: Some(Vec2::new(tile_size.x, tile_size.y)),
-                    ..default()
-                },
-                transform: Transform::from_xyz(
-                    position.x as f32 * tile_size.x,
-                    (board.level.dimensions().y - position.y) as f32 * tile_size.y,
-                    10.0,
-                ),
-                ..default()
-            },
-            LowerBoundMark,
+            Name::new("Lower bound mark"),
+            Sprite::from_color(
+                color.with_alpha(0.5),
+                Vec2::new(tile_size.x as f32, tile_size.y as f32),
+            ),
+            Transform::from_xyz(
+                position.x as f32 * tile_size.x as f32,
+                (board.level.map().dimensions().y - position.y) as f32 * tile_size.y as f32,
+                10.0,
+            ),
+            StateScoped(AppState::AutoSolve),
         ));
     }
-}
-
-/// Despawns lower bound marks on the board.
-pub fn despawn_lowerbound_marks(
-    mut commands: Commands,
-    marks: Query<Entity, With<LowerBoundMark>>,
-) {
-    marks.for_each(|entity| commands.entity(entity).despawn());
 }
 
 /// Resets the board to the state before automatic solution
 pub fn reset_board(mut board: Query<&mut Board>, solver_state: Res<SolverState>) {
     let board = &mut board.single_mut().board;
-    *board = crate::board::Board::with_level(solver_state.level.clone());
+    *board = solver_state.origin_board.clone();
 }
 
 pub fn update_solver(
@@ -96,20 +77,20 @@ pub fn update_solver(
     let board = &mut board.single_mut().board;
     let SolverState {
         solver,
-        level,
         stopwatch,
+        origin_board,
     } = &mut *solver_state;
 
-    *board = crate::board::Board::with_level(level.clone());
+    *board = crate::board::Board::with_level(origin_board.level.clone());
 
-    let mut solver = solver.lock().unwrap();
+    let solver = solver.get_mut().unwrap();
     let timeout = Duration::from_millis(50);
     let timer = Instant::now();
     match solver.search(timeout) {
         Ok(solution) => {
             let mut verify_board = board.clone();
-            for movement in &*solution {
-                verify_board.move_or_push(movement.direction());
+            for action in &*solution {
+                verify_board.move_or_push(action.direction());
             }
             assert!(verify_board.is_solved());
 
@@ -120,13 +101,13 @@ pub fn update_solver(
             );
             info!(
                 "    Moves: {}, pushes: {}",
-                solution.move_count(),
-                solution.push_count()
+                solution.moves(),
+                solution.pushes()
             );
-            info!("    Solution: {}", solution.lurd());
+            info!("    Solution: {}", solution.to_string());
 
-            for movement in &*solution {
-                player_move_unchecked(movement.direction(), &mut player_movement);
+            for action in &*solution {
+                player_move_unchecked(action.direction(), &mut player_movement);
             }
             next_state.set(AppState::Main);
             return;
@@ -141,18 +122,18 @@ pub fn update_solver(
             return;
         }
         Err(SolveError::Timeout) => {
-            let _ = stopwatch.tick(timer.elapsed());
+            stopwatch.tick(timer.elapsed());
         }
     }
     if let Some(best_state) = solver.best_state() {
         // println!(
         //     "lower bound: {:3}, moves: {:3}, pushes: {:3}",
         //     best_state.lower_bound(&solver),
-        //     best_state.movements.move_count(),
-        //     best_state.movements.push_count()
+        //     best_state.actions.moves(),
+        //     best_state.actions.pushes()
         // );
-        for movement in &*best_state.movements {
-            board.move_or_push(movement.direction());
+        for action in &*best_state.actions {
+            board.move_or_push(action.direction());
         }
     }
 }
@@ -163,25 +144,26 @@ pub fn update_tile_translation(
 ) {
     let Board { board, tile_size } = &board.single();
     for (mut transform, grid_position) in tiles.iter_mut() {
-        transform.translation.x = grid_position.x as f32 * tile_size.x;
-        transform.translation.y =
-            board.level.dimensions().y as f32 * tile_size.y - grid_position.y as f32 * tile_size.y;
+        transform.translation.x = grid_position.x as f32 * tile_size.x as f32;
+        transform.translation.y = board.level.map().dimensions().y as f32 * tile_size.y as f32
+            - grid_position.y as f32 * tile_size.y as f32;
     }
 }
 
 pub fn update_tile_grid_position(
     mut player_grid_positions: Query<&mut GridPosition, With<Player>>,
-    mut crate_grid_positions: Query<&mut GridPosition, (With<Crate>, Without<Player>)>,
+    mut box_grid_positions: Query<&mut GridPosition, (With<Box>, Without<Player>)>,
     board: Query<&Board>,
 ) {
     let board = &board.single().board;
+    let map = board.level.map();
     let mut player_grid_positions = player_grid_positions.single_mut();
-    **player_grid_positions = board.level.player_position;
+    **player_grid_positions = map.player_position();
 
-    for (mut crate_grid_position, crate_position) in crate_grid_positions
+    for (mut box_grid_position, box_position) in box_grid_positions
         .iter_mut()
-        .zip(board.level.crate_positions.iter())
+        .zip(map.box_positions().iter())
     {
-        **crate_grid_position = *crate_position;
+        **box_grid_position = *box_position;
     }
 }

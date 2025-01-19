@@ -3,5 +3,4 @@
 /.fleet
 /.idea
 config.toml
-keymap.toml
 db.sqlite3
