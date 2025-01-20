@@ -29,9 +29,9 @@ pub fn setup_database(mut commands: Commands) {
 
 pub fn setup_level(mut commands: Commands, database: Res<Database>) {
     let database = database.lock().unwrap();
-    let level = database.get_level_by_id(1).unwrap();
+    let map = database.get_level_by_id(1).unwrap().into();
     commands.spawn(Board {
-        board: board::Board::with_level(level),
+        board: board::Board::with_map(map),
         tile_size: Vector2::zeros(),
     });
 
@@ -79,13 +79,13 @@ pub fn spawn_board(
     transform.translation.x = (board_size.x - tile_size.x) as f32 / 2.0;
     transform.translation.y = (board_size.y + tile_size.y) as f32 / 2.0;
 
-    main_camera.target_scale = calculate_camera_default_scale(window.single(), &level);
+    main_camera.target_scale = calculate_camera_default_scale(window.single(), level.map());
 
     // despawn the previous `Board`
     commands.entity(board.single()).despawn_recursive();
 
     // spawn new `Board`
-    let board = board::Board::with_level(level.clone());
+    let board = board::Board::with_map(level.map().clone());
     commands
         .spawn((
             Name::new("Board"),
@@ -180,7 +180,7 @@ pub fn import_from_clipboard(level_id: &mut LevelId, database: &database::Databa
 
 pub fn export_to_clipboard(board: &crate::board::Board) {
     let mut clipboard = Clipboard::new().unwrap();
-    clipboard.set_text(board.level.to_string()).unwrap();
+    clipboard.set_text(board.map.to_string()).unwrap();
 }
 
 /// Switches to the next unsolved level based on the current level ID.

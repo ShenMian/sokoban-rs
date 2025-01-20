@@ -9,7 +9,7 @@ use crate::{box_pushable_paths_with_positions, solve::state::*};
 use itertools::Itertools;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
-use soukoban::{direction::Direction, path_finding::reachable_area, Actions, Level, Tiles};
+use soukoban::{direction::Direction, path_finding::reachable_area, Actions, Map, Tiles};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum Strategy {
@@ -41,7 +41,7 @@ pub enum LowerBoundMethod {
 }
 
 pub struct Solver {
-    pub level: Level,
+    pub map: Map,
     strategy: Strategy,
     lower_bound_method: LowerBoundMethod,
     lower_bounds: OnceCell<HashMap<Vector2<i32>, usize>>,
@@ -60,9 +60,9 @@ type Result<T> = std::result::Result<T, SolveError>;
 
 impl Solver {
     /// Creates a new solver.
-    pub fn new(level: Level, strategy: Strategy, lower_bound_method: LowerBoundMethod) -> Self {
+    pub fn new(map: Map, strategy: Strategy, lower_bound_method: LowerBoundMethod) -> Self {
         let mut instance = Self {
-            level,
+            map,
             strategy,
             lower_bound_method,
             lower_bounds: OnceCell::new(),
@@ -71,8 +71,8 @@ impl Solver {
             heap: BinaryHeap::new(),
         };
         instance.heap.push(State::new(
-            instance.level.map().player_position(),
-            instance.level.map().box_positions().clone(),
+            instance.map.player_position(),
+            instance.map.box_positions().clone(),
             Actions::new(),
             &instance,
         ));
@@ -121,12 +121,11 @@ impl Solver {
 
     /// Calculates and returns the set of tunnels in the level.
     fn calculate_tunnels(&self) -> HashSet<(Vector2<i32>, Direction)> {
-        let map = self.level.map();
         let mut tunnels = HashSet::new();
-        for x in 1..map.dimensions().x - 1 {
-            for y in 1..map.dimensions().y - 1 {
+        for x in 1..self.map.dimensions().x - 1 {
+            for y in 1..self.map.dimensions().y - 1 {
                 let box_position = Vector2::new(x, y);
-                if !map[box_position].intersects(Tiles::Floor) {
+                if !self.map[box_position].intersects(Tiles::Floor) {
                     continue;
                 }
 
@@ -147,19 +146,19 @@ impl Solver {
                     //  .      .      .
                     // #$# or #$_ or _$#
                     // #@#    #@#    #@#
-                    if map[player_position + &left.into()].intersects(Tiles::Wall)
-                        && map[player_position + &right.into()].intersects(Tiles::Wall)
-                        && (map[box_position + &left.into()].intersects(Tiles::Wall)
-                            && map[box_position + &right.into()].intersects(Tiles::Wall)
-                            || map[box_position + &right.into()].intersects(Tiles::Wall)
-                                && map[box_position + &left.into()].intersects(Tiles::Floor)
-                            || map[box_position + &right.into()].intersects(Tiles::Floor)
-                                && map[box_position + &left.into()].intersects(Tiles::Wall))
-                        && map[box_position].intersects(Tiles::Floor)
+                    if self.map[player_position + &left.into()].intersects(Tiles::Wall)
+                        && self.map[player_position + &right.into()].intersects(Tiles::Wall)
+                        && (self.map[box_position + &left.into()].intersects(Tiles::Wall)
+                            && self.map[box_position + &right.into()].intersects(Tiles::Wall)
+                            || self.map[box_position + &right.into()].intersects(Tiles::Wall)
+                                && self.map[box_position + &left.into()].intersects(Tiles::Floor)
+                            || self.map[box_position + &right.into()].intersects(Tiles::Floor)
+                                && self.map[box_position + &left.into()].intersects(Tiles::Wall))
+                        && self.map[box_position].intersects(Tiles::Floor)
                         && self
                             .lower_bounds()
                             .contains_key(&(box_position + &up.into()))
-                        && !map[box_position].intersects(Tiles::Goal)
+                        && !self.map[box_position].intersects(Tiles::Goal)
                     {
                         tunnels.insert((player_position, up));
                     }
@@ -187,8 +186,7 @@ impl Solver {
     /// Calculates and returns the lower bounds using the minimum push method.
     fn minimum_push_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
-        let map = self.level.map();
-        for goal_position in map.goal_positions() {
+        for goal_position in self.map.goal_positions() {
             lower_bounds.insert(*goal_position, 0);
             let mut player_position = None;
             for pull_direction in [
@@ -199,9 +197,9 @@ impl Solver {
             ] {
                 let next_box_position = goal_position + &pull_direction.into();
                 let next_player_position = next_box_position + &pull_direction.into();
-                if map.in_bounds(next_player_position)
-                    && !map[next_player_position].intersects(Tiles::Wall)
-                    && !map[next_box_position].intersects(Tiles::Wall)
+                if self.map.in_bounds(next_player_position)
+                    && !self.map[next_player_position].intersects(Tiles::Wall)
+                    && !self.map[next_box_position].intersects(Tiles::Wall)
                 {
                     player_position = Some(next_player_position);
                     break;
@@ -228,9 +226,8 @@ impl Solver {
         lower_bounds: &mut HashMap<Vector2<i32>, usize>,
         visited: &mut HashSet<(Vector2<i32>, Direction)>,
     ) {
-        let map = self.level.map();
         let player_reachable_area = reachable_area(player_position, |position| {
-            !map[position].intersects(Tiles::Wall) && position != box_position
+            !self.map[position].intersects(Tiles::Wall) && position != box_position
         });
         for pull_direction in [
             Direction::Up,
@@ -239,13 +236,13 @@ impl Solver {
             Direction::Left,
         ] {
             let next_box_position = box_position + &pull_direction.into();
-            if map[next_box_position].intersects(Tiles::Wall) {
+            if self.map[next_box_position].intersects(Tiles::Wall) {
                 continue;
             }
 
             let next_player_position = next_box_position + &pull_direction.into();
-            if !map.in_bounds(next_player_position)
-                || map[next_player_position].intersects(Tiles::Wall)
+            if !self.map.in_bounds(next_player_position)
+                || self.map[next_player_position].intersects(Tiles::Wall)
             {
                 continue;
             }
@@ -273,27 +270,26 @@ impl Solver {
     /// Calculates and returns the lower bounds using the minimum move method.
     fn minimum_move_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
-        let map = self.level.map();
-        for x in 1..map.dimensions().x - 1 {
-            for y in 1..map.dimensions().y - 1 {
+        for x in 1..self.map.dimensions().x - 1 {
+            for y in 1..self.map.dimensions().y - 1 {
                 let position = Vector2::new(x, y);
                 // There may be situations in the level where the box is
                 // already on the goal and cannot be reached by the player.
-                if map[position].intersects(Tiles::Goal) {
+                if self.map[position].intersects(Tiles::Goal) {
                     lower_bounds.insert(position, 0);
                     continue;
                 }
-                if !map[position].intersects(Tiles::Floor)
-                // || map[position].intersects(Tiles::Deadlock)
+                if !self.map[position].intersects(Tiles::Floor)
+                // || self.map[position].intersects(Tiles::Deadlock)
                 {
                     continue;
                 }
 
                 let paths =
-                    box_pushable_paths_with_positions(&self.level, &position, &HashSet::new());
+                    box_pushable_paths_with_positions(&self.map, &position, &HashSet::new());
                 if let Some(lower_bound) = paths
                     .iter()
-                    .filter(|path| map[path.0.box_position].intersects(Tiles::Goal))
+                    .filter(|path| self.map[path.0.box_position].intersects(Tiles::Goal))
                     .map(|path| path.1.len() - 1)
                     .min()
                 {
@@ -307,22 +303,22 @@ impl Solver {
     /// Calculates and returns the lower bounds using the Manhattan distance method.
     fn manhattan_distance_lower_bounds(&self) -> HashMap<Vector2<i32>, usize> {
         let mut lower_bounds = HashMap::new();
-        let map = self.level.map();
-        for x in 1..map.dimensions().x - 1 {
-            for y in 1..map.dimensions().y - 1 {
+        for x in 1..self.map.dimensions().x - 1 {
+            for y in 1..self.map.dimensions().y - 1 {
                 let position = Vector2::new(x, y);
                 // There may be situations in the level where the box is
                 // already on the goal and cannot be reached by the player.
-                if map[position].intersects(Tiles::Goal) {
+                if self.map[position].intersects(Tiles::Goal) {
                     lower_bounds.insert(position, 0);
                     continue;
                 }
-                if !map[position].intersects(Tiles::Floor)
-                // || map.get(&position).intersects(Tiles::Deadlock)
+                if !self.map[position].intersects(Tiles::Floor)
+                // || self.map.get(&position).intersects(Tiles::Deadlock)
                 {
                     continue;
                 }
-                let lower_bound = map
+                let lower_bound = self
+                    .map
                     .goal_positions()
                     .iter()
                     .map(|box_pos| manhattan_distance(box_pos, &position))
@@ -351,9 +347,8 @@ impl Solver {
     /// Prints the lower bounds for each position in the level.
     #[expect(dead_code)]
     pub fn print_lower_bounds(&self) {
-        let map = self.level.map();
-        for y in 0..map.dimensions().y {
-            for x in 0..map.dimensions().x {
+        for y in 0..self.map.dimensions().y {
+            for x in 0..self.map.dimensions().x {
                 let position = Vector2::new(x, y);
                 if let Some(lower_bound) = self.lower_bounds().get(&position) {
                     print!("{:3} ", lower_bound);

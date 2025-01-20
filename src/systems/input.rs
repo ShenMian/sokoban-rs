@@ -99,8 +99,8 @@ fn player_move_to(
     player_movement: &mut PlayerMovement,
     board: &crate::board::Board,
 ) {
-    if let Some(path) = find_path(board.level.map().player_position(), *target, |position| {
-        !board.level.map()[position].intersects(Tiles::Wall | Tiles::Box)
+    if let Some(path) = find_path(board.map.player_position(), *target, |position| {
+        !board.map[position].intersects(Tiles::Wall | Tiles::Box)
     }) {
         let directions = path
             .windows(2)
@@ -128,11 +128,9 @@ fn instant_player_move_to(
     board_clone: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
 ) {
-    if let Some(path) = find_path(
-        board_clone.level.map().player_position(),
-        *target,
-        |position| !board_clone.level.map()[position].intersects(Tiles::Wall | Tiles::Box),
-    ) {
+    if let Some(path) = find_path(board_clone.map.player_position(), *target, |position| {
+        !board_clone.map[position].intersects(Tiles::Wall | Tiles::Box)
+    }) {
         let directions = path
             .windows(2)
             .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap());
@@ -147,7 +145,7 @@ fn instant_player_move(
     board_clone: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
 ) {
-    board_clone.move_or_push(direction);
+    board_clone.do_action(direction);
     player_movement.directions.push_front(direction);
 }
 
@@ -288,7 +286,7 @@ pub fn mouse_input(
     mut auto_move_state: ResMut<AutoMoveState>,
 ) {
     let Board { board, tile_size } = &mut *board.single_mut();
-    let map = board.level.map();
+    let map = &board.map;
     let (camera, camera_transform) = camera.single_mut();
 
     if mouse_buttons.just_pressed(MouseButton::Left) && player_movement.directions.is_empty() {

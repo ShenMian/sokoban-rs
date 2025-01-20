@@ -14,7 +14,7 @@ pub fn spawn_auto_move_marks(
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     let Board { board, tile_size } = board.single();
-    let map = board.level.map();
+    let map = &board.map;
 
     const MARK_COLOR: Srgba = LIME;
     const HIGHLIGHT_COLOR: Srgba = TURQUOISE;
@@ -24,7 +24,7 @@ pub fn spawn_auto_move_marks(
             position: box_position,
             paths,
         } => {
-            *paths = box_pushable_paths(&board.level, box_position);
+            *paths = box_pushable_paths(map, box_position);
 
             // remove static deadlock positions
             let static_deadlocks = calculate_static_deadlocks(map);

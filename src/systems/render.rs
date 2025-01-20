@@ -1,7 +1,7 @@
 use benimator::{Animation, FrameRate};
 use bevy::{prelude::*, window::WindowResized, winit::WinitWindows};
 use nalgebra::Vector2;
-use soukoban::{direction::Direction, Level};
+use soukoban::{direction::Direction, Map};
 
 use crate::{components::*, events::*, resources::*};
 
@@ -98,17 +98,15 @@ pub fn handle_player_movement(
         }
         if let Some(direction) = player_movement.directions.pop_back() {
             let occupied_goals_count = board
-                .level
-                .map()
+                .map
                 .goal_positions()
-                .intersection(board.level.map().box_positions())
+                .intersection(board.map.box_positions())
                 .count();
-            board.move_or_push(direction);
+            board.do_action(direction);
             let new_occupied_goals_count = board
-                .level
-                .map()
+                .map
                 .goal_positions()
-                .intersection(board.level.map().box_positions())
+                .intersection(board.map.box_positions())
                 .count();
             match new_occupied_goals_count.cmp(&occupied_goals_count) {
                 Ordering::Greater => drop(box_enter_goal_events.send_default()),
@@ -132,7 +130,7 @@ pub fn handle_player_movement(
         }
     } else {
         while let Some(direction) = player_movement.directions.pop_back() {
-            board.move_or_push(direction);
+            board.do_action(direction);
 
             player_grid_position.x += Into::<Vector2<i32>>::into(direction).x;
             player_grid_position.y += Into::<Vector2<i32>>::into(direction).y;
@@ -167,7 +165,7 @@ pub fn smooth_tile_motion(
             let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
 
             let target_x = grid_position.x as f32 * tile_size.x as f32;
-            let target_y = board.level.map().dimensions().y as f32 * tile_size.y as f32
+            let target_y = board.map.dimensions().y as f32 * tile_size.y as f32
                 - grid_position.y as f32 * tile_size.y as f32;
 
             if (transform.translation.x - target_x).abs() > 0.001 {
@@ -182,7 +180,7 @@ pub fn smooth_tile_motion(
             }
         } else {
             transform.translation.x = grid_position.x as f32 * tile_size.x as f32;
-            transform.translation.y = board.level.map().dimensions().y as f32 * tile_size.y as f32
+            transform.translation.y = board.map.dimensions().y as f32 * tile_size.y as f32
                 - grid_position.y as f32 * tile_size.y as f32;
         }
     }
@@ -213,8 +211,7 @@ pub fn update_grid_position_from_board(
 ) {
     update_grid_position_events.clear();
 
-    let board = &board.single().board;
-    let map = board.level.map();
+    let map = &board.single().board.map;
 
     let player_grid_position = &mut player.single_mut().0;
     player_grid_position.x = map.player_position().x;
@@ -227,9 +224,7 @@ pub fn update_grid_position_from_board(
         .collect::<Vec<_>>()
         .first()
     {
-        let new_position = *board
-            .level
-            .map()
+        let new_position = *map
             .box_positions()
             .difference(&box_grid_positions)
             .collect::<Vec<_>>()
@@ -257,13 +252,13 @@ pub fn adjust_camera_scale(
     events.clear();
 
     camera.single_mut().target_scale =
-        calculate_camera_default_scale(window.single(), &board.single().board.level);
+        calculate_camera_default_scale(window.single(), &board.single().board.map);
 }
 
 /// Adjust the camera zoom to fit the entire board.
-pub fn calculate_camera_default_scale(window: &Window, level: &Level) -> f32 {
+pub fn calculate_camera_default_scale(window: &Window, map: &Map) -> f32 {
     let tile_size = Vector2::new(128.0, 128.0);
-    let board_size = tile_size.x as f32 * level.map().dimensions().map(|x| x as f32);
+    let board_size = tile_size.x as f32 * map.dimensions().map(|x| x as f32);
 
     let width_scale = board_size.x / window.resolution.width();
     let height_scale = board_size.y / window.resolution.height();

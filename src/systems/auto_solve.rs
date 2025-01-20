@@ -19,7 +19,7 @@ pub fn load_solver(
     *origin_board = board.clone();
     let solver = solver.get_mut().unwrap();
     *solver = Solver::new(
-        origin_board.level.clone(),
+        origin_board.map.clone(),
         config.solver.strategy,
         config.solver.lower_bound_method,
     );
@@ -53,7 +53,7 @@ pub fn spawn_lowerbound_marks(
             ),
             Transform::from_xyz(
                 position.x as f32 * tile_size.x as f32,
-                (board.level.map().dimensions().y - position.y) as f32 * tile_size.y as f32,
+                (board.map.dimensions().y - position.y) as f32 * tile_size.y as f32,
                 10.0,
             ),
             StateScoped(AppState::AutoSolve),
@@ -81,7 +81,7 @@ pub fn update_solver(
         origin_board,
     } = &mut *solver_state;
 
-    *board = crate::board::Board::with_level(origin_board.level.clone());
+    *board = crate::board::Board::with_map(origin_board.map.clone());
 
     let solver = solver.get_mut().unwrap();
     let timeout = Duration::from_millis(50);
@@ -90,7 +90,7 @@ pub fn update_solver(
         Ok(solution) => {
             let mut verify_board = board.clone();
             for action in &*solution {
-                verify_board.move_or_push(action.direction());
+                verify_board.do_action(action.direction());
             }
             assert!(verify_board.is_solved());
 
@@ -133,7 +133,7 @@ pub fn update_solver(
         //     best_state.actions.pushes()
         // );
         for action in &*best_state.actions {
-            board.move_or_push(action.direction());
+            board.do_action(action.direction());
         }
     }
 }
@@ -145,7 +145,7 @@ pub fn update_tile_translation(
     let Board { board, tile_size } = &board.single();
     for (mut transform, grid_position) in tiles.iter_mut() {
         transform.translation.x = grid_position.x as f32 * tile_size.x as f32;
-        transform.translation.y = board.level.map().dimensions().y as f32 * tile_size.y as f32
+        transform.translation.y = board.map.dimensions().y as f32 * tile_size.y as f32
             - grid_position.y as f32 * tile_size.y as f32;
     }
 }
@@ -155,8 +155,7 @@ pub fn update_tile_grid_position(
     mut box_grid_positions: Query<&mut GridPosition, (With<Box>, Without<Player>)>,
     board: Query<&Board>,
 ) {
-    let board = &board.single().board;
-    let map = board.level.map();
+    let map = &board.single().board.map;
     let mut player_grid_positions = player_grid_positions.single_mut();
     **player_grid_positions = map.player_position();
 

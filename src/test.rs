@@ -24,8 +24,11 @@ mod tests {
             }
             println!("#{} ({})", id + 1, id);
             let level = levels[id].clone();
-            let mut solver =
-                Solver::new(level.clone(), Strategy::Fast, LowerBoundMethod::MinimumMove);
+            let mut solver = Solver::new(
+                level.map().clone(),
+                Strategy::Fast,
+                LowerBoundMethod::MinimumMove,
+            );
             let solution = solver.search(Duration::from_secs(time_limit));
             if solution.is_err() {
                 println!("{}", level.map());
@@ -35,9 +38,9 @@ mod tests {
             }
             let solution = solution.unwrap();
 
-            let mut board = Board::with_level(level);
+            let mut board = Board::with_map(level.into());
             for action in &*solution {
-                board.move_or_push(action.direction());
+                board.do_action(action.direction());
             }
             assert!(board.is_solved());
         }
@@ -84,11 +87,10 @@ mod tests {
     #[test]
     #[cfg(not(debug_assertions))]
     fn solve_box_world() {
-        let levels = Level::load_from_str(
-            &fs::read_to_string("assets/levels/box_world_100.xsb").unwrap(),
-        )
-        .collect::<Result<Vec<_>, _>>()
-        .unwrap();
+        let levels =
+            Level::load_from_str(&fs::read_to_string("assets/levels/box_world_100.xsb").unwrap())
+                .collect::<Result<Vec<_>, _>>()
+                .unwrap();
         assert!(
             solve(
                 &levels,

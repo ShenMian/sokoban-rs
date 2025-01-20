@@ -139,9 +139,9 @@ impl State {
                 new_box_positions.insert(new_box_position);
 
                 // skip deadlocks
-                if !solver.level.map()[new_box_position].intersects(Tiles::Goal)
+                if !solver.map[new_box_position].intersects(Tiles::Goal)
                     && deadlock::is_freeze_deadlock(
-                        solver.level.map(),
+                        &solver.map,
                         new_box_position,
                         &new_box_positions,
                         &mut HashSet::new(),
@@ -205,13 +205,12 @@ impl State {
 
     /// Checks if a position can block the player's movement.
     fn can_block_player(&self, position: Vector2<i32>, solver: &Solver) -> bool {
-        solver.level.map()[position].intersects(Tiles::Wall)
-            || self.box_positions.contains(&position)
+        solver.map[position].intersects(Tiles::Wall) || self.box_positions.contains(&position)
     }
 
     /// Checks if a position can block a box's movement.
     fn can_block_box(&self, position: Vector2<i32>, solver: &Solver) -> bool {
-        solver.level.map()[position].intersects(Tiles::Wall /* | Tiles::Deadlock */)
+        solver.map[position].intersects(Tiles::Wall /* | Tiles::Deadlock */)
             || !solver.lower_bounds().contains_key(&position)
             || self.box_positions.contains(&position)
     }

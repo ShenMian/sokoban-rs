@@ -1,7 +1,7 @@
 use bevy::{prelude::*, time::Stopwatch};
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
-use soukoban::{direction::Direction, Level, Map};
+use soukoban::{direction::Direction, Map};
 
 use crate::{board::Board, database, solve::solver::*, utils::PushState};
 
@@ -86,14 +86,12 @@ impl Default for SolverState {
     fn default() -> Self {
         Self {
             solver: Mutex::new(Solver::new(
-                Level::from_map(Map::with_dimensions(Vector2::new(0, 0))),
+                Map::with_dimensions(Vector2::new(0, 0)),
                 Strategy::default(),
                 LowerBoundMethod::default(),
             )),
             stopwatch: Stopwatch::new(),
-            origin_board: Board::with_level(Level::from_map(Map::with_dimensions(Vector2::new(
-                0, 0,
-            )))),
+            origin_board: Board::with_map(Map::with_dimensions(Vector2::new(0, 0))),
         }
     }
 }

@@ -1,5 +1,5 @@
 use nalgebra::Vector2;
-use soukoban::{direction::Direction, path_finding::reachable_area, Level, Tiles};
+use soukoban::{direction::Direction, path_finding::reachable_area, Map, Tiles};
 
 use std::{
     collections::{HashMap, HashSet, VecDeque},
@@ -13,7 +13,7 @@ pub struct PushState {
 }
 
 pub fn box_pushable_paths_with_positions(
-    level: &Level,
+    map: &Map,
     box_position: &Vector2<i32>,
     initial_box_positions: &HashSet<Vector2<i32>>,
 ) -> HashMap<PushState, Vec<Vector2<i32>>> {
@@ -21,8 +21,8 @@ pub fn box_pushable_paths_with_positions(
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
 
-    let player_reachable_area = reachable_area(level.map().player_position(), |position| {
-        !level.map()[position].intersects(Tiles::Wall) && !initial_box_positions.contains(&position)
+    let player_reachable_area = reachable_area(map.player_position(), |position| {
+        !map[position].intersects(Tiles::Wall) && !initial_box_positions.contains(&position)
     });
     for push_direction in [
         Direction::Up,
@@ -31,7 +31,7 @@ pub fn box_pushable_paths_with_positions(
         Direction::Right,
     ] {
         let player_position = box_position - &push_direction.into();
-        if level.map()[player_position].intersects(Tiles::Wall)
+        if map[player_position].intersects(Tiles::Wall)
             || !player_reachable_area.contains(&player_position)
         {
             continue;
@@ -51,7 +51,7 @@ pub fn box_pushable_paths_with_positions(
 
         let player_position = state.box_position - &state.push_direction.into();
         let player_reachable_area = reachable_area(player_position, |position| {
-            !level.map()[position].intersects(Tiles::Wall) && !box_positions.contains(&position)
+            !map[position].intersects(Tiles::Wall) && !box_positions.contains(&position)
         });
 
         for push_direction in [
@@ -63,13 +63,13 @@ pub fn box_pushable_paths_with_positions(
             let new_box_position = state.box_position + &push_direction.into();
             let player_position = state.box_position - &push_direction.into();
 
-            if level.map()[new_box_position].intersects(Tiles::Wall /* | Tiles::Deadlock */)
+            if map[new_box_position].intersects(Tiles::Wall /* | Tiles::Deadlock */)
                 || box_positions.contains(&new_box_position)
             {
                 continue;
             }
 
-            if level.map()[player_position].intersects(Tiles::Wall)
+            if map[player_position].intersects(Tiles::Wall)
                 || !player_reachable_area.contains(&player_position)
             {
                 continue;
@@ -98,9 +98,9 @@ pub fn box_pushable_paths_with_positions(
 
 /// Finds paths for pushing a box from `box_position` to other positions.
 pub fn box_pushable_paths(
-    level: &Level,
+    map: &Map,
     box_position: &Vector2<i32>,
 ) -> HashMap<PushState, Vec<Vector2<i32>>> {
-    debug_assert!(level.map().box_positions().contains(box_position));
-    box_pushable_paths_with_positions(level, box_position, level.map().box_positions())
+    debug_assert!(map.box_positions().contains(box_position));
+    box_pushable_paths_with_positions(map, box_position, map.box_positions())
 }
