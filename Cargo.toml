@@ -12,7 +12,7 @@ categories = ["games"]
 
 [dependencies]
 soukoban = { git = "https://github.com/ShenMian/soukoban" }
-bitflags = "2.6"
+bitflags = "2.8"
 nalgebra = "0.33"
 itertools = "0.14"
 serde = { version = "1.0", features = ["derive"] }
