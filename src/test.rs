@@ -10,7 +10,7 @@ mod tests {
     #[cfg(not(debug_assertions))]
     use std::fs;
 
-    #[expect(dead_code)]
+    #[allow(dead_code)]
     fn solve<R: RangeBounds<usize> + IntoIterator<Item = usize>>(
         levels: &[Level],
         range: R,
