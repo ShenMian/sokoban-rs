@@ -8,6 +8,7 @@ mod events;
 mod input_map;
 mod plugins;
 mod resources;
+mod settings;
 mod solve;
 mod state;
 mod systems;

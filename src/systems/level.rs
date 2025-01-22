@@ -9,10 +9,12 @@ use std::{collections::HashMap, fs, path::Path, sync::Mutex};
 
 /// Sets up the database, initializes it, and loads levels from files into the database.
 pub fn setup_database(mut commands: Commands) {
-    let database = database::Database::from_file(Path::new("db.sqlite3"));
+    let db_path = crate::settings::app_writeable_dir().join("db.sqlite3");
+    let database = database::Database::from_file(Path::new(&db_path));
     database.initialize();
     info!("Loading levels from files");
-    for path in fs::read_dir("assets/levels/").unwrap() {
+    let levels_dir = crate::settings::static_resources_dir().join("assets/levels/");
+    for path in fs::read_dir(&levels_dir).unwrap() {
         let path = path.unwrap().path();
         if !path.is_file() {
             continue;

@@ -20,12 +20,16 @@ rusqlite = { version = "0.33", features = ["bundled"] }
 arboard = "3.4"                                             # System clipboard
 image = "0.25"
 toml = "0.8"
+dirs = "6"
 
 bevy = "0.15"
 leafwing-input-manager = "0.16"
 bevy_kira_audio = "0.22"
 benimator = "4.1"
 winit = "0.30"                  # The version needs to be consistent with the one used in bevy
+
+[build-dependencies]
+fs_extra = "1.2"
 
 # Enable a small amount of optimization in debug mode.
 [profile.dev]

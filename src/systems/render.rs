@@ -10,7 +10,8 @@ use std::{cmp::Ordering, collections::HashSet, time::Duration};
 /// Sets the window icon for all windows
 pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
     let (icon_rgba, icon_width, icon_height) = {
-        let image = image::open("assets/textures/box.png")
+        let icon_path = crate::settings::static_resources_dir().join("assets/textures/box.png");
+        let image = image::open(&icon_path)
             .expect("failed to open icon path")
             .into_rgba8();
         let (width, height) = image.dimensions();
