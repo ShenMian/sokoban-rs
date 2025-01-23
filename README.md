@@ -77,3 +77,7 @@ A sokoban with solver.
 | `Y`/`Triangle` | Toggle automatic solution         |
 
 [^1]: Disables character and box movement animations.
+
+## License
+
+Licensed under [Apache License, Version 2.0](LICENSE).
