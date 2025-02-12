@@ -3,6 +3,10 @@ use bevy_kira_audio::prelude::*;
 
 use crate::{events::*, resources::*};
 
+pub fn plugin(app: &mut App) {
+    app.add_systems(Update, handle_audio_event);
+}
+
 /// Play audio based on events.
 pub fn handle_audio_event(
     audio: Res<Audio>,

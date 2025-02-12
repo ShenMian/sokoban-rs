@@ -18,13 +18,10 @@ mod utils;
 use events::*;
 use input_map::*;
 use leafwing_input_manager::{action_diff::ActionDiffEvent, prelude::*};
-use plugins::{
-    auto_move::AutoMovePlugin, auto_solve::AutoSolvePlugin, camera::CameraPlugin,
-    config::ConfigPlugin, performance_matrix, ui::UiPlugin, version_information,
-};
+use plugins::*;
 use resources::*;
 use state::*;
-use systems::{audio::*, input::*, level::*, render::*, ui::*};
+use systems::{input::*, level::*, render::*};
 use utils::*;
 
 use bevy::prelude::*;
@@ -43,23 +40,14 @@ fn main() {
             ..default()
         }),
         AudioPlugin,
-    ))
-    .add_plugins((
-        performance_matrix::plugin,
-        version_information::plugin,
         InputManagerPlugin::<Action>::default(),
     ))
     .init_state::<AppState>()
     .enable_state_scoped_entities::<AppState>();
 
     app.add_systems(PreStartup, (setup_camera, setup_database));
-    app.add_systems(
-        Startup,
-        (set_windows_icon, setup_button, setup_hud, setup_level),
-    );
-    app.add_systems(Update, handle_audio_event);
+    app.add_systems(Startup, (set_windows_icon, setup_level));
     app.add_systems(FixedUpdate, animate_player);
-
     app.add_systems(
         Update,
         (
@@ -80,11 +68,14 @@ fn main() {
     );
 
     app.add_plugins((
-        ConfigPlugin,
-        UiPlugin,
-        CameraPlugin,
-        AutoSolvePlugin,
-        AutoMovePlugin,
+        performance_matrix::plugin,
+        version_information::plugin,
+        ui::plugin,
+        audio::plugin,
+        config::plugin,
+        camera::plugin,
+        auto_move::plugin,
+        auto_solve::plugin,
     ));
 
     app.init_resource::<ActionState<Action>>()
