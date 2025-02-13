@@ -115,8 +115,7 @@ pub fn handle_player_movement(
                 _ => (),
             }
 
-            player_grid_position.x += Into::<Vector2<i32>>::into(direction).x;
-            player_grid_position.y += Into::<Vector2<i32>>::into(direction).y;
+            *player_grid_position += Into::<Vector2<i32>>::into(direction);
 
             let old_box_position = *player_grid_position;
             let new_box_position = old_box_position + &direction.into();
@@ -133,8 +132,7 @@ pub fn handle_player_movement(
         while let Some(direction) = player_movement.directions.pop_back() {
             board.do_action(direction);
 
-            player_grid_position.x += Into::<Vector2<i32>>::into(direction).x;
-            player_grid_position.y += Into::<Vector2<i32>>::into(direction).y;
+            *player_grid_position += Into::<Vector2<i32>>::into(direction);
 
             let old_box_position = *player_grid_position;
             let new_box_position = old_box_position + &direction.into();
