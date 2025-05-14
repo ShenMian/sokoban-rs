@@ -77,14 +77,15 @@ pub fn spawn_board(
     );
 
     // move the camera to the center of the board
-    let (mut transform, mut main_camera) = camera.single_mut();
+    let (mut transform, mut main_camera) = camera.single_mut().unwrap();
     transform.translation.x = (board_size.x - tile_size.x) as f32 / 2.0;
     transform.translation.y = (board_size.y + tile_size.y) as f32 / 2.0;
 
-    main_camera.target_scale = calculate_camera_default_scale(window.single(), level.map());
+    main_camera.target_scale =
+        calculate_camera_default_scale(window.single().unwrap(), level.map());
 
     // despawn the previous `Board`
-    commands.entity(board.single()).despawn_recursive();
+    commands.entity(board.single().unwrap()).despawn();
 
     // spawn new `Board`
     let board = board::Board::with_map(level.map().clone());
@@ -152,7 +153,7 @@ pub fn auto_switch_to_next_unsolved_level(
         return;
     }
     let database = database.lock().unwrap();
-    let board = &mut board.single_mut().board;
+    let board = &mut board.single_mut().unwrap().board;
     debug_assert!(board.is_solved());
     info!("{}", "=".repeat(15));
     info!("#{} Solved!", level_id.0);

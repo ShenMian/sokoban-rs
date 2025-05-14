@@ -5,7 +5,7 @@ use bevy::{
 };
 
 pub fn plugin(app: &mut App) {
-    app.add_plugins(FrameTimeDiagnosticsPlugin)
+    app.add_plugins(FrameTimeDiagnosticsPlugin::default())
         .add_systems(Startup, setup)
         .add_systems(Update, update);
 }
@@ -66,7 +66,7 @@ fn update(
     query: Query<Entity, With<PerformanceMatrix>>,
     mut writer: TextUiWriter,
 ) {
-    let text = query.single();
+    let text = query.single().unwrap();
     if let Some(fps) = diagnostics.get(&FrameTimeDiagnosticsPlugin::FPS) {
         if let Some(raw) = fps.value() {
             update_text_span(2, raw, text, &mut writer);

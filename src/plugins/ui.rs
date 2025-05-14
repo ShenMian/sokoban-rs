@@ -95,8 +95,8 @@ pub fn update_hud(
     level_id: Res<LevelId>,
     database: Res<Database>,
 ) {
-    let hud = hud.single_mut();
-    let board = &board.single().board;
+    let hud = hud.single_mut().unwrap();
+    let board = &board.single().unwrap().board;
 
     if level_id.is_changed() {
         *writer.text(hud, 1) = format!("#{}\n", level_id.0);
@@ -124,8 +124,8 @@ pub fn update_hud(
 
 /// Sets up buttons on the screen.
 pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let button = |parent: &mut ChildBuilder, action, img_path| {
-        parent
+    let button = |spawner: &mut ChildSpawnerCommands, action, img_path| {
+        spawner
             .spawn((
                 Name::new("Button"),
                 action,
