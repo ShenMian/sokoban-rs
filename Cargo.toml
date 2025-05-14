@@ -16,7 +16,7 @@ bitflags = "2.9"
 nalgebra = "0.33"
 itertools = "0.14"
 serde = { version = "1.0", features = ["derive"] }
-rusqlite = { version = "0.34", features = ["bundled"] }
+rusqlite = { version = "0.35", features = ["bundled"] }
 arboard = "3.4"                                             # System clipboard
 image = "0.25"
 toml = "0.8"
