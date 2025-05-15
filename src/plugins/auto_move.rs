@@ -5,7 +5,11 @@ use itertools::Itertools;
 use soukoban::{deadlock::calculate_static_deadlocks, path_finding::reachable_area, Tiles};
 
 use crate::{
-    box_pushable_paths, components::*, resources::AutoMoveState, systems::input::*, AppState,
+    box_pushable_paths,
+    components::{Board, Box, GridPosition, Player},
+    resources::AutoMoveState,
+    systems::input::*,
+    AppState,
 };
 
 pub fn plugin(app: &mut App) {
@@ -24,7 +28,7 @@ pub fn spawn_auto_move_marks(
     mut player: Query<&mut Sprite, With<Player>>,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
-    let Board { board, tile_size } = board.single();
+    let Board { board, tile_size } = board.single().unwrap();
     let map = &board.map;
 
     const MARK_COLOR: Srgba = LIME;
@@ -93,7 +97,7 @@ pub fn spawn_auto_move_marks(
             }
 
             // highlight selected player
-            let mut sprite = player.single_mut();
+            let mut sprite = player.single_mut().unwrap();
             sprite.color = HIGHLIGHT_COLOR.into();
         }
     }
@@ -116,7 +120,7 @@ pub fn cleanup_sprite_color(
                 .for_each(|(_, mut sprite)| sprite.color = Color::WHITE);
         }
         AutoMoveState::Player => {
-            let mut sprite = player.single_mut();
+            let mut sprite = player.single_mut().unwrap();
             sprite.color = Color::WHITE;
         }
     }

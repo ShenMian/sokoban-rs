@@ -16,15 +16,15 @@ bitflags = "2.9"
 nalgebra = "0.33"
 itertools = "0.14"
 serde = { version = "1.0", features = ["derive"] }
-rusqlite = { version = "0.34", features = ["bundled"] }
+rusqlite = { version = "0.35", features = ["bundled"] }
 arboard = "3.4"                                             # System clipboard
 image = "0.25"
 toml = "0.8"
 dirs = "6"
 
-bevy = "0.15"
-leafwing-input-manager = "0.16"
-bevy_kira_audio = "0.22"
+bevy = "0.16"
+leafwing-input-manager = "0.17"
+bevy_kira_audio = "0.23"
 benimator = "4.1"
 winit = "0.30"                  # The version needs to be consistent with the one used in bevy
 

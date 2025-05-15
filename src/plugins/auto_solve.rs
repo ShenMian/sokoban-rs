@@ -2,7 +2,13 @@ use std::time::{Duration, Instant};
 
 use bevy::{color::palettes::css::*, prelude::*};
 
-use crate::{components::*, resources::*, solve::solver::*, systems::input::*, AppState};
+use crate::{
+    components::{Board, Box, GridPosition, Player},
+    resources::*,
+    solve::solver::*,
+    systems::input::*,
+    AppState,
+};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(
@@ -40,7 +46,7 @@ pub fn load_solver(
     board: Query<&Board>,
     config: Res<Config>,
 ) {
-    let board = &board.single().board;
+    let board = &board.single().unwrap().board;
     let SolverState {
         solver,
         stopwatch,
@@ -67,7 +73,7 @@ pub fn spawn_lowerbound_marks(
     mut commands: Commands,
     mut board: Query<&mut Board>,
 ) {
-    let Board { board, tile_size } = &mut *board.single_mut();
+    let Board { board, tile_size } = &mut *board.single_mut().unwrap();
     let solver = solver_state.solver.lock().unwrap();
 
     let lowerbounds = solver.lower_bounds().clone();
@@ -93,7 +99,7 @@ pub fn spawn_lowerbound_marks(
 
 /// Resets the board to the state before automatic solution
 pub fn reset_board(mut board: Query<&mut Board>, solver_state: Res<SolverState>) {
-    let board = &mut board.single_mut().board;
+    let board = &mut board.single_mut().unwrap().board;
     *board = solver_state.origin_board.clone();
 }
 
@@ -104,7 +110,7 @@ pub fn update_solver(
 
     mut next_state: ResMut<NextState<AppState>>,
 ) {
-    let board = &mut board.single_mut().board;
+    let board = &mut board.single_mut().unwrap().board;
     let SolverState {
         solver,
         stopwatch,
@@ -172,7 +178,7 @@ pub fn update_tile_translation(
     mut tiles: Query<(&mut Transform, &GridPosition)>,
     board: Query<&Board>,
 ) {
-    let Board { board, tile_size } = &board.single();
+    let Board { board, tile_size } = &board.single().unwrap();
     for (mut transform, grid_position) in tiles.iter_mut() {
         transform.translation.x = grid_position.x as f32 * tile_size.x as f32;
         transform.translation.y = board.map.dimensions().y as f32 * tile_size.y as f32
@@ -185,8 +191,8 @@ pub fn update_tile_grid_position(
     mut box_grid_positions: Query<&mut GridPosition, (With<Box>, Without<Player>)>,
     board: Query<&Board>,
 ) {
-    let map = &board.single().board.map;
-    let mut player_grid_positions = player_grid_positions.single_mut();
+    let map = &board.single().unwrap().board.map;
+    let mut player_grid_positions = player_grid_positions.single_mut().unwrap();
     **player_grid_positions = map.player_position();
 
     for (mut box_grid_position, box_position) in box_grid_positions

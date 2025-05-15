@@ -31,10 +31,10 @@ pub fn handle_actions(
 
     mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
 ) {
-    let board = &mut board.single_mut().board;
-    let main_camera = &mut *camera.single_mut();
+    let board = &mut board.single_mut().unwrap().board;
+    let main_camera = &mut *camera.single_mut().unwrap();
     let database = database.lock().unwrap();
-    let Ok(mut window) = window.get_single_mut() else {
+    let Ok(mut window) = window.single_mut() else {
         return;
     };
     let window = &mut *window;
@@ -247,12 +247,12 @@ fn handle_undo_redo_action(
     if action_state.just_pressed(&Action::Undo) {
         player_movement.directions.clear();
         board.undo_push();
-        update_grid_position_events.send_default();
+        update_grid_position_events.write_default();
     }
     if action_state.just_pressed(&Action::Redo) {
         player_movement.directions.clear();
         board.redo_push();
-        update_grid_position_events.send_default();
+        update_grid_position_events.write_default();
     }
 }
 
@@ -285,12 +285,12 @@ pub fn mouse_input(
     mut player_movement: ResMut<PlayerMovement>,
     mut auto_move_state: ResMut<AutoMoveState>,
 ) {
-    let Board { board, tile_size } = &mut *board.single_mut();
+    let Board { board, tile_size } = &mut *board.single_mut().unwrap();
     let map = &board.map;
-    let (camera, camera_transform) = camera.single_mut();
+    let (camera, camera_transform) = camera.single_mut().unwrap();
 
     if mouse_buttons.just_pressed(MouseButton::Left) && player_movement.directions.is_empty() {
-        let cursor_position = windows.single().cursor_position();
+        let cursor_position = windows.single().unwrap().cursor_position();
         if cursor_position.is_none() {
             return;
         }
@@ -396,7 +396,7 @@ pub fn adjust_viewport(
     mut motion_events: EventReader<MouseMotion>,
     mut camera: Query<(&mut Transform, &MainCamera)>,
 ) {
-    let (mut camera_transform, main_camera) = camera.single_mut();
+    let (mut camera_transform, main_camera) = camera.single_mut().unwrap();
     if mouse_buttons.pressed(MouseButton::Right) {
         for event in motion_events.read() {
             camera_transform.translation.x -= event.delta.x * main_camera.target_scale * 0.6;

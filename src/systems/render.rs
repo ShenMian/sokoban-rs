@@ -3,7 +3,11 @@ use bevy::{prelude::*, window::WindowResized, winit::WinitWindows};
 use nalgebra::Vector2;
 use soukoban::{direction::Direction, Map};
 
-use crate::{components::*, events::*, resources::*};
+use crate::{
+    components::{AnimationState, Board, Box, GridPosition, MainCamera, Player},
+    events::*,
+    resources::*,
+};
 
 use std::{cmp::Ordering, collections::HashSet, time::Duration};
 
@@ -36,8 +40,8 @@ pub fn animate_player(
     time: Res<Time>,
     player_movement: Res<PlayerMovement>,
 ) {
-    let board = &mut board.single_mut().board;
-    let (animation_state, sprite) = &mut player.single_mut();
+    let board = &mut board.single_mut().unwrap().board;
+    let (animation_state, sprite) = &mut player.single_mut().unwrap();
 
     // TODO: The character's orientation looks a bit weird when just doing
     // push-undo. Supporting action-undo should fix that.
@@ -89,9 +93,9 @@ pub fn handle_player_movement(
         return;
     }
 
-    let board = &mut board.single_mut().board;
+    let board = &mut board.single_mut().unwrap().board;
 
-    let player_grid_position = &mut **player.single_mut();
+    let player_grid_position = &mut **player.single_mut().unwrap();
     if !config.instant_move {
         player_movement.timer.tick(time.delta());
         if !player_movement.timer.just_finished() {
@@ -110,8 +114,8 @@ pub fn handle_player_movement(
                 .intersection(board.map.box_positions())
                 .count();
             match new_occupied_goals_count.cmp(&occupied_goals_count) {
-                Ordering::Greater => drop(box_enter_goal_events.send_default()),
-                Ordering::Less => drop(box_leave_goal_events.send_default()),
+                Ordering::Greater => drop(box_enter_goal_events.write_default()),
+                Ordering::Less => drop(box_leave_goal_events.write_default()),
                 _ => (),
             }
 
@@ -148,7 +152,7 @@ pub fn handle_player_movement(
     }
 
     if board.is_solved() {
-        level_solved_events.send_default();
+        level_solved_events.write_default();
     }
 }
 
@@ -158,7 +162,7 @@ pub fn smooth_tile_motion(
     board: Query<&Board>,
     config: Res<Config>,
 ) {
-    let Board { board, tile_size } = &board.single();
+    let Board { board, tile_size } = &board.single().unwrap();
     for (mut transform, grid_position) in tiles.iter_mut() {
         if !config.instant_move {
             let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
@@ -188,16 +192,18 @@ pub fn smooth_tile_motion(
 /// Applies smooth motion to the main camera.
 pub fn smooth_camera_motion(
     camera: Query<&MainCamera>,
-    mut projection: Query<&mut OrthographicProjection, With<MainCamera>>,
+    mut projection: Query<&mut Projection, With<MainCamera>>,
 ) {
-    let main_camera = camera.single();
-    let mut projection = projection.single_mut();
+    let main_camera = camera.single().unwrap();
+    let mut projection = projection.single_mut().unwrap();
 
     let lerp = |a: f32, b: f32, t: f32| a + (b - a) * t;
-    if (projection.scale - main_camera.target_scale).abs() > 0.001 {
-        projection.scale = lerp(projection.scale, main_camera.target_scale, 0.3);
-    } else {
-        projection.scale = main_camera.target_scale;
+    if let Projection::Orthographic(ortho) = &mut *projection {
+        if (ortho.scale - main_camera.target_scale).abs() > 0.001 {
+            ortho.scale = lerp(ortho.scale, main_camera.target_scale, 0.3);
+        } else {
+            ortho.scale = main_camera.target_scale;
+        }
     }
 }
 
@@ -210,9 +216,9 @@ pub fn update_grid_position_from_board(
 ) {
     update_grid_position_events.clear();
 
-    let map = &board.single().board.map;
+    let map = &board.single().unwrap().board.map;
 
-    let player_grid_position = &mut player.single_mut().0;
+    let player_grid_position = &mut player.single_mut().unwrap().0;
     player_grid_position.x = map.player_position().x;
     player_grid_position.y = map.player_position().y;
 
@@ -250,8 +256,10 @@ pub fn adjust_camera_scale(
     }
     events.clear();
 
-    camera.single_mut().target_scale =
-        calculate_camera_default_scale(window.single(), &board.single().board.map);
+    camera.single_mut().unwrap().target_scale = calculate_camera_default_scale(
+        window.single().unwrap(),
+        &board.single().unwrap().board.map,
+    );
 }
 
 /// Adjust the camera zoom to fit the entire board.
