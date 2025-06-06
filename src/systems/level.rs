@@ -61,9 +61,9 @@ pub fn spawn_board(
     let level = database.get_level_by_id(level_id.0).unwrap();
 
     let spritesheet_handle = asset_server.load("textures/tilesheet.png");
-    let tile_size = Vector2::new(128, 128);
+    let tile_size = Vector2::<i32>::new(128, 128);
     let spritesheet_layout = TextureAtlasLayout::from_grid(
-        UVec2::new(tile_size.x, tile_size.y),
+        UVec2::new(tile_size.x as u32, tile_size.y as u32),
         6,
         3,
         Some(UVec2::new(1, 1)),
@@ -72,8 +72,8 @@ pub fn spawn_board(
     let spritesheet_layout_handle = spritesheet_layouts.add(spritesheet_layout);
 
     let board_size = Vector2::new(
-        tile_size.x * level.map().dimensions().x as u32,
-        tile_size.y * level.map().dimensions().y as u32,
+        tile_size.x * level.map().dimensions().x,
+        tile_size.y * level.map().dimensions().y,
     );
 
     // move the camera to the center of the board

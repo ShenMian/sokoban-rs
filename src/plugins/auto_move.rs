@@ -51,11 +51,11 @@ pub fn spawn_auto_move_marks(
                     Name::new("Pushable mark"),
                     Sprite::from_color(
                         MARK_COLOR.with_alpha(0.8),
-                        Vec2::new(tile_size.x as f32 / 4.0, tile_size.y as f32 / 4.0),
+                        Vec2::new(tile_size.x as f32, tile_size.y as f32) / 4.0,
                     ),
                     Transform::from_xyz(
-                        box_position.x as f32 * tile_size.x as f32,
-                        (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
+                        (box_position.x * tile_size.x) as f32,
+                        ((map.dimensions().y - box_position.y) * tile_size.y) as f32,
                         10.0,
                     ),
                     StateScoped(AppState::AutoMove),

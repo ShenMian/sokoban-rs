@@ -20,7 +20,7 @@ pub struct Hud;
 #[derive(Component)]
 pub struct Board {
     pub board: board::Board,
-    pub tile_size: Vector2<u32>,
+    pub tile_size: Vector2<i32>,
 }
 
 #[derive(Component, Deref, DerefMut)]
