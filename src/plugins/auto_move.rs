@@ -46,7 +46,7 @@ pub fn spawn_auto_move_marks(
             paths.retain(|state, _| !static_deadlocks.contains(&state.box_position));
 
             // spawn box pushable marks
-            for box_position in paths.keys().map(|state| state.box_position).unique() {
+            for mark_position in paths.keys().map(|state| state.box_position).unique() {
                 commands.spawn((
                     Name::new("Pushable mark"),
                     Sprite::from_color(
@@ -54,8 +54,8 @@ pub fn spawn_auto_move_marks(
                         Vec2::new(tile_size.x as f32, tile_size.y as f32) / 4.0,
                     ),
                     Transform::from_xyz(
-                        (box_position.x * tile_size.x) as f32,
-                        ((map.dimensions().y - box_position.y) * tile_size.y) as f32,
+                        (mark_position.x * tile_size.x) as f32,
+                        ((map.dimensions().y - mark_position.y) * tile_size.y) as f32,
                         10.0,
                     ),
                     StateScoped(AppState::AutoMove),
@@ -70,7 +70,7 @@ pub fn spawn_auto_move_marks(
             // highlight selected box
             boxes
                 .iter_mut()
-                .filter(|(grid_position, ..)| ***grid_position == *box_position)
+                .filter(|(grid_position, ..)| grid_position.0 == *box_position)
                 .for_each(|(_, mut sprite)| sprite.color = HIGHLIGHT_COLOR.into());
         }
         AutoMoveState::Player => {
@@ -80,7 +80,7 @@ pub fn spawn_auto_move_marks(
             reachable_area.remove(&map.player_position());
 
             // spawn player movable marks
-            for box_position in reachable_area {
+            for mark_position in reachable_area {
                 commands.spawn((
                     Name::new("Movable mark"),
                     Sprite::from_color(
@@ -88,8 +88,8 @@ pub fn spawn_auto_move_marks(
                         Vec2::new(tile_size.x as f32 / 4.0, tile_size.y as f32 / 4.0),
                     ),
                     Transform::from_xyz(
-                        box_position.x as f32 * tile_size.x as f32,
-                        (map.dimensions().y - box_position.y) as f32 * tile_size.y as f32,
+                        (mark_position.x * tile_size.x) as f32,
+                        ((map.dimensions().y - mark_position.y) * tile_size.y) as f32,
                         10.0,
                     ),
                     StateScoped(AppState::AutoMove),
@@ -116,7 +116,7 @@ pub fn cleanup_sprite_color(
         } => {
             boxes
                 .iter_mut()
-                .filter(|(grid_position, _)| ***grid_position == box_position)
+                .filter(|(grid_position, _)| grid_position.0 == box_position)
                 .for_each(|(_, mut sprite)| sprite.color = Color::WHITE);
         }
         AutoMoveState::Player => {
