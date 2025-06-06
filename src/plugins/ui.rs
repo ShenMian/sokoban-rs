@@ -7,7 +7,7 @@ use crate::{components::*, resources::*, Action};
 use crate::{state::*, systems::input::*};
 
 pub fn plugin(app: &mut App) {
-    app.add_systems(Startup, (setup_hud, setup_button));
+    app.add_systems(Startup, (setup_hud, setup_buttons));
     app.add_systems(
         Update,
         (
@@ -122,37 +122,40 @@ pub fn update_hud(
     *writer.text(hud, 5) = format!("{}\n", board.actions().pushes());
 }
 
-/// Sets up buttons on the screen.
-pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
-    let button = |spawner: &mut ChildSpawnerCommands, action, img_path| {
-        spawner
-            .spawn((
-                Name::new("Button"),
-                action,
-                Button,
+fn spawn_button(parent: &mut ChildSpawnerCommands, action: Action, texture: Handle<Image>) {
+    const BUTTON_SIZE: f32 = 64.0;
+    parent
+        .spawn((
+            Name::new("Button"),
+            action,
+            Button,
+            Node {
+                width: Val::Px(BUTTON_SIZE),
+                height: Val::Px(BUTTON_SIZE),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                border: UiRect::all(Val::Px(3.0)),
+                ..default()
+            },
+            BorderColor(Color::NONE),
+        ))
+        .with_children(|parent| {
+            parent.spawn((
+                ImageNode::new(texture),
                 Node {
-                    width: Val::Px(64.0),
-                    height: Val::Px(64.0),
-                    justify_content: JustifyContent::Center,
-                    align_items: AlignItems::Center,
-                    border: UiRect::all(Val::Px(3.0)),
+                    width: Val::Percent(90.0),
+                    height: Val::Percent(90.0),
                     ..default()
                 },
-                BorderColor(Color::NONE),
-            ))
-            .with_children(|parent| {
-                parent.spawn((
-                    ImageNode::new(asset_server.load(img_path)),
-                    Node {
-                        width: Val::Percent(90.0),
-                        height: Val::Percent(90.0),
-                        ..default()
-                    },
-                ));
-            });
-    };
+            ));
+        });
+}
+
+/// Sets up buttons on the screen.
+pub fn setup_buttons(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
+            Name::new("Buttons"),
             Node {
                 position_type: PositionType::Absolute,
                 right: Val::Px(20.0),
@@ -162,18 +165,26 @@ pub fn setup_button(mut commands: Commands, asset_server: Res<AssetServer>) {
             BackgroundColor(Color::NONE),
         ))
         .with_children(|parent| {
-            button(
+            spawn_button(
                 parent,
                 Action::ToggleInstantMove,
-                "textures/instant_move_off.png",
+                asset_server.load("textures/instant_move_off.png"),
             );
-            button(
+            spawn_button(
                 parent,
                 Action::ToggleAutomaticSolution,
-                "textures/automatic_solution.png",
+                asset_server.load("textures/automatic_solution.png"),
             );
-            button(parent, Action::PreviousLevel, "textures/previous.png");
-            button(parent, Action::NextLevel, "textures/next.png");
+            spawn_button(
+                parent,
+                Action::PreviousLevel,
+                asset_server.load("textures/previous.png"),
+            );
+            spawn_button(
+                parent,
+                Action::NextLevel,
+                asset_server.load("textures/next.png"),
+            );
         });
 }
 
