@@ -122,85 +122,65 @@ pub fn update_hud(
     *writer.text(hud, 5) = format!("{}\n", board.actions().pushes());
 }
 
-fn spawn_button(parent: &mut ChildSpawnerCommands, action: Action, texture: Handle<Image>) {
-    const BUTTON_SIZE: f32 = 64.0;
-    parent
-        .spawn((
-            Name::new("Button"),
-            action,
-            Button,
-            Node {
-                width: Val::Px(BUTTON_SIZE),
-                height: Val::Px(BUTTON_SIZE),
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                border: UiRect::all(Val::Px(3.0)),
-                ..default()
-            },
-            BorderColor(Color::NONE),
-        ))
-        .with_children(|parent| {
-            parent.spawn((
-                ImageNode::new(texture),
-                Node {
-                    width: Val::Percent(90.0),
-                    height: Val::Percent(90.0),
-                    ..default()
-                },
-            ));
-        });
-}
-
 /// Sets up buttons on the screen.
 pub fn setup_buttons(mut commands: Commands, asset_server: Res<AssetServer>) {
-    commands
-        .spawn((
-            Name::new("Buttons"),
-            Node {
-                position_type: PositionType::Absolute,
-                right: Val::Px(20.0),
-                bottom: Val::Px(20.0),
-                ..default()
-            },
-            BackgroundColor(Color::NONE),
-        ))
-        .with_children(|parent| {
-            spawn_button(
-                parent,
+    commands.spawn((
+        Name::new("Buttons"),
+        Node {
+            position_type: PositionType::Absolute,
+            right: Val::Px(20.0),
+            bottom: Val::Px(20.0),
+            ..default()
+        },
+        BackgroundColor(Color::NONE),
+        children![
+            icon_button(
                 Action::ToggleInstantMove,
                 asset_server.load("textures/instant_move_off.png"),
-            );
-            spawn_button(
-                parent,
+            ),
+            icon_button(
                 Action::ToggleAutomaticSolution,
                 asset_server.load("textures/automatic_solution.png"),
-            );
-            spawn_button(
-                parent,
+            ),
+            icon_button(
                 Action::PreviousLevel,
                 asset_server.load("textures/previous.png"),
-            );
-            spawn_button(
-                parent,
-                Action::NextLevel,
-                asset_server.load("textures/next.png"),
-            );
-        });
+            ),
+            icon_button(Action::NextLevel, asset_server.load("textures/next.png")),
+        ],
+    ));
+}
+
+fn icon_button(action: Action, texture: Handle<Image>) -> impl Bundle {
+    const ICON_BUTTON_SIZE: f32 = 64.0;
+    (
+        Name::new("Icon Button"),
+        action,
+        Button,
+        Node {
+            width: Val::Px(ICON_BUTTON_SIZE),
+            height: Val::Px(ICON_BUTTON_SIZE),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            border: UiRect::all(Val::Px(3.0)),
+            ..default()
+        },
+        BorderColor(Color::NONE),
+        ImageNode::new(texture),
+    )
 }
 
 /// Updates the state of buttons based on config.
 pub fn update_button_state(
-    mut buttons: Query<(&Action, &Children), With<Button>>,
-    mut image: Query<&mut ImageNode>,
+    mut buttons: Query<(&Action, &mut ImageNode), With<Button>>,
     config: Res<Config>,
     asset_server: Res<AssetServer>,
 ) {
     if !config.is_changed() {
         return;
     }
-    for (button, children) in &mut buttons {
+    for (button, mut image) in &mut buttons {
         if *button == Action::ToggleInstantMove {
-            let mut image = image.get_mut(children[0]).unwrap();
             image.image = if config.instant_move {
                 asset_server.load("textures/instant_move_on.png")
             } else {
