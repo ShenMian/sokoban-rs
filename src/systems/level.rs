@@ -120,14 +120,13 @@ pub fn spawn_board(
                                 sprite.color = (WHITE * (1.0 - config.even_square_shades)).into();
                             }
                             let mut entity = parent.spawn((
-                                Sprite {
-                                    image: spritesheet_handle.clone(),
-                                    texture_atlas: Some(TextureAtlas {
+                                Sprite::from_atlas_image(
+                                    spritesheet_handle.clone(),
+                                    TextureAtlas {
                                         layout: spritesheet_layout_handle.clone(),
                                         index: sprite_index,
-                                    }),
-                                    ..default()
-                                },
+                                    },
+                                ),
                                 Transform::from_xyz(0.0, 0.0, z_order),
                                 GridPosition(position),
                             ));
