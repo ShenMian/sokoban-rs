@@ -13,13 +13,13 @@ categories = ["games"]
 [dependencies]
 soukoban = { git = "https://github.com/ShenMian/soukoban" }
 bitflags = "2.9"
-nalgebra = "0.33"
+nalgebra = "0.34"
 itertools = "0.14"
 serde = { version = "1.0", features = ["derive"] }
-rusqlite = { version = "0.36", features = ["bundled"] }
+rusqlite = { version = "0.37", features = ["bundled"] }
 arboard = "3.5"                                             # System clipboard
 image = "0.25"
-toml = "0.8"
+toml = "0.9"
 dirs = "6.0"
 
 bevy = "0.16"
