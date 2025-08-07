@@ -351,7 +351,7 @@ impl Solver {
             for x in 0..self.map.dimensions().x {
                 let position = Vector2::new(x, y);
                 if let Some(lower_bound) = self.lower_bounds().get(&position) {
-                    print!("{:3} ", lower_bound);
+                    print!("{lower_bound:3} ");
                 } else {
                     print!("{:3} ", "###");
                 }
