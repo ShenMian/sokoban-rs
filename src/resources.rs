@@ -17,7 +17,7 @@ pub struct Config {
     /// Make the floor look like a chessboard with alternating light square and dark square.
     pub even_square_shades: f32,
     /// Audio volume.
-    pub volume: f64,
+    pub volume: f32,
     /// Disable player movement animation.
     pub instant_move: bool,
     /// Enable auto switch to next unsolved level when the current level is solved.

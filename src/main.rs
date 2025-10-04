@@ -17,7 +17,7 @@ mod utils;
 
 use events::*;
 use input_map::*;
-use leafwing_input_manager::{action_diff::ActionDiffEvent, prelude::*};
+use leafwing_input_manager::{action_diff::ActionDiffMessage, prelude::*};
 use plugins::*;
 use resources::*;
 use state::*;
@@ -42,8 +42,7 @@ fn main() {
         AudioPlugin,
         InputManagerPlugin::<Action>::default(),
     ))
-    .init_state::<AppState>()
-    .enable_state_scoped_entities::<AppState>();
+    .init_state::<AppState>();
 
     app.add_systems(PreStartup, (setup_camera, setup_database));
     app.add_systems(Startup, (set_windows_icon, setup_level));
@@ -53,11 +52,11 @@ fn main() {
         (
             (
                 mouse_input,
-                auto_switch_to_next_unsolved_level.run_if(on_event::<LevelSolved>),
+                auto_switch_to_next_unsolved_level.run_if(on_message::<LevelSolved>),
                 spawn_board.run_if(resource_changed_or_removed::<LevelId>),
             )
                 .chain(),
-            update_grid_position_from_board.run_if(on_event::<UpdateGridPositionEvent>),
+            update_grid_position_from_board.run_if(on_message::<UpdateGridPositionEvent>),
             file_drag_and_drop,
         )
             .run_if(in_state(AppState::Main)),
@@ -80,12 +79,12 @@ fn main() {
 
     app.init_resource::<ActionState<Action>>()
         .insert_resource(default_input_map())
-        .add_event::<ActionDiffEvent<Action>>();
+        .add_message::<ActionDiffMessage<Action>>();
 
-    app.add_event::<BoxEnterGoal>()
-        .add_event::<BoxLeaveGoal>()
-        .add_event::<LevelSolved>()
-        .add_event::<UpdateGridPositionEvent>();
+    app.add_message::<BoxEnterGoal>()
+        .add_message::<BoxLeaveGoal>()
+        .add_message::<LevelSolved>()
+        .add_message::<UpdateGridPositionEvent>();
 
     app.run();
 }

@@ -92,7 +92,7 @@ pub fn spawn_lowerbound_marks(
                 (board.map.dimensions().y - position.y) as f32 * tile_size.y as f32,
                 10.0,
             ),
-            StateScoped(AppState::AutoSolve),
+            DespawnOnExit(AppState::AutoSolve),
         ));
     }
 }

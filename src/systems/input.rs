@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fs};
 
 use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
-use leafwing_input_manager::{action_diff::ActionDiffEvent, prelude::*};
+use leafwing_input_manager::{action_diff::ActionDiffMessage, prelude::*};
 use nalgebra::Vector2;
 use soukoban::{direction::Direction, path_finding::find_path, Level, Tiles};
 
@@ -10,7 +10,7 @@ use crate::{
 };
 
 /// Clears the action state by consuming all stored actions.
-pub fn clear_action_state(mut action_diff_events: EventReader<ActionDiffEvent<Action>>) {
+pub fn clear_action_state(mut action_diff_events: MessageReader<ActionDiffMessage<Action>>) {
     action_diff_events.clear();
 }
 
@@ -29,7 +29,7 @@ pub fn handle_actions(
     database: Res<Database>,
     mut config: ResMut<Config>,
 
-    mut update_grid_position_events: EventWriter<UpdateGridPositionEvent>,
+    mut update_grid_position_events: MessageWriter<UpdateGridPositionEvent>,
 ) {
     let board = &mut board.single_mut().unwrap().board;
     let main_camera = &mut *camera.single_mut().unwrap();
@@ -242,7 +242,7 @@ fn handle_undo_redo_action(
     action_state: &ActionState<Action>,
     player_movement: &mut PlayerMovement,
     board: &mut crate::board::Board,
-    update_grid_position_events: &mut EventWriter<UpdateGridPositionEvent>,
+    update_grid_position_events: &mut MessageWriter<UpdateGridPositionEvent>,
 ) {
     if action_state.just_pressed(&Action::Undo) {
         player_movement.directions.clear();
@@ -393,7 +393,7 @@ pub fn mouse_input(
 pub fn adjust_viewport(
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     gamepads: Query<(Entity, &Gamepad)>,
-    mut motion_events: EventReader<MouseMotion>,
+    mut motion_events: MessageReader<MouseMotion>,
     mut camera: Query<(&mut Transform, &MainCamera)>,
 ) {
     let (mut camera_transform, main_camera) = camera.single_mut().unwrap();
@@ -418,7 +418,7 @@ pub fn adjust_viewport(
 
 /// Handles file drag-and-drop events.
 pub fn file_drag_and_drop(
-    mut events: EventReader<FileDragAndDrop>,
+    mut events: MessageReader<FileDragAndDrop>,
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
 ) {

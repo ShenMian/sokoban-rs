@@ -1,5 +1,5 @@
 use benimator::{Animation, FrameRate};
-use bevy::{prelude::*, window::WindowResized, winit::WinitWindows};
+use bevy::{ecs::system::NonSendMarker, prelude::*, window::WindowResized, winit::WINIT_WINDOWS};
 use nalgebra::Vector2;
 use soukoban::{direction::Direction, Map};
 
@@ -12,7 +12,7 @@ use crate::{
 use std::{cmp::Ordering, collections::HashSet, time::Duration};
 
 /// Sets the window icon for all windows
-pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
+pub fn set_windows_icon(_non_send_marker: NonSendMarker) {
     let (icon_rgba, icon_width, icon_height) = {
         let icon_path = crate::settings::static_resources_dir().join("assets/textures/box.png");
         let image = image::open(&icon_path)
@@ -23,9 +23,11 @@ pub fn set_windows_icon(winit_windows: NonSend<WinitWindows>) {
         (rgba, width, height)
     };
     let icon = winit::window::Icon::from_rgba(icon_rgba, icon_width, icon_height).unwrap();
-    for window in winit_windows.windows.values() {
-        window.set_window_icon(Some(icon.clone()));
-    }
+    WINIT_WINDOWS.with_borrow_mut(|windows| {
+        for window in windows.windows.values() {
+            window.set_window_icon(Some(icon.clone()));
+        }
+    });
 }
 
 /// Sets up the main 2D camera.
@@ -85,9 +87,9 @@ pub fn handle_player_movement(
     mut player_movement: ResMut<PlayerMovement>,
     time: Res<Time>,
     config: Res<Config>,
-    mut box_enter_goal_events: EventWriter<BoxEnterGoal>,
-    mut box_leave_goal_events: EventWriter<BoxLeaveGoal>,
-    mut level_solved_events: EventWriter<LevelSolved>,
+    mut box_enter_goal_events: MessageWriter<BoxEnterGoal>,
+    mut box_leave_goal_events: MessageWriter<BoxLeaveGoal>,
+    mut level_solved_events: MessageWriter<LevelSolved>,
 ) {
     if player_movement.directions.is_empty() {
         return;
@@ -209,7 +211,7 @@ pub fn smooth_camera_motion(
 
 /// Updates grid positions of entities based on the board.
 pub fn update_grid_position_from_board(
-    mut update_grid_position_events: EventReader<UpdateGridPositionEvent>,
+    mut update_grid_position_events: MessageReader<UpdateGridPositionEvent>,
     mut player: Query<&mut GridPosition, With<Player>>,
     mut boxes: Query<&mut GridPosition, (With<Box>, Without<Player>)>,
     board: Query<&Board>,
@@ -249,7 +251,7 @@ pub fn adjust_camera_scale(
     mut camera: Query<&mut MainCamera>,
     window: Query<&Window>,
     board: Query<&Board>,
-    mut events: EventReader<WindowResized>,
+    mut events: MessageReader<WindowResized>,
 ) {
     if events.is_empty() {
         return;

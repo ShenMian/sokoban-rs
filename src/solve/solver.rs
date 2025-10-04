@@ -9,7 +9,7 @@ use crate::{box_pushable_paths_with_positions, solve::state::*};
 use itertools::Itertools;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
-use soukoban::{direction::Direction, path_finding::reachable_area, Actions, Map, Tiles};
+use soukoban::{direction::Direction, path_finding::compute_reachable_area, Actions, Map, Tiles};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum Strategy {
@@ -226,7 +226,7 @@ impl Solver {
         lower_bounds: &mut HashMap<Vector2<i32>, usize>,
         visited: &mut HashSet<(Vector2<i32>, Direction)>,
     ) {
-        let player_reachable_area = reachable_area(player_position, |position| {
+        let player_reachable_area = compute_reachable_area(player_position, |position| {
             !self.map[position].intersects(Tiles::Wall) && position != box_position
         });
         for pull_direction in [

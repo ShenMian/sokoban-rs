@@ -11,7 +11,7 @@ use nalgebra::Vector2;
 use soukoban::{
     deadlock,
     direction::Direction,
-    path_finding::{find_path, normalized_area, reachable_area},
+    path_finding::{find_path, compute_area_anchor, compute_reachable_area},
     Action, Actions, Tiles,
 };
 
@@ -217,12 +217,12 @@ impl State {
 
     /// Returns the normalized player position based on reachable area.
     fn normalized_player_position(&self, solver: &Solver) -> Vector2<i32> {
-        normalized_area(&self.player_reachable_area(solver)).unwrap()
+        compute_area_anchor(&self.player_reachable_area(solver)).unwrap()
     }
 
     /// Returns the reachable area for the player in the current state.
     fn player_reachable_area(&self, solver: &Solver) -> HashSet<Vector2<i32>> {
-        reachable_area(self.player_position, |position| {
+        compute_reachable_area(self.player_position, |position| {
             !self.can_block_player(position, solver)
         })
     }

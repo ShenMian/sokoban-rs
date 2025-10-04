@@ -2,7 +2,7 @@
 
 use bevy::{color::palettes::css::*, prelude::*};
 use itertools::Itertools;
-use soukoban::{deadlock::calculate_static_deadlocks, path_finding::reachable_area, Tiles};
+use soukoban::{deadlock::compute_static_deadlocks, path_finding::compute_reachable_area, Tiles};
 
 use crate::{
     box_pushable_paths,
@@ -42,7 +42,7 @@ pub fn spawn_auto_move_marks(
             *paths = box_pushable_paths(map, box_position);
 
             // remove static deadlock positions
-            let static_deadlocks = calculate_static_deadlocks(map);
+            let static_deadlocks = compute_static_deadlocks(map);
             paths.retain(|state, _| !static_deadlocks.contains(&state.box_position));
 
             // spawn box pushable marks
@@ -58,7 +58,7 @@ pub fn spawn_auto_move_marks(
                         ((map.dimensions().y - mark_position.y) * tile_size.y) as f32,
                         10.0,
                     ),
-                    StateScoped(AppState::AutoMove),
+                    DespawnOnExit(AppState::AutoMove),
                 ));
             }
 
@@ -74,13 +74,13 @@ pub fn spawn_auto_move_marks(
                 .for_each(|(_, mut sprite)| sprite.color = HIGHLIGHT_COLOR.into());
         }
         AutoMoveState::Player => {
-            let mut reachable_area = reachable_area(map.player_position(), |position| {
+            let mut compute_reachable_area = compute_reachable_area(map.player_position(), |position| {
                 !map[position].intersects(Tiles::Wall) && !map.box_positions().contains(&position)
             });
-            reachable_area.remove(&map.player_position());
+            compute_reachable_area.remove(&map.player_position());
 
             // spawn player movable marks
-            for mark_position in reachable_area {
+            for mark_position in compute_reachable_area {
                 commands.spawn((
                     Name::new("Movable mark"),
                     Sprite::from_color(
@@ -92,7 +92,7 @@ pub fn spawn_auto_move_marks(
                         ((map.dimensions().y - mark_position.y) * tile_size.y) as f32,
                         10.0,
                     ),
-                    StateScoped(AppState::AutoMove),
+                    DespawnOnExit(AppState::AutoMove),
                 ));
             }
 

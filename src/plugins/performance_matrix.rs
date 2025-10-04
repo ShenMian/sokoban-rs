@@ -11,7 +11,6 @@ pub fn plugin(app: &mut App) {
 }
 
 #[derive(Component)]
-#[require(Text)]
 pub struct PerformanceMatrix;
 
 fn setup(mut commands: Commands) {

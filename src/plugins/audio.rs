@@ -12,9 +12,9 @@ pub fn handle_audio_event(
     audio: Res<Audio>,
     asset_server: Res<AssetServer>,
     config: Res<Config>,
-    mut box_enter_goal_events: EventReader<BoxEnterGoal>,
-    mut _box_leave_goal_events: EventReader<BoxLeaveGoal>,
-    mut level_solved_events: EventReader<LevelSolved>,
+    mut box_enter_goal_events: MessageReader<BoxEnterGoal>,
+    mut _box_leave_goal_events: MessageReader<BoxLeaveGoal>,
+    mut level_solved_events: MessageReader<LevelSolved>,
 ) {
     for _ in level_solved_events.read() {
         audio

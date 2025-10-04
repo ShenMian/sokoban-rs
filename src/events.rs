@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 
-#[derive(Event, Default)]
+#[derive(Message, Default)]
 pub struct BoxEnterGoal;
 
-#[derive(Event, Default)]
+#[derive(Message, Default)]
 pub struct BoxLeaveGoal;
 
-#[derive(Event, Default)]
+#[derive(Message, Default)]
 pub struct LevelSolved;
 
-#[derive(Event, Default)]
+#[derive(Message, Default)]
 pub struct UpdateGridPositionEvent;

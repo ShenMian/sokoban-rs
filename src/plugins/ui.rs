@@ -165,7 +165,7 @@ fn icon_button(action: Action, texture: Handle<Image>) -> impl Bundle {
             border: UiRect::all(Val::Px(3.0)),
             ..default()
         },
-        BorderColor(Color::NONE),
+        BorderColor::all(Color::NONE),
         ImageNode::new(texture),
     )
 }

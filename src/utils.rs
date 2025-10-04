@@ -1,5 +1,5 @@
 use nalgebra::Vector2;
-use soukoban::{direction::Direction, path_finding::reachable_area, Map, Tiles};
+use soukoban::{direction::Direction, path_finding::compute_reachable_area, Map, Tiles};
 
 use std::{
     collections::{HashMap, HashSet, VecDeque},
@@ -21,7 +21,7 @@ pub fn box_pushable_paths_with_positions(
     let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
 
-    let player_reachable_area = reachable_area(map.player_position(), |position| {
+    let player_reachable_area = compute_reachable_area(map.player_position(), |position| {
         !map[position].intersects(Tiles::Wall) && !initial_box_positions.contains(&position)
     });
     for push_direction in [
@@ -50,7 +50,7 @@ pub fn box_pushable_paths_with_positions(
         box_positions.insert(state.box_position);
 
         let player_position = state.box_position - &state.push_direction.into();
-        let player_reachable_area = reachable_area(player_position, |position| {
+        let player_reachable_area = compute_reachable_area(player_position, |position| {
             !map[position].intersects(Tiles::Wall) && !box_positions.contains(&position)
         });
 
