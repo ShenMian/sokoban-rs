@@ -3,7 +3,7 @@
 use bevy::{color::palettes::css::*, prelude::*};
 use leafwing_input_manager::prelude::*;
 
-use crate::{components::*, resources::*, Action};
+use crate::{Action, components::*, resources::*};
 use crate::{state::*, systems::input::*};
 
 pub fn plugin(app: &mut App) {
@@ -28,6 +28,7 @@ pub fn setup_hud(mut commands: Commands) {
         .spawn((
             Name::new("HUD"),
             Hud,
+            Text::default(),
             Node {
                 position_type: PositionType::Absolute,
                 top: Val::Px(5.0),
@@ -99,17 +100,17 @@ pub fn update_hud(
     let board = &board.single().unwrap().board;
 
     if level_id.is_changed() {
-        *writer.text(hud, 1) = format!("#{}\n", level_id.0);
+        *writer.text(hud, 2) = format!("#{}\n", level_id.0);
 
         let database = database.lock().unwrap();
-        *writer.text(hud, 7) = format!(
+        *writer.text(hud, 8) = format!(
             "{}\n",
             database
                 .best_move_solution(level_id.0)
                 .unwrap_or_default()
                 .moves()
         );
-        *writer.text(hud, 9) = format!(
+        *writer.text(hud, 10) = format!(
             "{}\n",
             database
                 .best_push_solution(level_id.0)
@@ -118,8 +119,8 @@ pub fn update_hud(
         );
     }
 
-    *writer.text(hud, 3) = format!("{}\n", board.actions().moves());
-    *writer.text(hud, 5) = format!("{}\n", board.actions().pushes());
+    *writer.text(hud, 4) = format!("{}\n", board.actions().moves());
+    *writer.text(hud, 6) = format!("{}\n", board.actions().pushes());
 }
 
 /// Sets up buttons on the screen.

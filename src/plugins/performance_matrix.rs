@@ -21,6 +21,7 @@ fn setup(mut commands: Commands) {
         .spawn((
             Name::new("Performance matrix"),
             PerformanceMatrix,
+            Text::default(),
             Node {
                 position_type: PositionType::Absolute,
                 top: Val::Px(5.0),
