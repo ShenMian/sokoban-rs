@@ -91,6 +91,7 @@ impl Database {
                 row.get(0)
             })
             .ok()
+            .map(|id: i64| id as u64)
     }
 
     /// Returns a level based by ID.
@@ -101,7 +102,7 @@ impl Database {
                 "SELECT map, width, height, title, author, comments FROM tb_level WHERE id = ?",
             )
             .unwrap();
-        let mut rows = statement.query([id]).unwrap();
+        let mut rows = statement.query([id as i64]).unwrap();
         let row = rows.next().unwrap()?;
 
         let map = row.get::<_, String>(0).unwrap();
@@ -124,10 +125,10 @@ impl Database {
         let mut statement = self.connection.prepare(
             "SELECT id FROM tb_level WHERE id > ? AND id NOT IN (SELECT DISTINCT level_id FROM tb_snapshot) ORDER BY id ASC LIMIT 1",
         ).unwrap();
-        let mut rows = statement.query([id]).unwrap();
+        let mut rows = statement.query([id as i64]).unwrap();
 
         let row = rows.next().unwrap()?;
-        Some(row.get(0).unwrap())
+        Some(row.get::<_, i64>(0).unwrap() as u64)
     }
 
     /// Returns the ID of the previous unsolved level before the provided ID.
@@ -135,10 +136,10 @@ impl Database {
         let mut statement = self.connection.prepare(
             "SELECT id FROM tb_level WHERE id < ? AND id NOT IN (SELECT DISTINCT level_id FROM tb_snapshot) ORDER BY id ASC LIMIT 1",
         ).unwrap();
-        let mut rows = statement.query([id]).unwrap();
+        let mut rows = statement.query([id as i64]).unwrap();
 
         let row = rows.next().unwrap()?;
-        Some(row.get(0).unwrap())
+        Some(row.get::<_, i64>(0).unwrap() as u64)
     }
 
     pub fn best_move_solution(&self, level_id: u64) -> Option<Actions> {
@@ -146,7 +147,7 @@ impl Database {
             .connection
             .prepare("SELECT actions FROM tb_snapshot WHERE level_id = ? AND best_move = 1")
             .unwrap();
-        let mut rows = statement.query([level_id]).unwrap();
+        let mut rows = statement.query([level_id as i64]).unwrap();
         let row = rows.next().unwrap()?;
         let best_move: String = row.get(0).unwrap();
         Some(Actions::from_str(&best_move).unwrap())
@@ -157,7 +158,7 @@ impl Database {
             .connection
             .prepare("SELECT actions FROM tb_snapshot WHERE level_id = ? AND best_push = 1")
             .unwrap();
-        let mut rows = statement.query([level_id]).unwrap();
+        let mut rows = statement.query([level_id as i64]).unwrap();
         let row = rows.next().unwrap()?;
         let best_push: String = row.get(0).unwrap();
         Some(Actions::from_str(&best_push).unwrap())
@@ -172,7 +173,7 @@ impl Database {
                 self.connection
                     .execute(
                         "UPDATE tb_snapshot SET actions = ? WHERE level_id = ?",
-                        (lurd.clone(), level_id),
+                        (lurd.clone(), level_id as i64),
                     )
                     .unwrap();
             }
@@ -180,7 +181,7 @@ impl Database {
             self.connection
                 .execute(
                     "INSERT INTO tb_snapshot (level_id, actions, best_move) VALUES (?, ?, 1)",
-                    (level_id, lurd.clone()),
+                    (level_id as i64, lurd.clone()),
                 )
                 .unwrap();
         }
@@ -191,7 +192,7 @@ impl Database {
                 self.connection
                     .execute(
                         "UPDATE tb_snapshot SET actions = ? WHERE level_id = ?",
-                        (lurd.clone(), level_id),
+                        (lurd.clone(), level_id as i64),
                     )
                     .unwrap();
             }
@@ -199,7 +200,7 @@ impl Database {
             self.connection
                 .execute(
                     "INSERT INTO tb_snapshot (level_id, actions, best_push) VALUES (?, ?, 1)",
-                    (level_id, lurd.clone()),
+                    (level_id as i64, lurd.clone()),
                 )
                 .unwrap();
         }
@@ -208,15 +209,23 @@ impl Database {
     /// Returns the maximum level ID.
     pub fn max_level_id(&self) -> Option<u64> {
         self.connection
-            .query_row("SELECT MAX(id) FROM tb_level", [], |row| row.get(0))
-            .unwrap()
+            .query_row("SELECT MAX(id) FROM tb_level", [], |row| {
+                row.get::<_, Option<i64>>(0)
+            })
+            .ok()
+            .flatten()
+            .map(|id| id as u64)
     }
 
     /// Returns the minimum level ID.
     pub fn min_level_id(&self) -> Option<u64> {
         self.connection
-            .query_row("SELECT MIN(id) FROM tb_level", [], |row| row.get(0))
-            .unwrap()
+            .query_row("SELECT MIN(id) FROM tb_level", [], |row| {
+                row.get::<_, Option<i64>>(0)
+            })
+            .ok()
+            .flatten()
+            .map(|id| id as u64)
     }
 
     /// Computes a normalized hash for the provided level.
