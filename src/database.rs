@@ -232,7 +232,7 @@ impl Database {
     fn normalized_hash(level: &Level) -> String {
         let mut hasher = DefaultHasher::new();
         let mut normalized_level = level.clone();
-        normalized_level.map_mut().normalize();
+        normalized_level.map_mut().canonicalize();
         normalized_level.map_mut().hash(&mut hasher);
         let hash = hasher.finish();
         // Must convert the hash to a string first, otherwise rusqlite may throw an error.

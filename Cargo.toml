@@ -11,7 +11,7 @@ keywords = ["sokoban", "sokoban-solver"]
 categories = ["games"]
 
 [dependencies]
-soukoban = { path = "../soukoban" }
+soukoban = "=0.1.4"
 bitflags = "2.10"
 nalgebra = "0.34"
 itertools = "0.14"

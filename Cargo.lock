@@ -5248,7 +5248,9 @@ dependencies = [
 
 [[package]]
 name = "soukoban"
-version = "0.1.3"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3d5ce4aff6a0b394e5ee98cb8456079ccc301355b627ef5c83f4c6a196367727"
 dependencies = [
  "bitflags 2.10.0",
  "itertools 0.14.0",
