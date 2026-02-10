@@ -5236,7 +5236,7 @@ dependencies = [
 
 [[package]]
 name = "sokoban-rs"
-version = "0.1.22"
+version = "0.1.23"
 dependencies = [
  "arboard",
  "benimator",
