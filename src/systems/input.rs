@@ -3,10 +3,10 @@ use std::{collections::HashMap, fs};
 use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
 use leafwing_input_manager::{action_diff::ActionDiffMessage, prelude::*};
 use nalgebra::Vector2;
-use soukoban::{direction::Direction, path_finding::find_path, Level, Tiles};
+use soukoban::{Level, Tiles, direction::Direction, path_finding::find_path};
 
 use crate::{
-    components::*, events::*, resources::*, systems::level::*, utils::PushState, Action, AppState,
+    Action, AppState, components::*, events::*, resources::*, systems::level::*, utils::PushState,
 };
 
 /// Clears the action state by consuming all stored actions.

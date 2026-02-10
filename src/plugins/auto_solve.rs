@@ -3,11 +3,11 @@ use std::time::{Duration, Instant};
 use bevy::{color::palettes::css::*, prelude::*};
 
 use crate::{
+    AppState,
     components::{Board, Box, GridPosition, Player},
     resources::*,
     solve::solver::*,
     systems::input::*,
-    AppState,
 };
 
 pub fn plugin(app: &mut App) {

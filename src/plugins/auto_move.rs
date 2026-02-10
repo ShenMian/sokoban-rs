@@ -2,14 +2,13 @@
 
 use bevy::{color::palettes::css::*, prelude::*};
 use itertools::Itertools;
-use soukoban::{deadlock::compute_static_deadlocks, path_finding::compute_reachable_area, Tiles};
+use soukoban::{Tiles, deadlock::compute_static_deadlocks, path_finding::compute_reachable_area};
 
 use crate::{
-    box_pushable_paths,
+    AppState, box_pushable_paths,
     components::{Board, Box, GridPosition, Player},
     resources::AutoMoveState,
     systems::input::*,
-    AppState,
 };
 
 pub fn plugin(app: &mut App) {
@@ -74,9 +73,11 @@ pub fn spawn_auto_move_marks(
                 .for_each(|(_, mut sprite)| sprite.color = HIGHLIGHT_COLOR.into());
         }
         AutoMoveState::Player => {
-            let mut compute_reachable_area = compute_reachable_area(map.player_position(), |position| {
-                !map[position].intersects(Tiles::Wall) && !map.box_positions().contains(&position)
-            });
+            let mut compute_reachable_area =
+                compute_reachable_area(map.player_position(), |position| {
+                    !map[position].intersects(Tiles::Wall)
+                        && !map.box_positions().contains(&position)
+                });
             compute_reachable_area.remove(&map.player_position());
 
             // spawn player movable marks

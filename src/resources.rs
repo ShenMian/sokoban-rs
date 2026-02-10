@@ -1,7 +1,7 @@
 use bevy::{prelude::*, time::Stopwatch};
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
-use soukoban::{direction::Direction, Map};
+use soukoban::{Map, direction::Direction};
 
 use crate::{board::Board, database, solve::solver::*, utils::PushState};
 

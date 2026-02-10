@@ -9,10 +9,9 @@ use crate::solve::solver::*;
 
 use nalgebra::Vector2;
 use soukoban::{
-    deadlock,
+    Action, Actions, Tiles, deadlock,
     direction::Direction,
-    path_finding::{find_path, compute_area_anchor, compute_reachable_area},
-    Action, Actions, Tiles,
+    path_finding::{compute_area_anchor, compute_reachable_area, find_path},
 };
 
 #[derive(Clone, Eq)]

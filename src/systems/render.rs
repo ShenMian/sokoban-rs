@@ -1,7 +1,7 @@
 use benimator::{Animation, FrameRate};
 use bevy::{ecs::system::NonSendMarker, prelude::*, window::WindowResized, winit::WINIT_WINDOWS};
 use nalgebra::Vector2;
-use soukoban::{direction::Direction, Map};
+use soukoban::{Map, direction::Direction};
 
 use crate::{
     components::{AnimationState, Board, Box, GridPosition, MainCamera, Player},

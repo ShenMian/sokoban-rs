@@ -9,7 +9,7 @@ use crate::{box_pushable_paths_with_positions, solve::state::*};
 use itertools::Itertools;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
-use soukoban::{direction::Direction, path_finding::compute_reachable_area, Actions, Map, Tiles};
+use soukoban::{Actions, Map, Tiles, direction::Direction, path_finding::compute_reachable_area};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum Strategy {

@@ -1,5 +1,5 @@
 use nalgebra::Vector2;
-use soukoban::{direction::Direction, path_finding::compute_reachable_area, Map, Tiles};
+use soukoban::{Map, Tiles, direction::Direction, path_finding::compute_reachable_area};
 
 use std::{
     collections::{HashMap, HashSet, VecDeque},
