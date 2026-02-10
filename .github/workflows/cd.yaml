@@ -20,12 +20,12 @@ jobs:
       matrix:
         include:
           - os: ubuntu-latest
-            artifact_name: tracker
-            asset_name: tracker-linux-x86_64
+            artifact_name: sokoban-rs
+            asset_name: sokoban-linux-x86_64
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
-            artifact_name: tracker.exe
-            asset_name: tracker-windows-x86_64
+            artifact_name: sokoban-rs.exe
+            asset_name: sokoban-windows-x86_64
             target: x86_64-pc-windows-msvc
     runs-on: ${{ matrix.os }}
 
