@@ -49,7 +49,6 @@ jobs:
         shell: bash
         run: |
           cd target/${{ matrix.target }}/release
-          cp -r ${GITHUB_WORKSPACE}/assets .
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             7z a -tzip ${{ matrix.asset_name }}.zip ${{ matrix.artifact_name }} assets/
           else
