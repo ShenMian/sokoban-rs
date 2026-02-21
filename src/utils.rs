@@ -8,8 +8,8 @@ use std::{
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct PushState {
-    pub push_direction: Direction,
     pub box_position: Vector2<i32>,
+    pub push_direction: Direction,
 }
 
 pub fn box_pushable_paths_with_positions(
@@ -18,18 +18,12 @@ pub fn box_pushable_paths_with_positions(
     initial_box_positions: &HashSet<Vector2<i32>>,
 ) -> HashMap<PushState, Vec<Vector2<i32>>> {
     let mut paths = HashMap::<PushState, Vec<Vector2<i32>>>::new();
-    let mut visited = HashSet::new();
     let mut queue = VecDeque::new();
 
     let player_reachable_area = compute_reachable_area(map.player_position(), |position| {
         !map[position].intersects(Tiles::Wall) && !initial_box_positions.contains(&position)
     });
-    for push_direction in [
-        Direction::Up,
-        Direction::Down,
-        Direction::Left,
-        Direction::Right,
-    ] {
+    for push_direction in Direction::iter() {
         let player_position = box_position - &push_direction.into();
         if map[player_position].intersects(Tiles::Wall)
             || !player_reachable_area.contains(&player_position)
@@ -37,8 +31,8 @@ pub fn box_pushable_paths_with_positions(
             continue;
         }
         let new_state = PushState {
-            push_direction,
             box_position: *box_position,
+            push_direction,
         };
         paths.insert(new_state.clone(), vec![*box_position]);
         queue.push_front(new_state);
@@ -61,14 +55,13 @@ pub fn box_pushable_paths_with_positions(
             Direction::Right,
         ] {
             let new_box_position = state.box_position + &push_direction.into();
-            let player_position = state.box_position - &push_direction.into();
-
             if map[new_box_position].intersects(Tiles::Wall /* | Tiles::Deadlock */)
                 || box_positions.contains(&new_box_position)
             {
                 continue;
             }
 
+            let player_position = state.box_position - &push_direction.into();
             if map[player_position].intersects(Tiles::Wall)
                 || !player_reachable_area.contains(&player_position)
             {
@@ -76,11 +69,11 @@ pub fn box_pushable_paths_with_positions(
             }
 
             let new_state = PushState {
-                push_direction,
                 box_position: new_box_position,
+                push_direction,
             };
 
-            if !visited.insert(new_state.clone()) {
+            if paths.contains_key(&new_state) {
                 continue;
             }
 
