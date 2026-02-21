@@ -48,12 +48,7 @@ pub fn box_pushable_paths_with_positions(
             !map[position].intersects(Tiles::Wall) && !box_positions.contains(&position)
         });
 
-        for push_direction in [
-            Direction::Up,
-            Direction::Down,
-            Direction::Left,
-            Direction::Right,
-        ] {
+        for push_direction in Direction::iter() {
             let new_box_position = state.box_position + &push_direction.into();
             if map[new_box_position].intersects(Tiles::Wall /* | Tiles::Deadlock */)
                 || box_positions.contains(&new_box_position)

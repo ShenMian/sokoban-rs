@@ -91,12 +91,7 @@ impl State {
         let mut successors = Vec::new();
         let player_reachable_area = self.player_reachable_area(solver);
         for box_position in &self.box_positions {
-            for push_direction in [
-                Direction::Up,
-                Direction::Down,
-                Direction::Left,
-                Direction::Right,
-            ] {
+            for push_direction in Direction::iter() {
                 let mut new_box_position = box_position + &push_direction.into();
                 if self.can_block_box(new_box_position, solver) {
                     continue;

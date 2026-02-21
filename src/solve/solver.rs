@@ -189,12 +189,7 @@ impl Solver {
         for goal_position in self.map.goal_positions() {
             lower_bounds.insert(*goal_position, 0);
             let mut player_position = None;
-            for pull_direction in [
-                Direction::Up,
-                Direction::Right,
-                Direction::Down,
-                Direction::Left,
-            ] {
+            for pull_direction in Direction::iter() {
                 let next_box_position = goal_position + &pull_direction.into();
                 let next_player_position = next_box_position + &pull_direction.into();
                 if self.map.in_bounds(next_player_position)
@@ -229,12 +224,7 @@ impl Solver {
         let player_reachable_area = compute_reachable_area(player_position, |position| {
             !self.map[position].intersects(Tiles::Wall) && position != box_position
         });
-        for pull_direction in [
-            Direction::Up,
-            Direction::Right,
-            Direction::Down,
-            Direction::Left,
-        ] {
+        for pull_direction in Direction::iter() {
             let next_box_position = box_position + &pull_direction.into();
             if self.map[next_box_position].intersects(Tiles::Wall) {
                 continue;
