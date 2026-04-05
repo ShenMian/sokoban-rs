@@ -20,7 +20,7 @@ A sokoban with solver.
 
 ## Acknowledgements
 
-- anian <<anianwu@gmail.com>>: Provided comprehensive answers to various questions and offered insightful suggestions.
+- anian: Provided comprehensive answers to various questions and offered insightful suggestions.
 - [@PaperPlaneLSY](https://github.com/PaperPlaneLSY): Tested the project, improved the skin, and provided additional support.
 
 ## Keymap
