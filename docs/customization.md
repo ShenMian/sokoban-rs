@@ -2,7 +2,7 @@
 
 ## Configuration
 
-The user can configure settings by editing `config.toml` in the same directory. If the file does not exist, a default configuration file will be automatically generated when the program is run.
+The user can configure settings by editing `%AppData%/sokoban-rs/config.toml`. If the file does not exist, a default configuration file will be automatically generated when the program is run.
 
 ```toml
 # Player movement animation speed, in seconds per step.
