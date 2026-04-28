@@ -9,7 +9,7 @@ use crate::{box_pushable_paths_with_positions, solve::state::*};
 use itertools::Itertools;
 use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
-use soukoban::{Actions, Map, Tiles, direction::Direction, path_finding::compute_reachable_area};
+use soukoban::{path_finding::compute_reachable_area, prelude::*};
 
 #[derive(Clone, Copy, PartialEq, Eq, Debug, Default, Serialize, Deserialize)]
 pub enum Strategy {
@@ -276,7 +276,7 @@ impl Solver {
                 }
 
                 let paths =
-                    box_pushable_paths_with_positions(&self.map, &position, &HashSet::new());
+                    box_pushable_paths_with_positions(&self.map, &position, &FxHashSet::default());
                 if let Some(lower_bound) = paths
                     .iter()
                     .filter(|path| self.map[path.0.box_position].intersects(Tiles::Goal))

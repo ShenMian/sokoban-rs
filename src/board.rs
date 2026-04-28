@@ -1,4 +1,4 @@
-use soukoban::{Action, Actions, Map, Tiles, direction::Direction};
+use soukoban::prelude::*;
 
 #[derive(Clone)]
 pub struct Board {
@@ -58,7 +58,7 @@ impl Board {
     /// Undoes the last push.
     pub fn undo_push(&mut self) {
         while let Some(history) = self.actions.last() {
-            if history.is_push() {
+            if history.is_shift() {
                 self.undo_move();
                 return;
             }
@@ -71,7 +71,7 @@ impl Board {
         debug_assert!(!self.actions.is_empty());
         let history = self.actions.pop().unwrap();
         let direction = history.direction();
-        if history.is_push() {
+        if history.is_shift() {
             let box_position = self.map.player_position() + &direction.into();
             let player_position = self.map.player_position();
             self.map.set_box_position(box_position, player_position);
@@ -84,7 +84,7 @@ impl Board {
     /// Redoes the last push.
     pub fn redo_push(&mut self) {
         while let Some(history) = self.undone_actions.last() {
-            if history.is_push() {
+            if history.is_shift() {
                 self.redo_move();
                 return;
             }

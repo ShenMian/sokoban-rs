@@ -5,7 +5,7 @@ use std::{
 };
 
 use rusqlite::Connection;
-use soukoban::{Actions, Level};
+use soukoban::prelude::*;
 
 pub struct Database {
     connection: Connection,
@@ -188,7 +188,7 @@ impl Database {
 
         if let Some(best_push_solution) = self.best_push_solution(level_id) {
             dbg!();
-            if solution.pushes() < best_push_solution.pushes() {
+            if solution.shifts() < best_push_solution.shifts() {
                 self.connection
                     .execute(
                         "UPDATE tb_snapshot SET actions = ? WHERE level_id = ?",
@@ -231,9 +231,9 @@ impl Database {
     /// Computes a normalized hash for the provided level.
     fn normalized_hash(level: &Level) -> String {
         let mut hasher = DefaultHasher::new();
-        let mut normalized_level = level.clone();
-        normalized_level.map_mut().canonicalize();
-        normalized_level.map_mut().hash(&mut hasher);
+        let mut map = level.map().clone();
+        map.canonicalize();
+        map.hash(&mut hasher);
         let hash = hasher.finish();
         // Must convert the hash to a string first, otherwise rusqlite may throw an error.
         hash.to_string()

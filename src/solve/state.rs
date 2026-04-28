@@ -1,7 +1,6 @@
 use std::{
     cell::OnceCell,
     cmp::Ordering,
-    collections::HashSet,
     hash::{DefaultHasher, Hash, Hasher},
 };
 
@@ -9,15 +8,15 @@ use crate::solve::solver::*;
 
 use nalgebra::Vector2;
 use soukoban::{
-    Action, Actions, Tiles, deadlock,
-    direction::Direction,
+    deadlock,
     path_finding::{compute_area_anchor, compute_reachable_area, find_path},
+    prelude::*,
 };
 
 #[derive(Clone, Eq)]
 pub struct State {
     pub player_position: Vector2<i32>,
-    pub box_positions: HashSet<Vector2<i32>>,
+    pub box_positions: FxHashSet<Vector2<i32>>,
     pub actions: Actions,
     heuristic: usize,
     lower_bound: OnceCell<usize>,
@@ -53,7 +52,7 @@ impl PartialOrd for State {
 impl State {
     pub fn new(
         player_position: Vector2<i32>,
-        box_positions: HashSet<Vector2<i32>>,
+        box_positions: FxHashSet<Vector2<i32>>,
         actions: Actions,
         solver: &Solver,
     ) -> Self {
@@ -65,18 +64,18 @@ impl State {
             lower_bound: OnceCell::new(),
         };
         debug_assert!(instance.actions.moves() < 10_000);
-        debug_assert!(instance.actions.pushes() < 10_000);
+        debug_assert!(instance.actions.shifts() < 10_000);
         debug_assert!(instance.lower_bound(solver) < 10_000);
         instance.heuristic = match solver.strategy() {
             Strategy::Fast => instance.lower_bound(solver) * 10_000 + instance.actions.moves(),
             Strategy::Mixed => instance.lower_bound(solver) + instance.actions.moves(),
             Strategy::OptimalMovePush => {
                 instance.actions.moves() * 100_000_000
-                    + instance.actions.pushes() * 10_000
+                    + instance.actions.shifts() * 10_000
                     + instance.lower_bound(solver)
             }
             Strategy::OptimalPushMove => {
-                instance.actions.pushes() * 100_000_000
+                instance.actions.shifts() * 100_000_000
                     + instance.actions.moves() * 10_000
                     + instance.lower_bound(solver)
             }
@@ -138,7 +137,7 @@ impl State {
                         &solver.map,
                         new_box_position,
                         &new_box_positions,
-                        &mut HashSet::new(),
+                        &mut FxHashSet::default(),
                     )
                 {
                     continue;
@@ -215,7 +214,7 @@ impl State {
     }
 
     /// Returns the reachable area for the player in the current state.
-    fn player_reachable_area(&self, solver: &Solver) -> HashSet<Vector2<i32>> {
+    fn player_reachable_area(&self, solver: &Solver) -> FxHashSet<Vector2<i32>> {
         compute_reachable_area(self.player_position, |position| {
             !self.can_block_player(position, solver)
         })

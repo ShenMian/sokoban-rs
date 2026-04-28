@@ -138,7 +138,7 @@ pub fn update_solver(
             info!(
                 "    Moves: {}, pushes: {}",
                 solution.moves(),
-                solution.pushes()
+                solution.shifts()
             );
             info!("    Solution: {}", solution.to_string());
 
@@ -166,7 +166,7 @@ pub fn update_solver(
         //     "lower bound: {:3}, moves: {:3}, pushes: {:3}",
         //     best_state.lower_bound(&solver),
         //     best_state.actions.moves(),
-        //     best_state.actions.pushes()
+        //     best_state.actions.shifts()
         // );
         for action in &*best_state.actions {
             board.do_action(action.direction());

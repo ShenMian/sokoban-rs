@@ -1,7 +1,7 @@
 use benimator::{Animation, FrameRate};
 use bevy::{ecs::system::NonSendMarker, prelude::*, window::WindowResized, winit::WINIT_WINDOWS};
 use nalgebra::Vector2;
-use soukoban::{Map, direction::Direction};
+use soukoban::prelude::*;
 
 use crate::{
     components::{AnimationState, Board, Box, GridPosition, MainCamera, Player},
@@ -9,7 +9,7 @@ use crate::{
     resources::*,
 };
 
-use std::{cmp::Ordering, collections::HashSet, time::Duration};
+use std::{cmp::Ordering, time::Duration};
 
 /// Sets the window icon for all windows
 pub fn set_windows_icon(_non_send_marker: NonSendMarker) {
@@ -125,7 +125,7 @@ pub fn handle_player_movement(
 
             let old_box_position = *player_grid_position;
             let new_box_position = old_box_position + &direction.into();
-            let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
+            let box_grid_positions: FxHashSet<_> = boxes.iter().map(|x| x.0).collect();
             if box_grid_positions.contains(player_grid_position) {
                 for mut box_grid_position in boxes.iter_mut() {
                     if box_grid_position.0 == old_box_position {
@@ -142,7 +142,7 @@ pub fn handle_player_movement(
 
             let old_box_position = *player_grid_position;
             let new_box_position = old_box_position + &direction.into();
-            let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
+            let box_grid_positions: FxHashSet<_> = boxes.iter().map(|x| x.0).collect();
             if box_grid_positions.contains(player_grid_position) {
                 for mut box_grid_position in boxes.iter_mut() {
                     if box_grid_position.0 == old_box_position {
@@ -224,7 +224,7 @@ pub fn update_grid_position_from_board(
     player_grid_position.x = map.player_position().x;
     player_grid_position.y = map.player_position().y;
 
-    let box_grid_positions: HashSet<_> = boxes.iter().map(|x| x.0).collect();
+    let box_grid_positions: FxHashSet<_> = boxes.iter().map(|x| x.0).collect();
     debug_assert!(box_grid_positions.difference(map.box_positions()).count() <= 1);
     if let Some(old_position) = box_grid_positions
         .difference(map.box_positions())
@@ -267,7 +267,11 @@ pub fn adjust_camera_scale(
 /// Adjust the camera zoom to fit the entire board.
 pub fn calculate_camera_default_scale(window: &Window, map: &Map) -> f32 {
     let tile_size = Vector2::new(128.0, 128.0);
-    let board_size = tile_size.x as f32 * map.dimensions().map(|x| x as f32);
+    let dims = map.dimensions();
+    let board_size = Vector2::new(
+        tile_size.x as f32 * dims.x as f32,
+        tile_size.y as f32 * dims.y as f32,
+    );
 
     let width_scale = board_size.x / window.resolution.width();
     let height_scale = board_size.y / window.resolution.height();

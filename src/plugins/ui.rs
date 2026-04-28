@@ -3,8 +3,7 @@
 use bevy::{color::palettes::css::*, prelude::*};
 use leafwing_input_manager::prelude::*;
 
-use crate::{Action, components::*, resources::*};
-use crate::{state::*, systems::input::*};
+use crate::{Action, components::*, resources::*, state::*, systems::input::*};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, (setup_hud, setup_buttons));
@@ -115,12 +114,12 @@ pub fn update_hud(
             database
                 .best_push_solution(level_id.0)
                 .unwrap_or_default()
-                .pushes()
+                .shifts()
         );
     }
 
     *writer.text(hud, 4) = format!("{}\n", board.actions().moves());
-    *writer.text(hud, 6) = format!("{}\n", board.actions().pushes());
+    *writer.text(hud, 6) = format!("{}\n", board.actions().shifts());
 }
 
 /// Sets up buttons on the screen.

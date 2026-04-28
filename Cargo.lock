@@ -5511,13 +5511,14 @@ dependencies = [
 
 [[package]]
 name = "soukoban"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d5ce4aff6a0b394e5ee98cb8456079ccc301355b627ef5c83f4c6a196367727"
+checksum = "4c6b0ea40adb3c0d09633d637777760d6a511387c3701586a2a3cc545475bc2e"
 dependencies = [
  "bitflags 2.11.0",
  "itertools 0.14.0",
  "nalgebra",
+ "rustc-hash 2.1.2",
  "thiserror 2.0.18",
 ]
 

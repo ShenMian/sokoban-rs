@@ -1,7 +1,7 @@
 use arboard::Clipboard;
 use bevy::{color::palettes::css::*, prelude::*};
 use nalgebra::Vector2;
-use soukoban::{Level, Tiles};
+use soukoban::prelude::*;
 
 use crate::{board, calculate_camera_default_scale, components::*, database, resources::*};
 
@@ -157,7 +157,7 @@ pub fn auto_switch_to_next_unsolved_level(
     info!("{}", "=".repeat(15));
     info!("#{} Solved!", level_id.0);
     info!("Moves   : {}", board.actions().moves());
-    info!("Pushes  : {}", board.actions().pushes());
+    info!("Pushes  : {}", board.actions().shifts());
     info!("Solution: {}", board.actions().to_string());
     database.update_solution(level_id.0, board.actions());
     switch_to_next_unsolved_level(&mut level_id, &database);

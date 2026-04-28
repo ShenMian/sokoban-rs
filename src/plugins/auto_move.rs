@@ -2,7 +2,9 @@
 
 use bevy::{color::palettes::css::*, prelude::*};
 use itertools::Itertools;
-use soukoban::{Tiles, deadlock::compute_static_deadlocks, path_finding::compute_reachable_area};
+use soukoban::{
+    deadlock::compute_static_deadlocks, path_finding::compute_reachable_area, prelude::*,
+};
 
 use crate::{
     AppState, box_pushable_paths,

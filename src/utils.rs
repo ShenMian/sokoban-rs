@@ -1,8 +1,8 @@
 use nalgebra::Vector2;
-use soukoban::{Map, Tiles, direction::Direction, path_finding::compute_reachable_area};
+use soukoban::{path_finding::compute_reachable_area, prelude::*};
 
 use std::{
-    collections::{HashMap, HashSet, VecDeque},
+    collections::{HashMap, VecDeque},
     hash::Hash,
 };
 
@@ -15,7 +15,7 @@ pub struct PushState {
 pub fn box_pushable_paths_with_positions(
     map: &Map,
     box_position: &Vector2<i32>,
-    initial_box_positions: &HashSet<Vector2<i32>>,
+    initial_box_positions: &FxHashSet<Vector2<i32>>,
 ) -> HashMap<PushState, Vec<Vector2<i32>>> {
     let mut paths = HashMap::<PushState, Vec<Vector2<i32>>>::new();
     let mut queue = VecDeque::new();
