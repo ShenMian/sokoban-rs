@@ -5,7 +5,6 @@ mod board;
 mod components;
 mod database;
 mod events;
-mod input_map;
 mod plugins;
 mod resources;
 mod settings;
@@ -15,9 +14,8 @@ mod systems;
 mod test;
 mod utils;
 
-use events::*;
-use input_map::*;
 use bevy_enhanced_input::prelude::*;
+use events::*;
 use plugins::*;
 use resources::*;
 use state::*;

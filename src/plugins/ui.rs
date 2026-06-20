@@ -2,7 +2,20 @@
 
 use bevy::{color::palettes::css::*, prelude::*};
 
-use crate::{input_map::Action, components::*, resources::*, state::*, systems::level::{switch_to_next_level, switch_to_previous_level}};
+use crate::{
+    components::*,
+    resources::*,
+    state::*,
+    systems::level::{switch_to_next_level, switch_to_previous_level},
+};
+
+#[derive(Component, Reflect, Clone, Copy, Hash, PartialEq, Eq, Debug)]
+pub enum Action {
+    ToggleInstantMove,
+    ToggleAutomaticSolution,
+    PreviousLevel,
+    NextLevel,
+}
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, (setup_hud, setup_buttons));
