@@ -22,6 +22,34 @@ pub struct ToggleAutomaticSolutionAction;
 #[action_output(bool)]
 pub struct ToggleFullscreenAction;
 
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ResetLevelAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct NextLevelAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct PreviousLevelAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct NextUnsolvedLevelAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct PreviousUnsolvedLevelAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ImportLevelsFromClipboardAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ExportLevelToClipboardAction;
+
 pub fn setup_controls(mut commands: Commands) {
     commands.spawn((
         ControlsContext,
@@ -45,6 +73,54 @@ pub fn setup_controls(mut commands: Commands) {
             (
                 bevy_enhanced_input::prelude::Action::<ToggleFullscreenAction>::new(),
                 bindings![KeyCode::F11],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<ResetLevelAction>::new(),
+                bindings![KeyCode::Escape],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<NextLevelAction>::new(),
+                bindings![KeyCode::BracketRight, GamepadButton::RightTrigger],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<PreviousLevelAction>::new(),
+                bindings![KeyCode::BracketLeft, GamepadButton::LeftTrigger],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<NextUnsolvedLevelAction>::new(),
+                bindings![
+                    Binding::Keyboard {
+                        key: KeyCode::BracketRight,
+                        mod_keys: ModKeys::CONTROL,
+                    }
+                ],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<PreviousUnsolvedLevelAction>::new(),
+                bindings![
+                    Binding::Keyboard {
+                        key: KeyCode::BracketLeft,
+                        mod_keys: ModKeys::CONTROL,
+                    }
+                ],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<ImportLevelsFromClipboardAction>::new(),
+                bindings![
+                    Binding::Keyboard {
+                        key: KeyCode::KeyV,
+                        mod_keys: ModKeys::CONTROL,
+                    }
+                ],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<ExportLevelToClipboardAction>::new(),
+                bindings![
+                    Binding::Keyboard {
+                        key: KeyCode::KeyC,
+                        mod_keys: ModKeys::CONTROL,
+                    }
+                ],
             ),
         ]),
     ));
@@ -95,9 +171,6 @@ pub fn default_input_map() -> InputMap<Action> {
             (Action::MoveDown, KeyCode::ArrowDown),
             (Action::MoveLeft, KeyCode::ArrowLeft),
             (Action::MoveRight, KeyCode::ArrowRight),
-            (Action::ResetLevel, KeyCode::Escape),
-            (Action::NextLevel, KeyCode::BracketRight),
-            (Action::PreviousLevel, KeyCode::BracketLeft),
             // Vim
             (Action::MoveUp, KeyCode::KeyK),
             (Action::MoveDown, KeyCode::KeyJ),
@@ -114,22 +187,6 @@ pub fn default_input_map() -> InputMap<Action> {
                 Action::Redo,
                 ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::ShiftLeft, KeyCode::KeyZ]),
             ),
-            (
-                Action::NextUnsolvedLevel,
-                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::BracketRight]),
-            ),
-            (
-                Action::PreviousUnsolvedLevel,
-                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::BracketLeft]),
-            ),
-            (
-                Action::ImportLevelsFromClipboard,
-                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::KeyV]),
-            ),
-            (
-                Action::ExportLevelToClipboard,
-                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::KeyC]),
-            ),
             // Vim
             (
                 Action::Redo,
@@ -143,8 +200,6 @@ pub fn default_input_map() -> InputMap<Action> {
         (Action::MoveRight, GamepadButton::DPadRight),
         (Action::Undo, GamepadButton::East),
         (Action::Redo, GamepadButton::South),
-        (Action::NextLevel, GamepadButton::RightTrigger),
-        (Action::PreviousLevel, GamepadButton::LeftTrigger),
     ]);
     InputMap::default()
         .merge(&mouse_input_map)

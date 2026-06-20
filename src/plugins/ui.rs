@@ -3,7 +3,7 @@
 use bevy::{color::palettes::css::*, prelude::*};
 use leafwing_input_manager::prelude::*;
 
-use crate::{Action, components::*, resources::*, state::*, systems::input::*};
+use crate::{Action, components::*, resources::*, state::*, systems::input::*, systems::level::{switch_to_next_level, switch_to_previous_level}};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, (setup_hud, setup_buttons));
@@ -219,6 +219,8 @@ pub fn button_input_to_action(
     mut player_movement: ResMut<PlayerMovement>,
     state: Res<State<AppState>>,
     mut next_state: ResMut<NextState<AppState>>,
+    mut level_id: ResMut<LevelId>,
+    database: Res<Database>,
 ) {
     for (interaction, action) in &buttons {
         if *interaction == Interaction::Pressed {
@@ -233,6 +235,16 @@ pub fn button_input_to_action(
                     } else {
                         next_state.set(AppState::Main);
                     }
+                }
+                Action::PreviousLevel => {
+                    let database = database.lock().unwrap();
+                    player_movement.directions.clear();
+                    switch_to_previous_level(&mut level_id, &database);
+                }
+                Action::NextLevel => {
+                    let database = database.lock().unwrap();
+                    player_movement.directions.clear();
+                    switch_to_next_level(&mut level_id, &database);
                 }
                 _ => {
                     action_state.press(action);

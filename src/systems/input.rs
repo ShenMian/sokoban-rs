@@ -8,7 +8,12 @@ use soukoban::{path_finding::find_path, prelude::*};
 
 use crate::{
     AppState, components::*, events::*, resources::*, systems::level::*, utils::PushState,
-    input_map::{Action, ZoomAction, ToggleInstantMoveAction, ToggleAutomaticSolutionAction, ToggleFullscreenAction},
+    input_map::{
+        Action, ZoomAction, ToggleInstantMoveAction, ToggleAutomaticSolutionAction,
+        ToggleFullscreenAction, ResetLevelAction, NextLevelAction, PreviousLevelAction,
+        NextUnsolvedLevelAction, PreviousUnsolvedLevelAction, ImportLevelsFromClipboardAction,
+        ExportLevelToClipboardAction,
+    },
 };
 use leafwing_input_manager::prelude::ActionState;
 
@@ -190,44 +195,96 @@ fn handle_player_movement_action(
 }
 
 fn handle_level_switch_action(
-    action_state: &ActionState<Action>,
-    player_movement: &mut ResMut<PlayerMovement>,
-    level_id: &mut ResMut<LevelId>,
-    database: &crate::database::Database,
+    _action_state: &ActionState<Action>,
+    _player_movement: &mut ResMut<PlayerMovement>,
+    _level_id: &mut ResMut<LevelId>,
+    _database: &crate::database::Database,
 ) {
-    if action_state.just_pressed(&Action::ResetLevel) {
-        player_movement.directions.clear();
-        level_id.set_changed();
-    } else if action_state.just_pressed(&Action::NextLevel) {
-        player_movement.directions.clear();
-        switch_to_next_level(level_id, database);
-    } else if action_state.just_pressed(&Action::PreviousLevel) {
-        player_movement.directions.clear();
-        switch_to_previous_level(level_id, database);
-    } else if action_state.just_pressed(&Action::NextUnsolvedLevel) {
-        player_movement.directions.clear();
-        switch_to_next_unsolved_level(level_id, database);
-    } else if action_state.just_pressed(&Action::PreviousUnsolvedLevel) {
-        player_movement.directions.clear();
-        switch_to_previous_unsolved_level(level_id, database);
-    }
+    // Disabled in favor of bevy_enhanced_input level switch observers
+}
+
+pub fn on_reset_level(
+    _trigger: On<Start<ResetLevelAction>>,
+    mut player_movement: ResMut<PlayerMovement>,
+    mut level_id: ResMut<LevelId>,
+) {
+    player_movement.directions.clear();
+    level_id.set_changed();
+}
+
+pub fn on_next_level(
+    _trigger: On<Start<NextLevelAction>>,
+    mut player_movement: ResMut<PlayerMovement>,
+    mut level_id: ResMut<LevelId>,
+    database: Res<Database>,
+) {
+    let database = database.lock().unwrap();
+    player_movement.directions.clear();
+    switch_to_next_level(&mut level_id, &database);
+}
+
+pub fn on_previous_level(
+    _trigger: On<Start<PreviousLevelAction>>,
+    mut player_movement: ResMut<PlayerMovement>,
+    mut level_id: ResMut<LevelId>,
+    database: Res<Database>,
+) {
+    let database = database.lock().unwrap();
+    player_movement.directions.clear();
+    switch_to_previous_level(&mut level_id, &database);
+}
+
+pub fn on_next_unsolved_level(
+    _trigger: On<Start<NextUnsolvedLevelAction>>,
+    mut player_movement: ResMut<PlayerMovement>,
+    mut level_id: ResMut<LevelId>,
+    database: Res<Database>,
+) {
+    let database = database.lock().unwrap();
+    player_movement.directions.clear();
+    switch_to_next_unsolved_level(&mut level_id, &database);
+}
+
+pub fn on_previous_unsolved_level(
+    _trigger: On<Start<PreviousUnsolvedLevelAction>>,
+    mut player_movement: ResMut<PlayerMovement>,
+    mut level_id: ResMut<LevelId>,
+    database: Res<Database>,
+) {
+    let database = database.lock().unwrap();
+    player_movement.directions.clear();
+    switch_to_previous_unsolved_level(&mut level_id, &database);
 }
 
 fn handle_clipboard_action(
-    action_state: &ActionState<Action>,
-    player_movement: &mut ResMut<PlayerMovement>,
-    level_id: &mut ResMut<LevelId>,
-    database: &crate::database::Database,
-    board: &crate::board::Board,
+    _action_state: &ActionState<Action>,
+    _player_movement: &mut ResMut<PlayerMovement>,
+    _level_id: &mut ResMut<LevelId>,
+    _database: &crate::database::Database,
+    _board: &crate::board::Board,
 ) {
-    if action_state.just_pressed(&Action::ImportLevelsFromClipboard) {
-        player_movement.directions.clear();
-        import_from_clipboard(level_id, database);
-    }
-    if action_state.just_pressed(&Action::ExportLevelToClipboard) {
-        player_movement.directions.clear();
-        export_to_clipboard(board);
-    }
+    // Disabled in favor of bevy_enhanced_input clipboard observers
+}
+
+pub fn on_import_levels(
+    _trigger: On<Start<ImportLevelsFromClipboardAction>>,
+    mut player_movement: ResMut<PlayerMovement>,
+    mut level_id: ResMut<LevelId>,
+    database: Res<Database>,
+) {
+    let database = database.lock().unwrap();
+    player_movement.directions.clear();
+    import_from_clipboard(&mut level_id, &database);
+}
+
+pub fn on_export_level(
+    _trigger: On<Start<ExportLevelToClipboardAction>>,
+    mut player_movement: ResMut<PlayerMovement>,
+    board: Query<&Board>,
+) {
+    let board = &board.single().unwrap().board;
+    player_movement.directions.clear();
+    export_to_clipboard(board);
 }
 
 fn handle_toggle_instant_move_action(

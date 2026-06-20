@@ -51,6 +51,13 @@ fn main() {
     .add_observer(on_toggle_instant_move)
     .add_observer(on_toggle_automatic_solution)
     .add_observer(on_toggle_fullscreen)
+    .add_observer(on_reset_level)
+    .add_observer(on_next_level)
+    .add_observer(on_previous_level)
+    .add_observer(on_next_unsolved_level)
+    .add_observer(on_previous_unsolved_level)
+    .add_observer(on_import_levels)
+    .add_observer(on_export_level)
     .init_state::<AppState>();
 
     app.add_systems(PreStartup, (setup_camera, setup_database));
