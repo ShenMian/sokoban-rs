@@ -14,9 +14,9 @@ categories = ["games"]
 soukoban = "=0.1.5"
 bitflags = "2.11"
 nalgebra = "0.34"
-itertools = "0.14"
+itertools = "0.15"
 serde = { version = "1.0", features = ["derive"] }
-rusqlite = { version = "0.39", features = ["bundled"] }
+rusqlite = { version = "0.40", features = ["bundled"] }
 arboard = "3.5"                                         # System clipboard
 image = "0.25"
 toml = "1.1"
