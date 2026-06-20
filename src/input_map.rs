@@ -1,6 +1,30 @@
 use bevy::prelude::*;
+use bevy_enhanced_input::prelude::*;
 use leafwing_input_manager::prelude::*;
 use serde::{Deserialize, Serialize};
+
+#[derive(Component)]
+pub struct ZoomContext;
+
+#[derive(InputAction)]
+#[action_output(f32)]
+pub struct ZoomAction;
+
+pub fn setup_zoom_controls(mut commands: Commands) {
+    commands.spawn((
+        ZoomContext,
+        actions!(ZoomContext[
+            (
+                bevy_enhanced_input::prelude::Action::<ZoomAction>::new(),
+                Bindings::spawn((
+                    Spawn((Binding::mouse_wheel(), SwizzleAxis::YXZ)),
+                    Bidirectional::new(KeyCode::Equal, KeyCode::Minus),
+                    Bidirectional::new(GamepadButton::RightTrigger2, GamepadButton::LeftTrigger2),
+                )),
+            ),
+        ]),
+    ));
+}
 
 #[derive(
     Actionlike, Component, Reflect, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Debug,
@@ -36,10 +60,6 @@ pub fn default_input_map() -> InputMap<Action> {
         .with_multiple([
             (Action::Undo, MouseButton::Other(1)),
             (Action::Redo, MouseButton::Other(2)),
-        ])
-        .with_multiple([
-            (Action::ZoomOut, MouseScrollDirection::DOWN),
-            (Action::ZoomIn, MouseScrollDirection::UP),
         ]);
     let keyboard_input_map = InputMap::default()
         .with_multiple([
@@ -54,8 +74,6 @@ pub fn default_input_map() -> InputMap<Action> {
             (Action::ResetLevel, KeyCode::Escape),
             (Action::NextLevel, KeyCode::BracketRight),
             (Action::PreviousLevel, KeyCode::BracketLeft),
-            (Action::ZoomIn, KeyCode::Equal),
-            (Action::ZoomOut, KeyCode::Minus),
             (Action::ToggleInstantMove, KeyCode::KeyI),
             (Action::ToggleAutomaticSolution, KeyCode::KeyP),
             (Action::ToggleFullscreen, KeyCode::F11),
@@ -106,8 +124,6 @@ pub fn default_input_map() -> InputMap<Action> {
         (Action::Redo, GamepadButton::South),
         (Action::NextLevel, GamepadButton::RightTrigger),
         (Action::PreviousLevel, GamepadButton::LeftTrigger),
-        (Action::ZoomIn, GamepadButton::RightTrigger2),
-        (Action::ZoomOut, GamepadButton::LeftTrigger2),
         (Action::ToggleInstantMove, GamepadButton::West),
         (Action::ToggleAutomaticSolution, GamepadButton::North),
     ]);

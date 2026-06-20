@@ -1,13 +1,16 @@
 use std::{collections::HashMap, fs};
 
 use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
-use leafwing_input_manager::{action_diff::ActionDiffMessage, prelude::*};
+use bevy_enhanced_input::prelude::*;
+use leafwing_input_manager::action_diff::ActionDiffMessage;
 use nalgebra::Vector2;
 use soukoban::{path_finding::find_path, prelude::*};
 
 use crate::{
-    Action, AppState, components::*, events::*, resources::*, systems::level::*, utils::PushState,
+    AppState, components::*, events::*, resources::*, systems::level::*, utils::PushState,
+    input_map::{Action, ZoomAction},
 };
+use leafwing_input_manager::prelude::ActionState;
 
 /// Clears the action state by consuming all stored actions.
 pub fn clear_action_state(mut action_diff_events: MessageReader<ActionDiffMessage<Action>>) {
@@ -149,10 +152,18 @@ fn instant_player_move(
     player_movement.directions.push_front(direction);
 }
 
-fn handle_viewport_zoom_action(action_state: &ActionState<Action>, main_camera: &mut MainCamera) {
-    if action_state.just_pressed(&Action::ZoomIn) {
+fn handle_viewport_zoom_action(_action_state: &ActionState<Action>, _main_camera: &mut MainCamera) {
+    // Disabled in favor of bevy_enhanced_input on_zoom observer
+}
+
+pub fn on_zoom(
+    trigger: On<Start<ZoomAction>>,
+    mut camera: Query<&mut MainCamera>,
+) {
+    let mut main_camera = camera.single_mut().unwrap();
+    if trigger.value > 0.0 {
         main_camera.target_scale /= 1.25;
-    } else if action_state.just_pressed(&Action::ZoomOut) {
+    } else if trigger.value < 0.0 {
         main_camera.target_scale *= 1.25;
     }
 }

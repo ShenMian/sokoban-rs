@@ -18,6 +18,9 @@ mod utils;
 use events::*;
 use input_map::*;
 use leafwing_input_manager::{action_diff::ActionDiffMessage, prelude::*};
+use bevy_enhanced_input::prelude::*;
+use input_map::Action;
+use leafwing_input_manager::prelude::ActionState;
 use plugins::*;
 use resources::*;
 use state::*;
@@ -41,11 +44,14 @@ fn main() {
         }),
         AudioPlugin,
         InputManagerPlugin::<Action>::default(),
+        EnhancedInputPlugin,
     ))
+    .add_input_context::<ZoomContext>()
+    .add_observer(on_zoom)
     .init_state::<AppState>();
 
     app.add_systems(PreStartup, (setup_camera, setup_database));
-    app.add_systems(Startup, (set_windows_icon, setup_level));
+    app.add_systems(Startup, (set_windows_icon, setup_level, setup_zoom_controls));
     app.add_systems(FixedUpdate, animate_player);
     app.add_systems(
         Update,
