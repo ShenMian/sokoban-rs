@@ -215,10 +215,29 @@ pub fn button_visual_effect(
 pub fn button_input_to_action(
     buttons: Query<(&Interaction, &Action), (Changed<Interaction>, With<Button>)>,
     mut action_state: ResMut<ActionState<Action>>,
+    mut config: ResMut<Config>,
+    mut player_movement: ResMut<PlayerMovement>,
+    state: Res<State<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>,
 ) {
     for (interaction, action) in &buttons {
         if *interaction == Interaction::Pressed {
-            action_state.press(action);
+            match action {
+                Action::ToggleInstantMove => {
+                    config.instant_move = !config.instant_move;
+                }
+                Action::ToggleAutomaticSolution => {
+                    player_movement.directions.clear();
+                    if *state.get() == AppState::Main {
+                        next_state.set(AppState::AutoSolve);
+                    } else {
+                        next_state.set(AppState::Main);
+                    }
+                }
+                _ => {
+                    action_state.press(action);
+                }
+            }
         }
     }
 }

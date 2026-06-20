@@ -46,12 +46,15 @@ fn main() {
         InputManagerPlugin::<Action>::default(),
         EnhancedInputPlugin,
     ))
-    .add_input_context::<ZoomContext>()
+    .add_input_context::<ControlsContext>()
     .add_observer(on_zoom)
+    .add_observer(on_toggle_instant_move)
+    .add_observer(on_toggle_automatic_solution)
+    .add_observer(on_toggle_fullscreen)
     .init_state::<AppState>();
 
     app.add_systems(PreStartup, (setup_camera, setup_database));
-    app.add_systems(Startup, (set_windows_icon, setup_level, setup_zoom_controls));
+    app.add_systems(Startup, (set_windows_icon, setup_level, setup_controls));
     app.add_systems(FixedUpdate, animate_player);
     app.add_systems(
         Update,

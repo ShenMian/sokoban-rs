@@ -4,16 +4,28 @@ use leafwing_input_manager::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Component)]
-pub struct ZoomContext;
+pub struct ControlsContext;
 
 #[derive(InputAction)]
 #[action_output(f32)]
 pub struct ZoomAction;
 
-pub fn setup_zoom_controls(mut commands: Commands) {
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ToggleInstantMoveAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ToggleAutomaticSolutionAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct ToggleFullscreenAction;
+
+pub fn setup_controls(mut commands: Commands) {
     commands.spawn((
-        ZoomContext,
-        actions!(ZoomContext[
+        ControlsContext,
+        actions!(ControlsContext[
             (
                 bevy_enhanced_input::prelude::Action::<ZoomAction>::new(),
                 Bindings::spawn((
@@ -21,6 +33,18 @@ pub fn setup_zoom_controls(mut commands: Commands) {
                     Bidirectional::new(KeyCode::Equal, KeyCode::Minus),
                     Bidirectional::new(GamepadButton::RightTrigger2, GamepadButton::LeftTrigger2),
                 )),
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<ToggleInstantMoveAction>::new(),
+                bindings![KeyCode::KeyI, GamepadButton::West],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<ToggleAutomaticSolutionAction>::new(),
+                bindings![KeyCode::KeyP, GamepadButton::North],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<ToggleFullscreenAction>::new(),
+                bindings![KeyCode::F11],
             ),
         ]),
     ));
@@ -74,9 +98,6 @@ pub fn default_input_map() -> InputMap<Action> {
             (Action::ResetLevel, KeyCode::Escape),
             (Action::NextLevel, KeyCode::BracketRight),
             (Action::PreviousLevel, KeyCode::BracketLeft),
-            (Action::ToggleInstantMove, KeyCode::KeyI),
-            (Action::ToggleAutomaticSolution, KeyCode::KeyP),
-            (Action::ToggleFullscreen, KeyCode::F11),
             // Vim
             (Action::MoveUp, KeyCode::KeyK),
             (Action::MoveDown, KeyCode::KeyJ),
@@ -124,8 +145,6 @@ pub fn default_input_map() -> InputMap<Action> {
         (Action::Redo, GamepadButton::South),
         (Action::NextLevel, GamepadButton::RightTrigger),
         (Action::PreviousLevel, GamepadButton::LeftTrigger),
-        (Action::ToggleInstantMove, GamepadButton::West),
-        (Action::ToggleAutomaticSolution, GamepadButton::North),
     ]);
     InputMap::default()
         .merge(&mouse_input_map)

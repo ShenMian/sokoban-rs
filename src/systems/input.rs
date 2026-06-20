@@ -8,7 +8,7 @@ use soukoban::{path_finding::find_path, prelude::*};
 
 use crate::{
     AppState, components::*, events::*, resources::*, systems::level::*, utils::PushState,
-    input_map::{Action, ZoomAction},
+    input_map::{Action, ZoomAction, ToggleInstantMoveAction, ToggleAutomaticSolutionAction, ToggleFullscreenAction},
 };
 use leafwing_input_manager::prelude::ActionState;
 
@@ -231,22 +231,33 @@ fn handle_clipboard_action(
 }
 
 fn handle_toggle_instant_move_action(
-    action_state: &ActionState<Action>,
-    config: &mut ResMut<Config>,
+    _action_state: &ActionState<Action>,
+    _config: &mut ResMut<Config>,
 ) {
-    if action_state.just_pressed(&Action::ToggleInstantMove) {
-        config.instant_move = !config.instant_move;
-    }
+    // Disabled in favor of bevy_enhanced_input on_toggle_instant_move observer
 }
 
-fn handle_toggle_fullscreen_action(action_state: &ActionState<Action>, window: &mut Window) {
-    if action_state.just_pressed(&Action::ToggleFullscreen) {
-        window.mode = match window.mode {
-            WindowMode::BorderlessFullscreen(_) => WindowMode::Windowed,
-            WindowMode::Windowed => WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
-            _ => unreachable!(),
-        };
-    }
+pub fn on_toggle_instant_move(
+    _trigger: On<Start<ToggleInstantMoveAction>>,
+    mut config: ResMut<Config>,
+) {
+    config.instant_move = !config.instant_move;
+}
+
+fn handle_toggle_fullscreen_action(_action_state: &ActionState<Action>, _window: &mut Window) {
+    // Disabled in favor of bevy_enhanced_input on_toggle_fullscreen observer
+}
+
+pub fn on_toggle_fullscreen(
+    _trigger: On<Start<ToggleFullscreenAction>>,
+    mut window: Query<&mut Window>,
+) {
+    let Ok(mut window) = window.single_mut() else { return; };
+    window.mode = match window.mode {
+        WindowMode::BorderlessFullscreen(_) => WindowMode::Windowed,
+        WindowMode::Windowed => WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
+        _ => unreachable!(),
+    };
 }
 
 fn handle_undo_redo_action(
@@ -268,18 +279,25 @@ fn handle_undo_redo_action(
 }
 
 pub fn handle_automatic_solution_action(
-    action_state: &ActionState<Action>,
-    state: &State<AppState>,
-    next_state: &mut ResMut<NextState<AppState>>,
-    player_movement: &mut ResMut<PlayerMovement>,
+    _action_state: &ActionState<Action>,
+    _state: &State<AppState>,
+    _next_state: &mut ResMut<NextState<AppState>>,
+    _player_movement: &mut ResMut<PlayerMovement>,
 ) {
-    if action_state.just_pressed(&Action::ToggleAutomaticSolution) {
-        player_movement.directions.clear();
-        if *state == AppState::Main {
-            next_state.set(AppState::AutoSolve);
-        } else {
-            next_state.set(AppState::Main);
-        }
+    // Disabled in favor of bevy_enhanced_input on_toggle_automatic_solution observer
+}
+
+pub fn on_toggle_automatic_solution(
+    _trigger: On<Start<ToggleAutomaticSolutionAction>>,
+    state: Res<State<AppState>>,
+    mut next_state: ResMut<NextState<AppState>>,
+    mut player_movement: ResMut<PlayerMovement>,
+) {
+    player_movement.directions.clear();
+    if *state.get() == AppState::Main {
+        next_state.set(AppState::AutoSolve);
+    } else {
+        next_state.set(AppState::Main);
     }
 }
 
