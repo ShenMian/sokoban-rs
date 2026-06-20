@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use bevy_enhanced_input::prelude::*;
-use leafwing_input_manager::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Component)]
@@ -49,6 +48,30 @@ pub struct ImportLevelsFromClipboardAction;
 #[derive(InputAction)]
 #[action_output(bool)]
 pub struct ExportLevelToClipboardAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct UndoAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct RedoAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct MoveUpAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct MoveDownAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct MoveLeftAction;
+
+#[derive(InputAction)]
+#[action_output(bool)]
+pub struct MoveRightAction;
 
 pub fn setup_controls(mut commands: Commands) {
     commands.spawn((
@@ -122,88 +145,65 @@ pub fn setup_controls(mut commands: Commands) {
                     }
                 ],
             ),
+            (
+                bevy_enhanced_input::prelude::Action::<UndoAction>::new(),
+                bindings![
+                    KeyCode::KeyU,
+                    Binding::Keyboard {
+                        key: KeyCode::KeyZ,
+                        mod_keys: ModKeys::CONTROL,
+                    },
+                    Binding::MouseButton {
+                        button: MouseButton::Other(1),
+                        mod_keys: ModKeys::empty(),
+                    },
+                    GamepadButton::East,
+                ],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<RedoAction>::new(),
+                bindings![
+                    Binding::Keyboard {
+                        key: KeyCode::KeyR,
+                        mod_keys: ModKeys::CONTROL,
+                    },
+                    Binding::Keyboard {
+                        key: KeyCode::KeyZ,
+                        mod_keys: ModKeys::CONTROL | ModKeys::SHIFT,
+                    },
+                    Binding::MouseButton {
+                        button: MouseButton::Other(2),
+                        mod_keys: ModKeys::empty(),
+                    },
+                    GamepadButton::South,
+                ],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<MoveUpAction>::new(),
+                bindings![KeyCode::KeyW, KeyCode::ArrowUp, KeyCode::KeyK, GamepadButton::DPadUp],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<MoveDownAction>::new(),
+                bindings![KeyCode::KeyS, KeyCode::ArrowDown, KeyCode::KeyJ, GamepadButton::DPadDown],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<MoveLeftAction>::new(),
+                bindings![KeyCode::KeyA, KeyCode::ArrowLeft, KeyCode::KeyH, GamepadButton::DPadLeft],
+            ),
+            (
+                bevy_enhanced_input::prelude::Action::<MoveRightAction>::new(),
+                bindings![KeyCode::KeyD, KeyCode::ArrowRight, KeyCode::KeyL, GamepadButton::DPadRight],
+            ),
         ]),
     ));
 }
 
 #[derive(
-    Actionlike, Component, Reflect, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Debug,
+    Component, Reflect, Clone, Copy, Hash, PartialEq, Eq, Serialize, Deserialize, Debug,
 )]
 pub enum Action {
-    MoveUp,
-    MoveDown,
-    MoveLeft,
-    MoveRight,
-
-    Undo,
-    Redo,
-
-    ResetLevel,
-    NextLevel,
-    PreviousLevel,
-    NextUnsolvedLevel,
-    PreviousUnsolvedLevel,
-
-    ZoomIn,
-    ZoomOut,
-
     ToggleInstantMove,
     ToggleAutomaticSolution,
-    ToggleFullscreen,
-
-    ImportLevelsFromClipboard,
-    ExportLevelToClipboard,
-}
-
-pub fn default_input_map() -> InputMap<Action> {
-    let mouse_input_map = InputMap::default()
-        .with_multiple([
-            (Action::Undo, MouseButton::Other(1)),
-            (Action::Redo, MouseButton::Other(2)),
-        ]);
-    let keyboard_input_map = InputMap::default()
-        .with_multiple([
-            (Action::MoveUp, KeyCode::KeyW),
-            (Action::MoveDown, KeyCode::KeyS),
-            (Action::MoveLeft, KeyCode::KeyA),
-            (Action::MoveRight, KeyCode::KeyD),
-            (Action::MoveUp, KeyCode::ArrowUp),
-            (Action::MoveDown, KeyCode::ArrowDown),
-            (Action::MoveLeft, KeyCode::ArrowLeft),
-            (Action::MoveRight, KeyCode::ArrowRight),
-            // Vim
-            (Action::MoveUp, KeyCode::KeyK),
-            (Action::MoveDown, KeyCode::KeyJ),
-            (Action::MoveLeft, KeyCode::KeyH),
-            (Action::MoveRight, KeyCode::KeyL),
-            (Action::Undo, KeyCode::KeyU),
-        ])
-        .with_multiple([
-            (
-                Action::Undo,
-                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::KeyZ]),
-            ),
-            (
-                Action::Redo,
-                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::ShiftLeft, KeyCode::KeyZ]),
-            ),
-            // Vim
-            (
-                Action::Redo,
-                ButtonlikeChord::new([KeyCode::ControlLeft, KeyCode::KeyR]),
-            ),
-        ]);
-    let gamepad_input_map = InputMap::default().with_multiple([
-        (Action::MoveUp, GamepadButton::DPadUp),
-        (Action::MoveDown, GamepadButton::DPadDown),
-        (Action::MoveLeft, GamepadButton::DPadLeft),
-        (Action::MoveRight, GamepadButton::DPadRight),
-        (Action::Undo, GamepadButton::East),
-        (Action::Redo, GamepadButton::South),
-    ]);
-    InputMap::default()
-        .merge(&mouse_input_map)
-        .merge(&keyboard_input_map)
-        .merge(&gamepad_input_map)
-        .clone()
+    PreviousLevel,
+    NextLevel,
 }

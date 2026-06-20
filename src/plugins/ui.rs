@@ -1,9 +1,8 @@
 #![allow(clippy::type_complexity)]
 
 use bevy::{color::palettes::css::*, prelude::*};
-use leafwing_input_manager::prelude::*;
 
-use crate::{Action, components::*, resources::*, state::*, systems::input::*, systems::level::{switch_to_next_level, switch_to_previous_level}};
+use crate::{input_map::Action, components::*, resources::*, state::*, systems::level::{switch_to_next_level, switch_to_previous_level}};
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, (setup_hud, setup_buttons));
@@ -12,7 +11,7 @@ pub fn plugin(app: &mut App) {
         (
             button_visual_effect,
             update_button_state,
-            (button_input_to_action, handle_actions).chain(),
+            button_input_to_action,
         ),
     );
     app.add_systems(Update, update_hud.run_if(in_state(AppState::Main)));
@@ -214,7 +213,6 @@ pub fn button_visual_effect(
 /// Converts button interactions to input actions.
 pub fn button_input_to_action(
     buttons: Query<(&Interaction, &Action), (Changed<Interaction>, With<Button>)>,
-    mut action_state: ResMut<ActionState<Action>>,
     mut config: ResMut<Config>,
     mut player_movement: ResMut<PlayerMovement>,
     state: Res<State<AppState>>,
@@ -245,9 +243,6 @@ pub fn button_input_to_action(
                     let database = database.lock().unwrap();
                     player_movement.directions.clear();
                     switch_to_next_level(&mut level_id, &database);
-                }
-                _ => {
-                    action_state.press(action);
                 }
             }
         }

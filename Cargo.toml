@@ -23,7 +23,6 @@ toml = "1.1"
 dirs = "6.0"
 
 bevy = "0.18"
-leafwing-input-manager = "0.20"
 bevy_enhanced_input = "0.25"
 bevy_kira_audio = "0.25"
 benimator = "4.1"

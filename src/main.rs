@@ -17,10 +17,7 @@ mod utils;
 
 use events::*;
 use input_map::*;
-use leafwing_input_manager::{action_diff::ActionDiffMessage, prelude::*};
 use bevy_enhanced_input::prelude::*;
-use input_map::Action;
-use leafwing_input_manager::prelude::ActionState;
 use plugins::*;
 use resources::*;
 use state::*;
@@ -43,7 +40,6 @@ fn main() {
             ..default()
         }),
         AudioPlugin,
-        InputManagerPlugin::<Action>::default(),
         EnhancedInputPlugin,
     ))
     .add_input_context::<ControlsContext>()
@@ -58,6 +54,12 @@ fn main() {
     .add_observer(on_previous_unsolved_level)
     .add_observer(on_import_levels)
     .add_observer(on_export_level)
+    .add_observer(on_move_up)
+    .add_observer(on_move_down)
+    .add_observer(on_move_left)
+    .add_observer(on_move_right)
+    .add_observer(on_undo)
+    .add_observer(on_redo)
     .init_state::<AppState>();
 
     app.add_systems(PreStartup, (setup_camera, setup_database));
@@ -92,10 +94,6 @@ fn main() {
         auto_move::plugin,
         auto_solve::plugin,
     ));
-
-    app.init_resource::<ActionState<Action>>()
-        .insert_resource(default_input_map())
-        .add_message::<ActionDiffMessage<Action>>();
 
     app.add_message::<BoxEnterGoal>()
         .add_message::<BoxLeaveGoal>()

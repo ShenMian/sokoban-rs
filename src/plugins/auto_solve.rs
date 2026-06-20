@@ -13,10 +13,7 @@ use crate::{
 pub fn plugin(app: &mut App) {
     app.add_systems(
         OnEnter(AppState::AutoSolve),
-        (
-            (load_solver, spawn_lowerbound_marks).chain(),
-            clear_action_state,
-        ),
+        (load_solver, spawn_lowerbound_marks).chain(),
     );
     app.add_systems(
         Update,

@@ -2,169 +2,15 @@ use std::{collections::HashMap, fs};
 
 use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
 use bevy_enhanced_input::prelude::*;
-use leafwing_input_manager::action_diff::ActionDiffMessage;
 use nalgebra::Vector2;
 use soukoban::{path_finding::find_path, prelude::*};
 
 use crate::{
-    AppState, components::*, events::*, resources::*, systems::level::*, utils::PushState,
-    input_map::{
-        Action, ZoomAction, ToggleInstantMoveAction, ToggleAutomaticSolutionAction,
-        ToggleFullscreenAction, ResetLevelAction, NextLevelAction, PreviousLevelAction,
-        NextUnsolvedLevelAction, PreviousUnsolvedLevelAction, ImportLevelsFromClipboardAction,
-        ExportLevelToClipboardAction,
-    },
+    AppState, components::*, events::*, input_map::*, resources::*, systems::level::*,
+    utils::PushState,
 };
-use leafwing_input_manager::prelude::ActionState;
 
-/// Clears the action state by consuming all stored actions.
-pub fn clear_action_state(mut action_diff_events: MessageReader<ActionDiffMessage<Action>>) {
-    action_diff_events.clear();
-}
-
-pub fn handle_actions(
-    action_state: Res<ActionState<Action>>,
-
-    state: Res<State<AppState>>,
-    mut next_state: ResMut<NextState<AppState>>,
-
-    mut camera: Query<&mut MainCamera>,
-    mut board: Query<&mut Board>,
-    mut window: Query<&mut Window>,
-
-    mut player_movement: ResMut<PlayerMovement>,
-    mut level_id: ResMut<LevelId>,
-    database: Res<Database>,
-    mut config: ResMut<Config>,
-
-    mut update_grid_position_events: MessageWriter<UpdateGridPositionEvent>,
-) {
-    let board = &mut board.single_mut().unwrap().board;
-    let main_camera = &mut *camera.single_mut().unwrap();
-    let database = database.lock().unwrap();
-    let Ok(mut window) = window.single_mut() else {
-        return;
-    };
-    let window = &mut *window;
-    match state.get() {
-        AppState::Main => {
-            handle_viewport_zoom_action(&action_state, main_camera);
-            handle_player_movement_action(&action_state, &mut player_movement, board);
-            handle_level_switch_action(
-                &action_state,
-                &mut player_movement,
-                &mut level_id,
-                &database,
-            );
-            handle_clipboard_action(
-                &action_state,
-                &mut player_movement,
-                &mut level_id,
-                &database,
-                board,
-            );
-            handle_toggle_fullscreen_action(&action_state, window);
-            handle_undo_redo_action(
-                &action_state,
-                &mut player_movement,
-                board,
-                &mut update_grid_position_events,
-            );
-            handle_toggle_instant_move_action(&action_state, &mut config);
-            handle_automatic_solution_action(
-                &action_state,
-                &state,
-                &mut next_state,
-                &mut player_movement,
-            );
-        }
-        AppState::AutoMove => {
-            handle_viewport_zoom_action(&action_state, main_camera);
-            handle_toggle_fullscreen_action(&action_state, window);
-        }
-        AppState::AutoSolve => {
-            handle_viewport_zoom_action(&action_state, main_camera);
-            handle_toggle_fullscreen_action(&action_state, window);
-            handle_toggle_instant_move_action(&action_state, &mut config);
-            handle_automatic_solution_action(
-                &action_state,
-                &state,
-                &mut next_state,
-                &mut player_movement,
-            );
-        }
-    }
-}
-
-/// Adds movement without checking for moveability.
-pub fn player_move_unchecked(direction: Direction, player_movement: &mut PlayerMovement) {
-    player_movement.directions.push_front(direction);
-}
-
-/// Moves the player to the specified target position on the board.
-fn player_move_to(
-    target: &Vector2<i32>,
-    player_movement: &mut PlayerMovement,
-    board: &crate::board::Board,
-) {
-    if let Some(path) = find_path(board.map.player_position(), *target, |position| {
-        !board.map[position].intersects(Tiles::Wall | Tiles::Box)
-    }) {
-        let directions = path
-            .windows(2)
-            .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap());
-        for direction in directions {
-            player_move_unchecked(direction, player_movement);
-        }
-    }
-}
-
-/// Adds movement if the move is valid.
-fn player_move(
-    direction: Direction,
-    player_movement: &mut PlayerMovement,
-    board: &crate::board::Board,
-) {
-    if !board.moveable(direction) {
-        return;
-    }
-    player_movement.directions.push_front(direction);
-}
-
-fn instant_player_move_to(
-    target: &Vector2<i32>,
-    board_clone: &mut crate::board::Board,
-    player_movement: &mut PlayerMovement,
-) {
-    if let Some(path) = find_path(board_clone.map.player_position(), *target, |position| {
-        !board_clone.map[position].intersects(Tiles::Wall | Tiles::Box)
-    }) {
-        let directions = path
-            .windows(2)
-            .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap());
-        for direction in directions {
-            instant_player_move(direction, board_clone, player_movement);
-        }
-    }
-}
-
-fn instant_player_move(
-    direction: Direction,
-    board_clone: &mut crate::board::Board,
-    player_movement: &mut PlayerMovement,
-) {
-    board_clone.do_action(direction);
-    player_movement.directions.push_front(direction);
-}
-
-fn handle_viewport_zoom_action(_action_state: &ActionState<Action>, _main_camera: &mut MainCamera) {
-    // Disabled in favor of bevy_enhanced_input on_zoom observer
-}
-
-pub fn on_zoom(
-    trigger: On<Start<ZoomAction>>,
-    mut camera: Query<&mut MainCamera>,
-) {
+pub fn on_zoom(trigger: On<Start<ZoomAction>>, mut camera: Query<&mut MainCamera>) {
     let mut main_camera = camera.single_mut().unwrap();
     if trigger.value > 0.0 {
         main_camera.target_scale /= 1.25;
@@ -173,34 +19,52 @@ pub fn on_zoom(
     }
 }
 
-fn handle_player_movement_action(
-    action_state: &ActionState<Action>,
-    player_movement: &mut ResMut<PlayerMovement>,
-    board: &crate::board::Board,
+pub fn on_move_up(
+    _trigger: On<Start<MoveUpAction>>,
+    mut board: Query<&mut Board>,
+    mut player_movement: ResMut<PlayerMovement>,
+    state: Res<State<AppState>>,
 ) {
-    // TODO: If you move the character through PlayerMovement, the character's
-    // movement speed will be limited, giving the player a sense of input lag.
-    if action_state.just_pressed(&Action::MoveUp) {
-        player_move(Direction::Up, player_movement, board);
-    }
-    if action_state.just_pressed(&Action::MoveDown) {
-        player_move(Direction::Down, player_movement, board);
-    }
-    if action_state.just_pressed(&Action::MoveLeft) {
-        player_move(Direction::Left, player_movement, board);
-    }
-    if action_state.just_pressed(&Action::MoveRight) {
-        player_move(Direction::Right, player_movement, board);
+    if *state.get() == AppState::Main {
+        let board = &mut board.single_mut().unwrap().board;
+        player_move(Direction::Up, &mut player_movement, board);
     }
 }
 
-fn handle_level_switch_action(
-    _action_state: &ActionState<Action>,
-    _player_movement: &mut ResMut<PlayerMovement>,
-    _level_id: &mut ResMut<LevelId>,
-    _database: &crate::database::Database,
+pub fn on_move_down(
+    _trigger: On<Start<MoveDownAction>>,
+    mut board: Query<&mut Board>,
+    mut player_movement: ResMut<PlayerMovement>,
+    state: Res<State<AppState>>,
 ) {
-    // Disabled in favor of bevy_enhanced_input level switch observers
+    if *state.get() == AppState::Main {
+        let board = &mut board.single_mut().unwrap().board;
+        player_move(Direction::Down, &mut player_movement, board);
+    }
+}
+
+pub fn on_move_left(
+    _trigger: On<Start<MoveLeftAction>>,
+    mut board: Query<&mut Board>,
+    mut player_movement: ResMut<PlayerMovement>,
+    state: Res<State<AppState>>,
+) {
+    if *state.get() == AppState::Main {
+        let board = &mut board.single_mut().unwrap().board;
+        player_move(Direction::Left, &mut player_movement, board);
+    }
+}
+
+pub fn on_move_right(
+    _trigger: On<Start<MoveRightAction>>,
+    mut board: Query<&mut Board>,
+    mut player_movement: ResMut<PlayerMovement>,
+    state: Res<State<AppState>>,
+) {
+    if *state.get() == AppState::Main {
+        let board = &mut board.single_mut().unwrap().board;
+        player_move(Direction::Right, &mut player_movement, board);
+    }
 }
 
 pub fn on_reset_level(
@@ -256,16 +120,6 @@ pub fn on_previous_unsolved_level(
     switch_to_previous_unsolved_level(&mut level_id, &database);
 }
 
-fn handle_clipboard_action(
-    _action_state: &ActionState<Action>,
-    _player_movement: &mut ResMut<PlayerMovement>,
-    _level_id: &mut ResMut<LevelId>,
-    _database: &crate::database::Database,
-    _board: &crate::board::Board,
-) {
-    // Disabled in favor of bevy_enhanced_input clipboard observers
-}
-
 pub fn on_import_levels(
     _trigger: On<Start<ImportLevelsFromClipboardAction>>,
     mut player_movement: ResMut<PlayerMovement>,
@@ -287,13 +141,6 @@ pub fn on_export_level(
     export_to_clipboard(board);
 }
 
-fn handle_toggle_instant_move_action(
-    _action_state: &ActionState<Action>,
-    _config: &mut ResMut<Config>,
-) {
-    // Disabled in favor of bevy_enhanced_input on_toggle_instant_move observer
-}
-
 pub fn on_toggle_instant_move(
     _trigger: On<Start<ToggleInstantMoveAction>>,
     mut config: ResMut<Config>,
@@ -301,47 +148,18 @@ pub fn on_toggle_instant_move(
     config.instant_move = !config.instant_move;
 }
 
-fn handle_toggle_fullscreen_action(_action_state: &ActionState<Action>, _window: &mut Window) {
-    // Disabled in favor of bevy_enhanced_input on_toggle_fullscreen observer
-}
-
 pub fn on_toggle_fullscreen(
     _trigger: On<Start<ToggleFullscreenAction>>,
     mut window: Query<&mut Window>,
 ) {
-    let Ok(mut window) = window.single_mut() else { return; };
+    let Ok(mut window) = window.single_mut() else {
+        return;
+    };
     window.mode = match window.mode {
         WindowMode::BorderlessFullscreen(_) => WindowMode::Windowed,
         WindowMode::Windowed => WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
         _ => unreachable!(),
     };
-}
-
-fn handle_undo_redo_action(
-    action_state: &ActionState<Action>,
-    player_movement: &mut PlayerMovement,
-    board: &mut crate::board::Board,
-    update_grid_position_events: &mut MessageWriter<UpdateGridPositionEvent>,
-) {
-    if action_state.just_pressed(&Action::Undo) {
-        player_movement.directions.clear();
-        board.undo_push();
-        update_grid_position_events.write_default();
-    }
-    if action_state.just_pressed(&Action::Redo) {
-        player_movement.directions.clear();
-        board.redo_push();
-        update_grid_position_events.write_default();
-    }
-}
-
-pub fn handle_automatic_solution_action(
-    _action_state: &ActionState<Action>,
-    _state: &State<AppState>,
-    _next_state: &mut ResMut<NextState<AppState>>,
-    _player_movement: &mut ResMut<PlayerMovement>,
-) {
-    // Disabled in favor of bevy_enhanced_input on_toggle_automatic_solution observer
 }
 
 pub fn on_toggle_automatic_solution(
@@ -356,6 +174,94 @@ pub fn on_toggle_automatic_solution(
     } else {
         next_state.set(AppState::Main);
     }
+}
+
+pub fn on_undo(
+    _trigger: On<Start<UndoAction>>,
+    mut board: Query<&mut Board>,
+    mut player_movement: ResMut<PlayerMovement>,
+    mut update_grid_position_events: MessageWriter<UpdateGridPositionEvent>,
+    state: Res<State<AppState>>,
+) {
+    if *state.get() == AppState::Main {
+        let board = &mut board.single_mut().unwrap().board;
+        player_movement.directions.clear();
+        board.undo_push();
+        update_grid_position_events.write_default();
+    }
+}
+
+pub fn on_redo(
+    _trigger: On<Start<RedoAction>>,
+    mut board: Query<&mut Board>,
+    mut player_movement: ResMut<PlayerMovement>,
+    mut update_grid_position_events: MessageWriter<UpdateGridPositionEvent>,
+    state: Res<State<AppState>>,
+) {
+    if *state.get() == AppState::Main {
+        let board = &mut board.single_mut().unwrap().board;
+        player_movement.directions.clear();
+        board.redo_push();
+        update_grid_position_events.write_default();
+    }
+}
+
+pub fn player_move_unchecked(direction: Direction, player_movement: &mut PlayerMovement) {
+    player_movement.directions.push_front(direction);
+}
+
+fn player_move_to(
+    target: &Vector2<i32>,
+    player_movement: &mut PlayerMovement,
+    board: &crate::board::Board,
+) {
+    if let Some(path) = find_path(board.map.player_position(), *target, |position| {
+        !board.map[position].intersects(Tiles::Wall | Tiles::Box)
+    }) {
+        let directions = path
+            .windows(2)
+            .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap());
+        for direction in directions {
+            player_move_unchecked(direction, player_movement);
+        }
+    }
+}
+
+fn player_move(
+    direction: Direction,
+    player_movement: &mut PlayerMovement,
+    board: &crate::board::Board,
+) {
+    if !board.moveable(direction) {
+        return;
+    }
+    player_movement.directions.push_front(direction);
+}
+
+fn instant_player_move_to(
+    target: &Vector2<i32>,
+    board_clone: &mut crate::board::Board,
+    player_movement: &mut PlayerMovement,
+) {
+    if let Some(path) = find_path(board_clone.map.player_position(), *target, |position| {
+        !board_clone.map[position].intersects(Tiles::Wall | Tiles::Box)
+    }) {
+        let directions = path
+            .windows(2)
+            .map(|pos| Direction::try_from(pos[1] - pos[0]).unwrap());
+        for direction in directions {
+            instant_player_move(direction, board_clone, player_movement);
+        }
+    }
+}
+
+fn instant_player_move(
+    direction: Direction,
+    board_clone: &mut crate::board::Board,
+    player_movement: &mut PlayerMovement,
+) {
+    board_clone.do_action(direction);
+    player_movement.directions.push_front(direction);
 }
 
 /// Handles mouse input events.
