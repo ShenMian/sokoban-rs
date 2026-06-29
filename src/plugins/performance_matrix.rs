@@ -15,7 +15,7 @@ pub struct PerformanceMatrix;
 
 fn setup(mut commands: Commands) {
     const ALPHA: f32 = 0.8;
-    const FONT_SIZE: f32 = 12.0;
+    const FONT_SIZE: FontSize = FontSize::Vw(1.0);
 
     commands
         .spawn((

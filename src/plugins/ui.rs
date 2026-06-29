@@ -32,8 +32,7 @@ pub fn plugin(app: &mut App) {
 
 /// Sets up the heads-up display (HUD) on the screen.
 pub fn setup_hud(mut commands: Commands) {
-    const ALPHA: f32 = 0.8;
-    const FONT_SIZE: f32 = 14.0;
+    const FONT_SIZE: FontSize = FontSize::Vw(1.5);
 
     commands
         .spawn((
@@ -50,52 +49,52 @@ pub fn setup_hud(mut commands: Commands) {
         .with_child((
             TextSpan::new("Level : "),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+            TextColor(SEA_GREEN.into()),
         ))
         .with_child((
             TextSpan::new(""),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(GOLD.with_alpha(ALPHA).into()),
+            TextColor(GOLD.into()),
         ))
         .with_child((
             TextSpan::new("Moves : "),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+            TextColor(SEA_GREEN.into()),
         ))
         .with_child((
             TextSpan::new(""),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(GOLD.with_alpha(ALPHA).into()),
+            TextColor(GOLD.into()),
         ))
         .with_child((
             TextSpan::new("Pushes: "),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+            TextColor(SEA_GREEN.into()),
         ))
         .with_child((
             TextSpan::new(""),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(GOLD.with_alpha(ALPHA).into()),
+            TextColor(GOLD.into()),
         ))
         .with_child((
             TextSpan::new("Best moves : "),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+            TextColor(SEA_GREEN.into()),
         ))
         .with_child((
             TextSpan::new(""),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(GOLD.with_alpha(ALPHA).into()),
+            TextColor(GOLD.into()),
         ))
         .with_child((
             TextSpan::new("Best pushes: "),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(SEA_GREEN.with_alpha(ALPHA).into()),
+            TextColor(SEA_GREEN.into()),
         ))
         .with_child((
             TextSpan::new(""),
             TextFont::from_font_size(FONT_SIZE),
-            TextColor(GOLD.with_alpha(ALPHA).into()),
+            TextColor(GOLD.into()),
         ));
 }
 
