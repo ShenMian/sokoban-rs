@@ -52,12 +52,12 @@ fn main() {
     .add_observer(on_previous_unsolved_level)
     .add_observer(on_import_levels)
     .add_observer(on_export_level)
-    .add_observer(on_move_up)
-    .add_observer(on_move_down)
-    .add_observer(on_move_left)
-    .add_observer(on_move_right)
-    .add_observer(on_undo)
-    .add_observer(on_redo)
+    .add_observer(on_move_up.run_if(in_state(AppState::Main)))
+    .add_observer(on_move_down.run_if(in_state(AppState::Main)))
+    .add_observer(on_move_left.run_if(in_state(AppState::Main)))
+    .add_observer(on_move_right.run_if(in_state(AppState::Main)))
+    .add_observer(on_undo.run_if(in_state(AppState::Main)))
+    .add_observer(on_redo.run_if(in_state(AppState::Main)))
     .init_state::<AppState>();
 
     app.add_systems(PreStartup, (setup_camera, setup_database));

@@ -218,48 +218,36 @@ pub fn on_move_up(
     _trigger: On<Start<MoveUpAction>>,
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
-    state: Res<State<AppState>>,
 ) {
-    if *state.get() == AppState::Main {
-        let board = &mut board.single_mut().unwrap().board;
-        player_move(Direction::Up, &mut player_movement, board);
-    }
+    let board = &mut board.single_mut().unwrap().board;
+    player_move(Direction::Up, &mut player_movement, board);
 }
 
 pub fn on_move_down(
     _trigger: On<Start<MoveDownAction>>,
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
-    state: Res<State<AppState>>,
 ) {
-    if *state.get() == AppState::Main {
-        let board = &mut board.single_mut().unwrap().board;
-        player_move(Direction::Down, &mut player_movement, board);
-    }
+    let board = &mut board.single_mut().unwrap().board;
+    player_move(Direction::Down, &mut player_movement, board);
 }
 
 pub fn on_move_left(
     _trigger: On<Start<MoveLeftAction>>,
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
-    state: Res<State<AppState>>,
 ) {
-    if *state.get() == AppState::Main {
-        let board = &mut board.single_mut().unwrap().board;
-        player_move(Direction::Left, &mut player_movement, board);
-    }
+    let board = &mut board.single_mut().unwrap().board;
+    player_move(Direction::Left, &mut player_movement, board);
 }
 
 pub fn on_move_right(
     _trigger: On<Start<MoveRightAction>>,
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
-    state: Res<State<AppState>>,
 ) {
-    if *state.get() == AppState::Main {
-        let board = &mut board.single_mut().unwrap().board;
-        player_move(Direction::Right, &mut player_movement, board);
-    }
+    let board = &mut board.single_mut().unwrap().board;
+    player_move(Direction::Right, &mut player_movement, board);
 }
 
 pub fn on_reset_level(
@@ -376,14 +364,11 @@ pub fn on_undo(
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
     mut update_grid_position_events: MessageWriter<UpdateGridPositionEvent>,
-    state: Res<State<AppState>>,
 ) {
-    if *state.get() == AppState::Main {
-        let board = &mut board.single_mut().unwrap().board;
-        player_movement.directions.clear();
-        board.undo_push();
-        update_grid_position_events.write_default();
-    }
+    let board = &mut board.single_mut().unwrap().board;
+    player_movement.directions.clear();
+    board.undo_push();
+    update_grid_position_events.write_default();
 }
 
 pub fn on_redo(
@@ -391,14 +376,11 @@ pub fn on_redo(
     mut board: Query<&mut Board>,
     mut player_movement: ResMut<PlayerMovement>,
     mut update_grid_position_events: MessageWriter<UpdateGridPositionEvent>,
-    state: Res<State<AppState>>,
 ) {
-    if *state.get() == AppState::Main {
-        let board = &mut board.single_mut().unwrap().board;
-        player_movement.directions.clear();
-        board.redo_push();
-        update_grid_position_events.write_default();
-    }
+    let board = &mut board.single_mut().unwrap().board;
+    player_movement.directions.clear();
+    board.redo_push();
+    update_grid_position_events.write_default();
 }
 
 pub fn player_move_unchecked(direction: Direction, player_movement: &mut PlayerMovement) {
