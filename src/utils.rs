@@ -82,9 +82,3 @@ pub fn box_pushable_paths_with_positions(
     paths.retain(|state, _| state.box_position != *box_position);
     paths
 }
-
-/// Finds paths for pushing a box from `box_position` to other positions.
-pub fn box_pushable_paths(map: &Map, box_position: &Point) -> HashMap<PushState, Vec<Point>> {
-    debug_assert!(map.box_positions().contains(box_position));
-    box_pushable_paths_with_positions(map, box_position, map.box_positions())
-}

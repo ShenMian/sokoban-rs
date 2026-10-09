@@ -1,12 +1,13 @@
-use std::{collections::HashMap, fs};
+use std::fs;
 
 use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
 use bevy_enhanced_input::prelude::*;
-use soukoban::{path_finding::find_path, prelude::*};
-
-use crate::{
-    AppState, components::*, events::*, resources::*, systems::level::*, utils::PushState,
+use soukoban::{
+    path_finding::{construct_box_path, find_path},
+    prelude::*,
 };
+
+use crate::{AppState, components::*, events::*, resources::*, systems::level::*};
 
 #[derive(Component)]
 pub struct ControlsContext;
@@ -475,7 +476,7 @@ pub fn mouse_input(
                 if map.box_positions().contains(&grid_position) {
                     *auto_move_state = AutoMoveState::Box {
                         position: grid_position,
-                        paths: HashMap::new(),
+                        waypoints: FxHashMap::default(),
                     };
                     next_state.set(AppState::AutoMove);
                     return;
@@ -489,21 +490,18 @@ pub fn mouse_input(
                 match &mut *auto_move_state {
                     AutoMoveState::Box {
                         position: box_position,
-                        paths,
+                        waypoints,
                     } => {
+                        // Clicking the selected box again cancels.
+                        if grid_position == *box_position {
+                            next_state.set(AppState::Main);
+                            return;
+                        }
                         let mut box_paths = Vec::new();
                         for push_direction in Direction::iter() {
-                            let push_state = PushState {
-                                push_direction,
-                                box_position: grid_position,
-                            };
-                            if paths.contains_key(&push_state) {
-                                if *box_position == grid_position {
-                                    next_state.set(AppState::Main);
-                                    return;
-                                }
-                                let box_path = paths[&push_state].clone();
-                                box_paths.push(box_path);
+                            let to = DirectedPosition::new(grid_position, push_direction);
+                            if waypoints.contains_key(&to) {
+                                box_paths.push(construct_box_path(to, &*waypoints));
                             }
                         }
                         if let Some(min_box_path) =
@@ -526,9 +524,7 @@ pub fn mouse_input(
                                     &mut player_movement,
                                 );
                             }
-                        } else if grid_position != *box_position
-                            && map.box_positions().contains(&grid_position)
-                        {
+                        } else if map.box_positions().contains(&grid_position) {
                             // box_position = grid_position;
                             // FIXME: Re-entering AppState::AutoMove https://github.com/bevyengine/bevy/issues/9130 https://github.com/bevyengine/bevy/pull/13579
                             // next_state.set(AppState::AutoMove);

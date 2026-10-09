@@ -3,11 +3,13 @@
 use bevy::{color::palettes::css::*, prelude::*};
 use itertools::Itertools;
 use soukoban::{
-    deadlock::compute_static_deadlocks, path_finding::compute_reachable_area, prelude::*,
+    deadlock::compute_static_deadlocks,
+    path_finding::{compute_box_waypoints, compute_reachable_area},
+    prelude::*,
 };
 
 use crate::{
-    AppState, box_pushable_paths,
+    AppState,
     components::{Board, Box, GridPosition, Player},
     resources::AutoMoveState,
     systems::input::*,
@@ -38,16 +40,23 @@ pub fn spawn_auto_move_marks(
     match &mut *auto_move_state {
         AutoMoveState::Box {
             position: box_position,
-            paths,
+            waypoints,
         } => {
-            *paths = box_pushable_paths(map, box_position);
+            let (computed_waypoints, _) =
+                compute_box_waypoints(map, *box_position, soukoban::solver::Strategy::Quick);
+            *waypoints = computed_waypoints;
 
             // remove static deadlock positions
             let static_deadlocks = compute_static_deadlocks(map);
-            paths.retain(|state, _| !static_deadlocks.contains(&state.box_position));
+            waypoints.retain(|state, _| !static_deadlocks.contains(&state.position));
 
             // spawn box pushable marks
-            for mark_position in paths.keys().map(|state| state.box_position).unique() {
+            for mark_position in waypoints
+                .keys()
+                .map(|state| state.position)
+                .filter(|position| position != box_position)
+                .unique()
+            {
                 commands.spawn((
                     Name::new("Pushable mark"),
                     Sprite::from_color(
@@ -63,7 +72,7 @@ pub fn spawn_auto_move_marks(
                 ));
             }
 
-            if paths.is_empty() {
+            if waypoints.is_empty() {
                 next_state.set(AppState::Main);
                 return;
             }

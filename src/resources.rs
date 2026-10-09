@@ -2,12 +2,9 @@ use bevy::{prelude::*, time::Stopwatch};
 use serde::{Deserialize, Serialize};
 use soukoban::prelude::*;
 
-use crate::{board::Board, database, solve::solver::*, utils::PushState};
+use crate::{board::Board, database, solve::solver::*};
 
-use std::{
-    collections::{HashMap, VecDeque},
-    sync::Mutex,
-};
+use std::{collections::VecDeque, sync::Mutex};
 
 #[derive(Resource, Serialize, Deserialize)]
 pub struct Config {
@@ -70,7 +67,7 @@ pub enum AutoMoveState {
     Player,
     Box {
         position: Point,
-        paths: HashMap<PushState, Vec<Point>>,
+        waypoints: FxHashMap<DirectedPosition, DirectedPosition>,
     },
 }
 
