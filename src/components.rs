@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use nalgebra::Vector2;
+use soukoban::prelude::Point;
 
 use crate::board;
 
@@ -20,11 +20,11 @@ pub struct Hud;
 #[derive(Component)]
 pub struct Board {
     pub board: board::Board,
-    pub tile_size: Vector2<i32>,
+    pub tile_size: Point,
 }
 
 #[derive(Component, Deref, DerefMut)]
-pub struct GridPosition(pub Vector2<i32>);
+pub struct GridPosition(pub Point);
 
 #[derive(Component)]
 pub struct Player;

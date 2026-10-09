@@ -2,7 +2,6 @@ use std::{collections::HashMap, fs};
 
 use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
 use bevy_enhanced_input::prelude::*;
-use nalgebra::Vector2;
 use soukoban::{path_finding::find_path, prelude::*};
 
 use crate::{
@@ -388,7 +387,7 @@ pub fn player_move_unchecked(direction: Direction, player_movement: &mut PlayerM
 }
 
 fn player_move_to(
-    target: &Vector2<i32>,
+    target: &Point,
     player_movement: &mut PlayerMovement,
     board: &crate::board::Board,
 ) {
@@ -416,7 +415,7 @@ fn player_move(
 }
 
 fn instant_player_move_to(
-    target: &Vector2<i32>,
+    target: &Point,
     board_clone: &mut crate::board::Board,
     player_movement: &mut PlayerMovement,
 ) {
@@ -469,7 +468,7 @@ pub fn mouse_input(
             .unwrap();
         let grid_position =
             ((position + (tile_size.x as f32 / 2.0)) / tile_size.x as f32).as_ivec2();
-        let grid_position = Vector2::new(grid_position.x, map.dimensions().y - grid_position.y);
+        let grid_position = Point::new(grid_position.x, map.dimensions().y - grid_position.y);
 
         match state.get() {
             AppState::Main => {
@@ -515,7 +514,7 @@ pub fn mouse_input(
                                 .windows(2)
                                 .map(|pos| (pos[0], Direction::try_from(pos[1] - pos[0]).unwrap()))
                             {
-                                let player_position = box_position - &push_direction.into();
+                                let player_position = box_position - Point::from(push_direction);
                                 instant_player_move_to(
                                     &player_position,
                                     &mut board_clone,

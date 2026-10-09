@@ -19,12 +19,12 @@ impl Board {
 
     /// Checks if the player can move or push in the specified direction.
     pub fn moveable(&self, direction: Direction) -> bool {
-        let player_next_position = self.map.player_position() + &direction.into();
+        let player_next_position = self.map.player_position() + Point::from(direction);
         if self.map[player_next_position].intersects(Tiles::Wall) {
             return false;
         }
         if self.map[player_next_position].intersects(Tiles::Box) {
-            let box_next_position = player_next_position + &direction.into();
+            let box_next_position = player_next_position + Point::from(direction);
             if self.map[box_next_position].intersects(Tiles::Box | Tiles::Wall) {
                 return false;
             }
@@ -34,7 +34,7 @@ impl Board {
 
     /// Moves the player or pushes a box in the specified direction.
     pub fn do_action(&mut self, direction: Direction) {
-        let direction_vector = &direction.into();
+        let direction_vector = Point::from(direction);
         let player_next_position = self.map.player_position() + direction_vector;
         if self.map[player_next_position].intersects(Tiles::Wall) {
             return;
@@ -72,11 +72,11 @@ impl Board {
         let history = self.actions.pop().unwrap();
         let direction = history.direction();
         if history.is_shift() {
-            let box_position = self.map.player_position() + &direction.into();
+            let box_position = self.map.player_position() + Point::from(direction);
             let player_position = self.map.player_position();
             self.map.set_box_position(box_position, player_position);
         }
-        let player_prev_position = self.map.player_position() - &direction.into();
+        let player_prev_position = self.map.player_position() - Point::from(direction);
         self.map.set_player_position(player_prev_position);
         self.undone_actions.push(history);
     }

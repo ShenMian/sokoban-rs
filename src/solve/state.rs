@@ -6,7 +6,6 @@ use std::{
 
 use crate::solve::solver::*;
 
-use nalgebra::Vector2;
 use soukoban::{
     deadlock,
     path_finding::{compute_area_anchor, compute_reachable_area, find_path},
@@ -15,8 +14,8 @@ use soukoban::{
 
 #[derive(Clone, Eq)]
 pub struct State {
-    pub player_position: Vector2<i32>,
-    pub box_positions: FxHashSet<Vector2<i32>>,
+    pub player_position: Point,
+    pub box_positions: FxHashSet<Point>,
     pub actions: Actions,
     heuristic: usize,
     lower_bound: OnceCell<usize>,
@@ -51,8 +50,8 @@ impl PartialOrd for State {
 
 impl State {
     pub fn new(
-        player_position: Vector2<i32>,
-        box_positions: FxHashSet<Vector2<i32>>,
+        player_position: Point,
+        box_positions: FxHashSet<Point>,
         actions: Actions,
         solver: &Solver,
     ) -> Self {
@@ -91,12 +90,12 @@ impl State {
         let player_reachable_area = self.player_reachable_area(solver);
         for box_position in &self.box_positions {
             for push_direction in Direction::iter() {
-                let mut new_box_position = box_position + &push_direction.into();
+                let mut new_box_position = *box_position + Point::from(push_direction);
                 if self.can_block_box(new_box_position, solver) {
                     continue;
                 }
 
-                let next_player_position = box_position - &push_direction.into();
+                let next_player_position = *box_position - Point::from(push_direction);
                 if self.can_block_player(next_player_position, solver)
                     || !player_reachable_area.contains(&next_player_position)
                 {
@@ -116,14 +115,14 @@ impl State {
                 new_actions.push(Action::Push(push_direction));
 
                 // skip tunnels
-                while solver
-                    .tunnels()
-                    .contains(&((new_box_position - &push_direction.into()), push_direction))
-                {
-                    if self.can_block_box(new_box_position + &push_direction.into(), solver) {
+                while solver.tunnels().contains(&(
+                    (new_box_position - Point::from(push_direction)),
+                    push_direction,
+                )) {
+                    if self.can_block_box(new_box_position + Point::from(push_direction), solver) {
                         break;
                     }
-                    new_box_position += &push_direction.into();
+                    new_box_position += Point::from(push_direction);
                     new_actions.push(Action::Push(push_direction));
                 }
 
@@ -137,13 +136,12 @@ impl State {
                         &solver.map,
                         new_box_position,
                         &new_box_positions,
-                        &mut FxHashSet::default(),
                     )
                 {
                     continue;
                 }
 
-                let new_player_position = new_box_position - &push_direction.into();
+                let new_player_position = new_box_position - Point::from(push_direction);
 
                 let new_state =
                     State::new(new_player_position, new_box_positions, new_actions, solver);
@@ -197,24 +195,24 @@ impl State {
     }
 
     /// Checks if a position can block the player's movement.
-    fn can_block_player(&self, position: Vector2<i32>, solver: &Solver) -> bool {
+    fn can_block_player(&self, position: Point, solver: &Solver) -> bool {
         solver.map[position].intersects(Tiles::Wall) || self.box_positions.contains(&position)
     }
 
     /// Checks if a position can block a box's movement.
-    fn can_block_box(&self, position: Vector2<i32>, solver: &Solver) -> bool {
+    fn can_block_box(&self, position: Point, solver: &Solver) -> bool {
         solver.map[position].intersects(Tiles::Wall /* | Tiles::Deadlock */)
             || !solver.lower_bounds().contains_key(&position)
             || self.box_positions.contains(&position)
     }
 
     /// Returns the normalized player position based on reachable area.
-    fn normalized_player_position(&self, solver: &Solver) -> Vector2<i32> {
+    fn normalized_player_position(&self, solver: &Solver) -> Point {
         compute_area_anchor(&self.player_reachable_area(solver)).unwrap()
     }
 
     /// Returns the reachable area for the player in the current state.
-    fn player_reachable_area(&self, solver: &Solver) -> FxHashSet<Vector2<i32>> {
+    fn player_reachable_area(&self, solver: &Solver) -> FxHashSet<Point> {
         compute_reachable_area(self.player_position, |position| {
             !self.can_block_player(position, solver)
         })

@@ -1,6 +1,5 @@
 use arboard::Clipboard;
 use bevy::{color::palettes::css::*, prelude::*};
-use nalgebra::Vector2;
 use soukoban::prelude::*;
 
 use crate::{board, calculate_camera_default_scale, components::*, database, resources::*};
@@ -34,7 +33,7 @@ pub fn setup_level(mut commands: Commands, database: Res<Database>) {
     let map = database.get_level_by_id(1).unwrap().into();
     commands.spawn(Board {
         board: board::Board::with_map(map),
-        tile_size: Vector2::zeros(),
+        tile_size: Point::ZERO,
     });
 
     let next_unsolved_level_id = database
@@ -61,7 +60,7 @@ pub fn spawn_board(
     let level = database.get_level_by_id(level_id.0).unwrap();
 
     let spritesheet_handle = asset_server.load("textures/tilesheet.png");
-    let tile_size = Vector2::<i32>::new(128, 128);
+    let tile_size = Point::new(128, 128);
     let spritesheet_layout = TextureAtlasLayout::from_grid(
         UVec2::new(tile_size.x as u32, tile_size.y as u32),
         6,
@@ -71,7 +70,7 @@ pub fn spawn_board(
     );
     let spritesheet_layout_handle = spritesheet_layouts.add(spritesheet_layout);
 
-    let board_size = Vector2::new(
+    let board_size = Point::new(
         tile_size.x * level.map().dimensions().x,
         tile_size.y * level.map().dimensions().y,
     );
@@ -99,7 +98,7 @@ pub fn spawn_board(
         .with_children(|parent| {
             for y in 0..level.map().dimensions().y {
                 for x in 0..level.map().dimensions().x {
-                    let position = Vector2::<i32>::new(x, y);
+                    let position = Point::new(x, y);
                     if level.map()[position].is_empty() {
                         continue;
                     }

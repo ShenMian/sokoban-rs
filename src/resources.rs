@@ -1,5 +1,4 @@
 use bevy::{prelude::*, time::Stopwatch};
-use nalgebra::Vector2;
 use serde::{Deserialize, Serialize};
 use soukoban::prelude::*;
 
@@ -70,8 +69,8 @@ pub enum AutoMoveState {
     #[default]
     Player,
     Box {
-        position: Vector2<i32>,
-        paths: HashMap<PushState, Vec<Vector2<i32>>>,
+        position: Point,
+        paths: HashMap<PushState, Vec<Point>>,
     },
 }
 
@@ -84,14 +83,17 @@ pub struct SolverState {
 
 impl Default for SolverState {
     fn default() -> Self {
+        // Placeholder map, replaced by `load_solver` before first use.
+        // (`Map::with_dimensions` is intentionally not public API.)
+        let map: Map = "#####\n#@$.#\n#####".parse().unwrap();
         Self {
             solver: Mutex::new(Solver::new(
-                Map::with_dimensions(Vector2::new(0, 0)),
+                map.clone(),
                 Strategy::default(),
                 LowerBoundMethod::default(),
             )),
             stopwatch: Stopwatch::new(),
-            origin_board: Board::with_map(Map::with_dimensions(Vector2::new(0, 0))),
+            origin_board: Board::with_map(map),
         }
     }
 }

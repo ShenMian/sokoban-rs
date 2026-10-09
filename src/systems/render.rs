@@ -1,6 +1,5 @@
 use benimator::{Animation, FrameRate};
 use bevy::{ecs::system::NonSendMarker, prelude::*, window::WindowResized, winit::WINIT_WINDOWS};
-use nalgebra::Vector2;
 use soukoban::prelude::*;
 
 use crate::{
@@ -121,10 +120,10 @@ pub fn handle_player_movement(
                 _ => (),
             }
 
-            *player_grid_position += Into::<Vector2<i32>>::into(direction);
+            *player_grid_position += Point::from(direction);
 
             let old_box_position = *player_grid_position;
-            let new_box_position = old_box_position + &direction.into();
+            let new_box_position = old_box_position + Point::from(direction);
             let box_grid_positions: FxHashSet<_> = boxes.iter().map(|x| x.0).collect();
             if box_grid_positions.contains(player_grid_position) {
                 for mut box_grid_position in boxes.iter_mut() {
@@ -138,10 +137,10 @@ pub fn handle_player_movement(
         while let Some(direction) = player_movement.directions.pop_back() {
             board.do_action(direction);
 
-            *player_grid_position += Into::<Vector2<i32>>::into(direction);
+            *player_grid_position += Point::from(direction);
 
             let old_box_position = *player_grid_position;
-            let new_box_position = old_box_position + &direction.into();
+            let new_box_position = old_box_position + Point::from(direction);
             let box_grid_positions: FxHashSet<_> = boxes.iter().map(|x| x.0).collect();
             if box_grid_positions.contains(player_grid_position) {
                 for mut box_grid_position in boxes.iter_mut() {
@@ -266,12 +265,9 @@ pub fn adjust_camera_scale(
 
 /// Adjust the camera zoom to fit the entire board.
 pub fn calculate_camera_default_scale(window: &Window, map: &Map) -> f32 {
-    let tile_size = Vector2::new(128.0, 128.0);
+    let tile_size = Vec2::new(128.0, 128.0);
     let dims = map.dimensions();
-    let board_size = Vector2::new(
-        tile_size.x as f32 * dims.x as f32,
-        tile_size.y as f32 * dims.y as f32,
-    );
+    let board_size = Vec2::new(tile_size.x * dims.x as f32, tile_size.y * dims.y as f32);
 
     let width_scale = board_size.x / window.resolution.width();
     let height_scale = board_size.y / window.resolution.height();
