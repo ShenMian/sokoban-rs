@@ -7,7 +7,7 @@ pub fn plugin(app: &mut App) {
 /// Sets up the version information text on the screen.
 fn setup(mut commands: Commands) {
     const ALPHA: f32 = 0.8;
-    const FONT_SIZE: f32 = 12.0;
+    const FONT_SIZE: FontSize = FontSize::Px(12.0);
 
     commands.spawn((
         Name::new("Version information"),
