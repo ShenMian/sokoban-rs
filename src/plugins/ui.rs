@@ -1,6 +1,12 @@
 #![allow(clippy::type_complexity)]
 
-use bevy::{color::palettes::css::*, prelude::*};
+use bevy::{
+    color::palettes::css::*,
+    picking::hover::Hovered,
+    prelude::*,
+    ui::Pressed,
+    ui_widgets::{Activate, Button},
+};
 
 use crate::{
     components::*,
@@ -19,14 +25,8 @@ pub enum Action {
 
 pub fn plugin(app: &mut App) {
     app.add_systems(Startup, (setup_hud, setup_buttons));
-    app.add_systems(
-        Update,
-        (
-            button_visual_effect,
-            update_button_state,
-            button_input_to_action,
-        ),
-    );
+    app.add_systems(Update, (button_visual_effect, update_button_state));
+    app.add_observer(on_button_activate);
     app.add_systems(Update, update_hud.run_if(in_state(AppState::Main)));
 }
 
@@ -168,6 +168,7 @@ fn icon_button(action: Action, texture: Handle<Image>) -> impl Bundle {
         Name::new("Icon Button"),
         action,
         Button,
+        Hovered::default(),
         Node {
             width: Val::Px(ICON_BUTTON_SIZE),
             height: Val::Px(ICON_BUTTON_SIZE),
@@ -203,28 +204,27 @@ pub fn update_button_state(
 
 /// Applies visual effects to buttons based on user interaction.
 pub fn button_visual_effect(
-    mut interaction_query: Query<
-        (&Interaction, &mut BackgroundColor),
-        (Changed<Interaction>, With<Button>),
-    >,
+    mut buttons: Query<(&Hovered, Has<Pressed>, &mut BackgroundColor), With<Button>>,
 ) {
     const BUTTON_NORMAL_COLOR: Color = Color::srgba(0.7, 0.7, 0.7, 0.8);
     const BUTTON_HOVERED_COLOR: Color = Color::srgba(0.55, 0.55, 0.55, 0.8);
     const BUTTON_PRESSED_COLOR: Color = Color::srgba(0.35, 0.75, 0.35, 0.8);
 
-    for (interaction, mut background_color) in &mut interaction_query {
-        *background_color = match *interaction {
-            Interaction::Pressed => BUTTON_PRESSED_COLOR,
-            Interaction::Hovered => BUTTON_HOVERED_COLOR,
-            Interaction::None => BUTTON_NORMAL_COLOR,
-        }
-        .into();
+    for (hovered, pressed, mut background_color) in &mut buttons {
+        let color = match (hovered.get(), pressed) {
+            (_, true) => BUTTON_PRESSED_COLOR,
+            (true, false) => BUTTON_HOVERED_COLOR,
+            (false, false) => BUTTON_NORMAL_COLOR,
+        };
+        background_color.0 = color;
     }
 }
 
-/// Converts button interactions to input actions.
-pub fn button_input_to_action(
-    buttons: Query<(&Interaction, &Action), (Changed<Interaction>, With<Button>)>,
+/// Converts button activations to input actions.
+#[allow(clippy::too_many_arguments)]
+pub fn on_button_activate(
+    activate: On<Activate>,
+    buttons: Query<&Action>,
     mut config: ResMut<Config>,
     mut player_movement: ResMut<PlayerMovement>,
     state: Res<State<AppState>>,
@@ -232,31 +232,30 @@ pub fn button_input_to_action(
     mut level_id: ResMut<LevelId>,
     database: Res<Database>,
 ) {
-    for (interaction, action) in &buttons {
-        if *interaction == Interaction::Pressed {
-            match action {
-                Action::ToggleInstantMove => {
-                    config.instant_move = !config.instant_move;
-                }
-                Action::ToggleAutomaticSolution => {
-                    player_movement.directions.clear();
-                    if *state.get() == AppState::Main {
-                        next_state.set(AppState::AutoSolve);
-                    } else {
-                        next_state.set(AppState::Main);
-                    }
-                }
-                Action::PreviousLevel => {
-                    let database = database.lock().unwrap();
-                    player_movement.directions.clear();
-                    switch_to_previous_level(&mut level_id, &database);
-                }
-                Action::NextLevel => {
-                    let database = database.lock().unwrap();
-                    player_movement.directions.clear();
-                    switch_to_next_level(&mut level_id, &database);
-                }
+    let Ok(action) = buttons.get(activate.entity) else {
+        return;
+    };
+    match action {
+        Action::ToggleInstantMove => {
+            config.instant_move = !config.instant_move;
+        }
+        Action::ToggleAutomaticSolution => {
+            player_movement.directions.clear();
+            if *state.get() == AppState::Main {
+                next_state.set(AppState::AutoSolve);
+            } else {
+                next_state.set(AppState::Main);
             }
+        }
+        Action::PreviousLevel => {
+            let database = database.lock().unwrap();
+            player_movement.directions.clear();
+            switch_to_previous_level(&mut level_id, &database);
+        }
+        Action::NextLevel => {
+            let database = database.lock().unwrap();
+            player_movement.directions.clear();
+            switch_to_next_level(&mut level_id, &database);
         }
     }
 }
