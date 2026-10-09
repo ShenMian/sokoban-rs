@@ -7,7 +7,10 @@ use soukoban::{
     prelude::*,
 };
 
-use crate::{AppState, components::*, events::*, resources::*, systems::level::*};
+use crate::{
+    AppState, components::*, events::*, plugins::auto_move::switch_box_selection, resources::*,
+    systems::level::*,
+};
 
 #[derive(Component)]
 pub struct ControlsContext;
@@ -443,6 +446,7 @@ fn instant_player_move(
 
 /// Handles mouse input events.
 pub fn mouse_input(
+    mut commands: Commands,
     mouse_buttons: Res<ButtonInput<MouseButton>>,
     mut board: Query<&mut Board>,
     windows: Query<&Window>,
@@ -453,6 +457,11 @@ pub fn mouse_input(
 
     mut player_movement: ResMut<PlayerMovement>,
     mut auto_move_state: ResMut<AutoMoveState>,
+    marks: Query<Entity, With<AutoMoveMark>>,
+    mut boxes_sprite: Query<
+        (&GridPosition, &mut Sprite),
+        (With<crate::components::Box>, Without<Player>),
+    >,
 ) {
     let Board { board, tile_size } = &mut *board.single_mut().unwrap();
     let map = &board.map;
@@ -487,6 +496,36 @@ pub fn mouse_input(
                 }
             }
             AppState::AutoMove => {
+                // Clicking another box switches the selection in place.
+                // (Same-state re-entry would not refresh the marks,
+                // see `switch_box_selection`.)
+                let switch_to = match &*auto_move_state {
+                    AutoMoveState::Box {
+                        position,
+                        waypoints,
+                    } if *position != grid_position
+                        && map.box_positions().contains(&grid_position)
+                        && !Direction::iter().any(|direction| {
+                            waypoints.contains_key(&DirectedPosition::new(grid_position, direction))
+                        }) =>
+                    {
+                        Some(grid_position)
+                    }
+                    _ => None,
+                };
+                if let Some(new_selection) = switch_to {
+                    switch_box_selection(
+                        &mut commands,
+                        &marks,
+                        &mut boxes_sprite,
+                        &mut auto_move_state,
+                        map,
+                        *tile_size,
+                        &mut next_state,
+                        new_selection,
+                    );
+                    return;
+                }
                 match &mut *auto_move_state {
                     AutoMoveState::Box {
                         position: box_position,
@@ -525,10 +564,8 @@ pub fn mouse_input(
                                 );
                             }
                         } else if map.box_positions().contains(&grid_position) {
-                            // box_position = grid_position;
-                            // FIXME: Re-entering AppState::AutoMove https://github.com/bevyengine/bevy/issues/9130 https://github.com/bevyengine/bevy/pull/13579
-                            // next_state.set(AppState::AutoMove);
-                            next_state.set(AppState::Main);
+                            // Unreachable: box switching is handled above.
+                            // Kept as a safeguard to stay in `AutoMove`.
                             return;
                         }
                         next_state.set(AppState::Main);

@@ -34,3 +34,7 @@ pub struct AnimationState(benimator::State);
 
 #[derive(Component)]
 pub struct Box;
+
+/// Marks auto-move hint entities (pushable/movable marks).
+#[derive(Component)]
+pub struct AutoMoveMark;
