@@ -2,6 +2,9 @@
 
 A sokoban with solver.
 
+> [!WARNING]
+> [ShenMian/sokoban](https://github.com/ShenMian/sokoban) is the successor to this project, surpassing it in both features and visuals.
+
 ## Features
 
 - **Solver**: The solver can automatically solve simple levels. [More details](docs/solver.md).
