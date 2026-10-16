@@ -161,17 +161,13 @@ impl State {
         self.heuristic
     }
 
-    /// Returns a normalized clone of the current state.
-    pub fn normalized(&self, solver: &Solver) -> Self {
-        let mut instance = self.clone();
-        instance.player_position = self.normalized_player_position(solver);
-        instance
-    }
-
     /// Returns a normalized hash of the current state.
     pub fn normalized_hash(&self, solver: &Solver) -> u64 {
         let mut hasher = DefaultHasher::new();
-        self.normalized(solver).hash(&mut hasher);
+        self.normalized_player_position(solver).hash(&mut hasher);
+        for position in &self.box_positions {
+            position.hash(&mut hasher);
+        }
         hasher.finish()
     }
 
