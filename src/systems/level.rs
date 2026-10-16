@@ -111,7 +111,13 @@ pub fn spawn_board(
                     ]);
                     for (tile, (sprite_index, z_order)) in tiles.into_iter() {
                         if level.map()[position].intersects(tile) {
-                            let mut sprite = Sprite::default();
+                            let mut sprite = Sprite::from_atlas_image(
+                                spritesheet_handle.clone(),
+                                TextureAtlas {
+                                    layout: spritesheet_layout_handle.clone(),
+                                    index: sprite_index,
+                                },
+                            );
                             if config.even_square_shades > 0.0
                                 && tile == Tiles::Floor
                                 && (x + y) % 2 == 0
@@ -119,13 +125,7 @@ pub fn spawn_board(
                                 sprite.color = (WHITE * (1.0 - config.even_square_shades)).into();
                             }
                             let mut entity = parent.spawn((
-                                Sprite::from_atlas_image(
-                                    spritesheet_handle.clone(),
-                                    TextureAtlas {
-                                        layout: spritesheet_layout_handle.clone(),
-                                        index: sprite_index,
-                                    },
-                                ),
+                                sprite,
                                 Transform::from_xyz(0.0, 0.0, z_order),
                                 GridPosition(position),
                             ));
