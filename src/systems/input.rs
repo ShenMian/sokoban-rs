@@ -3,8 +3,12 @@ use std::fs;
 use bevy::{input::mouse::MouseMotion, prelude::*, window::WindowMode};
 use bevy_enhanced_input::prelude::*;
 use soukoban::{
+    FxHashMap,
+    direction::{DirectedPosition, Direction},
+    level::Level,
     path_finding::{construct_box_path, find_path},
-    prelude::*,
+    point::Point,
+    tiles::Tiles,
 };
 
 use crate::{
@@ -12,7 +16,7 @@ use crate::{
     systems::level::*,
 };
 
-#[derive(Component)]
+#[derive(Component, Default, Clone)]
 pub struct ControlsContext;
 
 #[derive(InputAction)]
@@ -84,128 +88,151 @@ pub struct MoveLeftAction;
 pub struct MoveRightAction;
 
 pub fn setup_controls(mut commands: Commands) {
-    commands.spawn((
-        ControlsContext,
-        actions!(ControlsContext[
-            (
-                bevy_enhanced_input::prelude::Action::<ZoomAction>::new(),
-                Bindings::spawn((
-                    Spawn((Binding::mouse_wheel(), SwizzleAxis::YXZ)),
-                    Bidirectional::new(KeyCode::Equal, KeyCode::Minus),
-                    Bidirectional::new(GamepadButton::RightTrigger2, GamepadButton::LeftTrigger2),
-                )),
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<ToggleInstantMoveAction>::new(),
-                bindings![KeyCode::KeyI, GamepadButton::West],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<ToggleAutomaticSolutionAction>::new(),
-                bindings![KeyCode::KeyP, GamepadButton::North],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<ToggleFullscreenAction>::new(),
-                bindings![KeyCode::F11],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<ResetLevelAction>::new(),
-                bindings![KeyCode::Escape],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<NextLevelAction>::new(),
-                bindings![KeyCode::BracketRight, GamepadButton::RightTrigger],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<PreviousLevelAction>::new(),
-                bindings![KeyCode::BracketLeft, GamepadButton::LeftTrigger],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<NextUnsolvedLevelAction>::new(),
-                bindings![
-                    Binding::Keyboard {
-                        key: KeyCode::BracketRight,
-                        mod_keys: ModKeys::CONTROL,
-                    }
-                ],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<PreviousUnsolvedLevelAction>::new(),
-                bindings![
-                    Binding::Keyboard {
-                        key: KeyCode::BracketLeft,
-                        mod_keys: ModKeys::CONTROL,
-                    }
-                ],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<ImportLevelsFromClipboardAction>::new(),
-                bindings![
-                    Binding::Keyboard {
-                        key: KeyCode::KeyV,
-                        mod_keys: ModKeys::CONTROL,
-                    }
-                ],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<ExportLevelToClipboardAction>::new(),
-                bindings![
-                    Binding::Keyboard {
-                        key: KeyCode::KeyC,
-                        mod_keys: ModKeys::CONTROL,
-                    }
-                ],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<UndoAction>::new(),
-                bindings![
-                    KeyCode::KeyU,
-                    Binding::Keyboard {
-                        key: KeyCode::KeyZ,
-                        mod_keys: ModKeys::CONTROL,
-                    },
-                    Binding::MouseButton {
-                        button: MouseButton::Other(1),
-                        mod_keys: ModKeys::empty(),
-                    },
-                    GamepadButton::East,
-                ],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<RedoAction>::new(),
-                bindings![
-                    Binding::Keyboard {
-                        key: KeyCode::KeyR,
-                        mod_keys: ModKeys::CONTROL,
-                    },
-                    Binding::Keyboard {
-                        key: KeyCode::KeyZ,
-                        mod_keys: ModKeys::CONTROL | ModKeys::SHIFT,
-                    },
-                    Binding::MouseButton {
-                        button: MouseButton::Other(2),
-                        mod_keys: ModKeys::empty(),
-                    },
-                    GamepadButton::South,
-                ],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<MoveUpAction>::new(),
-                bindings![KeyCode::KeyW, KeyCode::ArrowUp, KeyCode::KeyK, GamepadButton::DPadUp],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<MoveDownAction>::new(),
-                bindings![KeyCode::KeyS, KeyCode::ArrowDown, KeyCode::KeyJ, GamepadButton::DPadDown],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<MoveLeftAction>::new(),
-                bindings![KeyCode::KeyA, KeyCode::ArrowLeft, KeyCode::KeyH, GamepadButton::DPadLeft],
-            ),
-            (
-                bevy_enhanced_input::prelude::Action::<MoveRightAction>::new(),
-                bindings![KeyCode::KeyD, KeyCode::ArrowRight, KeyCode::KeyL, GamepadButton::DPadRight],
-            ),
-        ]),
-    ));
+    commands.spawn_scene(bsn! {
+        ControlsContext
+        Actions<ControlsContext> [
+            Action::<ZoomAction>::new()
+            Bindings [
+                Binding::mouse_wheel()
+                ~SwizzleAxis::YXZ
+                --
+                {preset::bidirectional::new(KeyCode::Equal, KeyCode::Minus)}
+                --
+                {preset::bidirectional::new(GamepadButton::RightTrigger2, GamepadButton::LeftTrigger2)}
+            ]
+            --
+            Action::<ToggleInstantMoveAction>::new()
+            Bindings [Binding(KeyCode::KeyI) -- Binding(GamepadButton::West)]
+            --
+            Action::<ToggleAutomaticSolutionAction>::new()
+            Bindings [Binding(KeyCode::KeyP) -- Binding(GamepadButton::North)]
+            --
+            Action::<ToggleFullscreenAction>::new()
+            Bindings [Binding(KeyCode::F11)]
+            --
+            Action::<ResetLevelAction>::new()
+            Bindings [Binding(KeyCode::Escape)]
+            --
+            Action::<NextLevelAction>::new()
+            Bindings [Binding(KeyCode::BracketRight) -- Binding(GamepadButton::RightTrigger)]
+            --
+            Action::<PreviousLevelAction>::new()
+            Bindings [Binding(KeyCode::BracketLeft) -- Binding(GamepadButton::LeftTrigger)]
+            --
+            Action::<NextUnsolvedLevelAction>::new()
+            Bindings [
+                Binding(Binding::Keyboard {
+                    key: KeyCode::BracketRight,
+                    mod_keys: ModKeys::CONTROL,
+                })
+            ]
+            --
+            Action::<PreviousUnsolvedLevelAction>::new()
+            Bindings [
+                Binding(Binding::Keyboard {
+                    key: KeyCode::BracketLeft,
+                    mod_keys: ModKeys::CONTROL,
+                })
+            ]
+            --
+            Action::<ImportLevelsFromClipboardAction>::new()
+            Bindings [
+                Binding(Binding::Keyboard {
+                    key: KeyCode::KeyV,
+                    mod_keys: ModKeys::CONTROL,
+                })
+            ]
+            --
+            Action::<ExportLevelToClipboardAction>::new()
+            Bindings [
+                Binding(Binding::Keyboard {
+                    key: KeyCode::KeyC,
+                    mod_keys: ModKeys::CONTROL,
+                })
+            ]
+            --
+            Action::<UndoAction>::new()
+            Bindings [
+                Binding(KeyCode::KeyU)
+                --
+                Binding(Binding::Keyboard {
+                    key: KeyCode::KeyZ,
+                    mod_keys: ModKeys::CONTROL,
+                })
+                --
+                Binding(Binding::MouseButton {
+                    button: MouseButton::Other(1),
+                    mod_keys: ModKeys::empty(),
+                })
+                --
+                Binding(GamepadButton::East)
+            ]
+            --
+            Action::<RedoAction>::new()
+            Bindings [
+                Binding(Binding::Keyboard {
+                    key: KeyCode::KeyR,
+                    mod_keys: ModKeys::CONTROL,
+                })
+                --
+                Binding(Binding::Keyboard {
+                    key: KeyCode::KeyZ,
+                    mod_keys: {ModKeys::CONTROL | ModKeys::SHIFT}
+                })
+                --
+                Binding(Binding::MouseButton {
+                    button: MouseButton::Other(2),
+                    mod_keys: ModKeys::empty(),
+                })
+                --
+                Binding(GamepadButton::South)
+            ]
+            --
+            Action::<MoveUpAction>::new()
+            Bindings [
+                Binding(KeyCode::KeyW)
+                --
+                Binding(KeyCode::ArrowUp)
+                --
+                Binding(KeyCode::KeyK)
+                --
+                Binding(GamepadButton::DPadUp)
+            ]
+            --
+            Action::<MoveDownAction>::new()
+            Bindings [
+                Binding(KeyCode::KeyS)
+                --
+                Binding(KeyCode::ArrowDown)
+                --
+                Binding(KeyCode::KeyJ)
+                --
+                Binding(GamepadButton::DPadDown)
+            ]
+            --
+            Action::<MoveLeftAction>::new()
+            Bindings [
+                Binding(KeyCode::KeyA)
+                --
+                Binding(KeyCode::ArrowLeft)
+                --
+                Binding(KeyCode::KeyH)
+                --
+                Binding(GamepadButton::DPadLeft)
+            ]
+            --
+            Action::<MoveRightAction>::new()
+            Bindings [
+                Binding(KeyCode::KeyD)
+                --
+                Binding(KeyCode::ArrowRight)
+                --
+                Binding(KeyCode::KeyL)
+                --
+                Binding(GamepadButton::DPadRight)
+            ]
+        ]
+    });
 }
 
 pub fn on_zoom(trigger: On<Start<ZoomAction>>, mut camera: Query<&mut MainCamera>) {
