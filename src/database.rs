@@ -134,7 +134,7 @@ impl Database {
     /// Returns the ID of the previous unsolved level before the provided ID.
     pub fn previous_unsolved_level_id(&self, id: u64) -> Option<u64> {
         let mut statement = self.connection.prepare(
-            "SELECT id FROM tb_level WHERE id < ? AND id NOT IN (SELECT DISTINCT level_id FROM tb_snapshot) ORDER BY id ASC LIMIT 1",
+            "SELECT id FROM tb_level WHERE id < ? AND id NOT IN (SELECT DISTINCT level_id FROM tb_snapshot) ORDER BY id DESC LIMIT 1",
         ).unwrap();
         let mut rows = statement.query([id as i64]).unwrap();
 
