@@ -41,8 +41,8 @@ pub fn setup_hud(mut commands: Commands) {
             Text::default(),
             Node {
                 position_type: PositionType::Absolute,
-                top: Val::Px(5.0),
-                right: Val::Px(5.0),
+                top: px(5.0),
+                right: px(5.0),
                 ..default()
             },
         ))
@@ -139,8 +139,8 @@ pub fn setup_buttons(mut commands: Commands, asset_server: Res<AssetServer>) {
         Name::new("Buttons"),
         Node {
             position_type: PositionType::Absolute,
-            right: Val::Px(20.0),
-            bottom: Val::Px(20.0),
+            right: px(20.0),
+            bottom: px(20.0),
             ..default()
         },
         BackgroundColor(Color::NONE),
@@ -170,11 +170,11 @@ fn icon_button(action: Action, texture: Handle<Image>) -> impl Bundle {
         Button,
         Hovered::default(),
         Node {
-            width: Val::Px(ICON_BUTTON_SIZE),
-            height: Val::Px(ICON_BUTTON_SIZE),
+            width: px(ICON_BUTTON_SIZE),
+            height: px(ICON_BUTTON_SIZE),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            border: UiRect::all(Val::Px(3.0)),
+            border: UiRect::all(px(3.0)),
             ..default()
         },
         BorderColor::all(Color::NONE),

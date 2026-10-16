@@ -16,8 +16,8 @@ fn setup(mut commands: Commands) {
         TextColor(GRAY.with_alpha(ALPHA).into()),
         Node {
             position_type: PositionType::Absolute,
-            bottom: Val::Px(5.0),
-            right: Val::Px(5.0),
+            bottom: px(5.0),
+            right: px(5.0),
             ..default()
         },
     ));

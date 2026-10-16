@@ -24,8 +24,8 @@ fn setup(mut commands: Commands) {
             Text::default(),
             Node {
                 position_type: PositionType::Absolute,
-                top: Val::Px(5.0),
-                left: Val::Px(5.0),
+                top: px(5.0),
+                left: px(5.0),
                 ..default()
             },
         ))
