@@ -4,7 +4,7 @@ use soukoban::prelude::*;
 
 use crate::{board, calculate_camera_default_scale, components::*, database, resources::*};
 
-use std::{collections::HashMap, fs, path::Path, sync::Mutex};
+use std::{fs, path::Path, sync::Mutex};
 
 /// Sets up the database, initializes it, and loads levels from files into the database.
 pub fn setup_database(mut commands: Commands) {
@@ -54,6 +54,15 @@ pub fn spawn_board(
     asset_server: Res<AssetServer>,
     mut spritesheet_layouts: ResMut<Assets<TextureAtlasLayout>>,
 ) {
+    // Spritesheet index and z order for each tile type.
+    const TILE_SPRITES: [(Tiles, (usize, f32)); 5] = [
+        (Tiles::Floor, (0, 0.0)),
+        (Tiles::Wall, (3, 1.0)),
+        (Tiles::Box, (1, 2.0)),
+        (Tiles::Goal, (2, 3.0)),
+        (Tiles::Player, (0, 4.0)),
+    ];
+
     player_movement.directions.clear();
 
     let database = database.lock().unwrap();
@@ -102,14 +111,7 @@ pub fn spawn_board(
                     if level.map()[position].is_empty() {
                         continue;
                     }
-                    let tiles = HashMap::from([
-                        (Tiles::Floor, (0, 0.0)),
-                        (Tiles::Wall, (3, 1.0)),
-                        (Tiles::Box, (1, 2.0)),
-                        (Tiles::Goal, (2, 3.0)),
-                        (Tiles::Player, (0, 4.0)),
-                    ]);
-                    for (tile, (sprite_index, z_order)) in tiles.into_iter() {
+                    for (tile, (sprite_index, z_order)) in TILE_SPRITES {
                         if level.map()[position].intersects(tile) {
                             let mut sprite = Sprite::from_atlas_image(
                                 spritesheet_handle.clone(),
