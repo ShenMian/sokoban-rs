@@ -168,11 +168,10 @@ impl Database {
         let lurd = solution.to_string();
 
         if let Some(best_move_solution) = self.best_move_solution(level_id) {
-            dbg!();
             if solution.moves() < best_move_solution.moves() {
                 self.connection
                     .execute(
-                        "UPDATE tb_snapshot SET actions = ? WHERE level_id = ?",
+                        "UPDATE tb_snapshot SET actions = ? WHERE level_id = ? AND best_move = 1",
                         (lurd.clone(), level_id as i64),
                     )
                     .unwrap();
@@ -187,11 +186,10 @@ impl Database {
         }
 
         if let Some(best_push_solution) = self.best_push_solution(level_id) {
-            dbg!();
             if solution.shifts() < best_push_solution.shifts() {
                 self.connection
                     .execute(
-                        "UPDATE tb_snapshot SET actions = ? WHERE level_id = ?",
+                        "UPDATE tb_snapshot SET actions = ? WHERE level_id = ? AND best_push = 1",
                         (lurd.clone(), level_id as i64),
                     )
                     .unwrap();
