@@ -124,12 +124,9 @@ pub fn handle_player_movement(
 
             let old_box_position = *player_grid_position;
             let new_box_position = old_box_position + Point::from(direction);
-            let box_grid_positions: FxHashSet<_> = boxes.iter().map(|x| x.0).collect();
-            if box_grid_positions.contains(player_grid_position) {
-                for mut box_grid_position in boxes.iter_mut() {
-                    if box_grid_position.0 == old_box_position {
-                        box_grid_position.0 = new_box_position;
-                    }
+            for mut box_grid_position in boxes.iter_mut() {
+                if box_grid_position.0 == old_box_position {
+                    box_grid_position.0 = new_box_position;
                 }
             }
         }
@@ -141,12 +138,9 @@ pub fn handle_player_movement(
 
             let old_box_position = *player_grid_position;
             let new_box_position = old_box_position + Point::from(direction);
-            let box_grid_positions: FxHashSet<_> = boxes.iter().map(|x| x.0).collect();
-            if box_grid_positions.contains(player_grid_position) {
-                for mut box_grid_position in boxes.iter_mut() {
-                    if box_grid_position.0 == old_box_position {
-                        box_grid_position.0 = new_box_position;
-                    }
+            for mut box_grid_position in boxes.iter_mut() {
+                if box_grid_position.0 == old_box_position {
+                    box_grid_position.0 = new_box_position;
                 }
             }
         }
