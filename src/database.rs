@@ -37,7 +37,7 @@ impl Database {
                 comments TEXT,
                 map      TEXT NOT NULL,
                 width    INTEGER NOT NULL CHECK(width > 0),
-                height   INTEGER NOT NULL CHECK(width > 0),
+                height   INTEGER NOT NULL CHECK(height > 0),
                 hash     INTEGER NOT NULL UNIQUE,
                 datetime DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
             )
