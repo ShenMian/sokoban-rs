@@ -62,20 +62,13 @@ pub fn spawn_auto_move_marks(
 
             // spawn player movable marks
             for mark_position in compute_reachable_area {
-                commands.spawn((
-                    Name::new("Movable mark"),
-                    AutoMoveMark,
-                    Sprite::from_color(
-                        MARK_COLOR.with_alpha(0.8),
-                        Vec2::new(tile_size.x as f32 / 4.0, tile_size.y as f32 / 4.0),
-                    ),
-                    Transform::from_xyz(
-                        (mark_position.x * tile_size.x) as f32,
-                        ((map.dimensions().y - mark_position.y) * tile_size.y) as f32,
-                        10.0,
-                    ),
-                    DespawnOnExit(AppState::AutoMove),
-                ));
+                spawn_mark(
+                    &mut commands,
+                    map,
+                    *tile_size,
+                    mark_position,
+                    "Movable mark",
+                );
             }
 
             // highlight selected player
@@ -114,20 +107,7 @@ pub fn spawn_box_marks(
         .filter(|position| *position != selected)
         .unique()
     {
-        commands.spawn((
-            Name::new("Pushable mark"),
-            AutoMoveMark,
-            Sprite::from_color(
-                MARK_COLOR.with_alpha(0.8),
-                Vec2::new(tile_size.x as f32, tile_size.y as f32) / 4.0,
-            ),
-            Transform::from_xyz(
-                (mark_position.x * tile_size.x) as f32,
-                ((map.dimensions().y - mark_position.y) * tile_size.y) as f32,
-                10.0,
-            ),
-            DespawnOnExit(AppState::AutoMove),
-        ));
+        spawn_mark(commands, map, tile_size, mark_position, "Pushable mark");
     }
 }
 
@@ -208,4 +188,28 @@ pub fn cleanup_sprite_color(
             sprite.color = Color::WHITE;
         }
     }
+}
+
+/// Spawns a single auto-move mark sprite at `position`.
+fn spawn_mark(
+    commands: &mut Commands,
+    map: &Map,
+    tile_size: Point,
+    position: Point,
+    name: &'static str,
+) {
+    commands.spawn((
+        Name::new(name),
+        AutoMoveMark,
+        Sprite::from_color(
+            MARK_COLOR.with_alpha(0.8),
+            Vec2::new(tile_size.x as f32, tile_size.y as f32) / 4.0,
+        ),
+        Transform::from_xyz(
+            (position.x * tile_size.x) as f32,
+            ((map.dimensions().y - position.y) * tile_size.y) as f32,
+            10.0,
+        ),
+        DespawnOnExit(AppState::AutoMove),
+    ));
 }
