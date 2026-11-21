@@ -15,10 +15,10 @@ soukoban = { git = "https://github.com/ShenMian/soukoban" }
 bitflags = "2.13"
 itertools = "0.15"
 serde = { version = "1.0", features = ["derive"] }
-rusqlite = { version = "0.40", features = ["bundled"] }
+rusqlite = { version = "0.43", features = ["bundled"] }
 arboard = "3.7"                                             # System clipboard
 image = { version = "0.25", default-features = false, features = ["png"] }
-toml = "1.1"
+toml = "1.2"
 dirs = "7.0"
 
 bevy = "0.20"
