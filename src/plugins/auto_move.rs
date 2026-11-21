@@ -3,7 +3,7 @@
 use bevy::{color::palettes::css::*, prelude::*};
 use itertools::Itertools;
 use soukoban::{
-    deadlock::compute_static_deadlocks,
+    deadlock::compute_dead_positions,
     path_finding::{compute_box_waypoints, compute_reachable_area},
     prelude::*,
 };
@@ -86,9 +86,9 @@ pub fn compute_box_selection(
     let (mut waypoints, _) =
         compute_box_waypoints(map, box_position, soukoban::solver::Strategy::Quick);
 
-    // remove static deadlock positions
-    let static_deadlocks = compute_static_deadlocks(map);
-    waypoints.retain(|state, _| !static_deadlocks.contains(&state.position));
+    // remove dead positions
+    let dead_positions = compute_dead_positions(map);
+    waypoints.retain(|state, _| !dead_positions.contains(&state.position));
 
     waypoints
 }

@@ -4,7 +4,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use crate::{box_pushable_paths_with_positions, solve::state::*};
+use crate::{box_pushable_paths_with_positions, solve::state::State};
 
 use itertools::Itertools;
 use serde::{Deserialize, Serialize};
