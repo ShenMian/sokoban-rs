@@ -485,10 +485,7 @@ pub fn mouse_input(
     mut player_movement: ResMut<PlayerMovement>,
     mut auto_move_state: ResMut<AutoMoveState>,
     marks: Query<Entity, With<AutoMoveMark>>,
-    mut boxes_sprite: Query<
-        (&GridPosition, &mut Sprite),
-        (With<crate::components::Box>, Without<Player>),
-    >,
+    mut boxes_sprite: BoxGridPositionAndSpriteQuery,
 ) {
     let Board { board, tile_size } = &mut *board.single_mut().unwrap();
     let map = &board.map;

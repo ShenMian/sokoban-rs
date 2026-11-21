@@ -35,6 +35,13 @@ pub struct AnimationState(benimator::State);
 #[derive(Component)]
 pub struct Box;
 
+/// Box entities' grid position and sprite.
+pub type BoxGridPositionAndSpriteQuery<'w, 's> =
+    Query<'w, 's, (&'static GridPosition, &'static mut Sprite), (With<Box>, Without<Player>)>;
+
+/// The player entity's sprite.
+pub type PlayerSpriteQuery<'w, 's> = Query<'w, 's, &'static mut Sprite, With<Player>>;
+
 /// Marks auto-move hint entities (pushable/movable marks).
 #[derive(Component)]
 pub struct AutoMoveMark;

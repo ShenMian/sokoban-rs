@@ -8,7 +8,7 @@ use crate::{
     resources::*,
 };
 
-use std::{cmp::Ordering, time::Duration};
+use std::time::Duration;
 
 /// Sets the window icon for all windows
 pub fn set_windows_icon(_non_send_marker: NonSendMarker) {
@@ -114,10 +114,10 @@ pub fn handle_player_movement(
                 .goal_positions()
                 .intersection(board.map.box_positions())
                 .count();
-            match new_occupied_goals_count.cmp(&occupied_goals_count) {
-                Ordering::Greater => drop(box_enter_goal_events.write_default()),
-                Ordering::Less => drop(box_leave_goal_events.write_default()),
-                _ => (),
+            if new_occupied_goals_count > occupied_goals_count {
+                let _ = box_enter_goal_events.write_default();
+            } else if new_occupied_goals_count < occupied_goals_count {
+                let _ = box_leave_goal_events.write_default();
             }
 
             *player_grid_position += Point::from(direction);

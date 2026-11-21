@@ -1,5 +1,3 @@
-#![allow(clippy::type_complexity)]
-
 use bevy::{color::palettes::css::*, prelude::*};
 use itertools::Itertools;
 use soukoban::{
@@ -10,7 +8,7 @@ use soukoban::{
 
 use crate::{
     AppState,
-    components::{AutoMoveMark, Board, Box, GridPosition, Player},
+    components::{AutoMoveMark, Board, BoxGridPositionAndSpriteQuery, PlayerSpriteQuery},
     resources::AutoMoveState,
     systems::input::*,
 };
@@ -30,8 +28,8 @@ pub fn spawn_auto_move_marks(
     mut commands: Commands,
     mut auto_move_state: ResMut<AutoMoveState>,
     board: Query<&Board>,
-    mut boxes: Query<(&GridPosition, &mut Sprite), (With<Box>, Without<Player>)>,
-    mut player: Query<&mut Sprite, With<Player>>,
+    mut boxes: BoxGridPositionAndSpriteQuery,
+    mut player: PlayerSpriteQuery,
     mut next_state: ResMut<NextState<AppState>>,
 ) {
     let Board { board, tile_size } = board.single().unwrap();
@@ -112,10 +110,7 @@ pub fn spawn_box_marks(
 }
 
 /// Highlights the selected box.
-pub fn highlight_box(
-    boxes: &mut Query<(&GridPosition, &mut Sprite), (With<Box>, Without<Player>)>,
-    box_position: Point,
-) {
+pub fn highlight_box(boxes: &mut BoxGridPositionAndSpriteQuery, box_position: Point) {
     boxes
         .iter_mut()
         .filter(|(grid_position, ..)| grid_position.0 == box_position)
@@ -123,10 +118,7 @@ pub fn highlight_box(
 }
 
 /// Resets the highlight of the given box.
-pub fn reset_box_highlight(
-    boxes: &mut Query<(&GridPosition, &mut Sprite), (With<Box>, Without<Player>)>,
-    box_position: Point,
-) {
+pub fn reset_box_highlight(boxes: &mut BoxGridPositionAndSpriteQuery, box_position: Point) {
     boxes
         .iter_mut()
         .filter(|(grid_position, _)| grid_position.0 == box_position)
@@ -142,7 +134,7 @@ pub fn reset_box_highlight(
 pub fn switch_box_selection(
     commands: &mut Commands,
     marks: &Query<Entity, With<AutoMoveMark>>,
-    boxes: &mut Query<(&GridPosition, &mut Sprite), (With<Box>, Without<Player>)>,
+    boxes: &mut BoxGridPositionAndSpriteQuery,
     auto_move_state: &mut AutoMoveState,
     map: &Map,
     tile_size: Point,
@@ -172,8 +164,8 @@ pub fn switch_box_selection(
 
 /// Cleans up the visual representation of boxes or the player sprite.
 pub fn cleanup_sprite_color(
-    mut boxes: Query<(&GridPosition, &mut Sprite), (With<Box>, Without<Player>)>,
-    mut player: Query<&mut Sprite, With<Player>>,
+    mut boxes: BoxGridPositionAndSpriteQuery,
+    mut player: PlayerSpriteQuery,
     auto_move_state: Res<AutoMoveState>,
 ) {
     match *auto_move_state {

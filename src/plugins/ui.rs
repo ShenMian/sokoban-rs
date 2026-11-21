@@ -1,5 +1,3 @@
-#![allow(clippy::type_complexity)]
-
 use bevy::{
     color::palettes::css::*,
     picking::hover::Hovered,
