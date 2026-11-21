@@ -97,8 +97,6 @@ impl Solver {
                 }
                 self.heap.push(successor);
             }
-
-            // Solver::shrink_heap(&mut self.heap);
         }
 
         Err(SolveError::NoSolution)
@@ -319,36 +317,6 @@ impl Solver {
             }
         }
         lower_bounds
-    }
-
-    /// Shrinks the heap by retaining only a subset of states based on heuristics.
-    #[expect(dead_code)]
-    fn shrink_heap(heap: &mut BinaryHeap<State>) {
-        let max_pressure = 200_000;
-        if heap.len() > max_pressure {
-            let mut heuristics: Vec<_> = heap.iter().map(|state| state.heuristic()).collect();
-            heuristics.sort_unstable();
-
-            let alpha = 0.8;
-            let heuristic_median = heuristics[(heuristics.len() as f32 * alpha) as usize];
-            heap.retain(|state| state.heuristic() <= heuristic_median);
-        }
-    }
-
-    /// Prints the lower bounds for each position in the level.
-    #[expect(dead_code)]
-    pub fn print_lower_bounds(&self) {
-        for y in 0..self.map.dimensions().y {
-            for x in 0..self.map.dimensions().x {
-                let position = Point::new(x, y);
-                if let Some(lower_bound) = self.lower_bounds().get(&position) {
-                    print!("{lower_bound:3} ");
-                } else {
-                    print!("{:3} ", "###");
-                }
-            }
-            println!();
-        }
     }
 }
 

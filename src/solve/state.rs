@@ -156,11 +156,6 @@ impl State {
         self.lower_bound(solver) == 0
     }
 
-    /// Returns the heuristic value of the current state.
-    pub fn heuristic(&self) -> usize {
-        self.heuristic
-    }
-
     /// Returns a normalized hash of the current state.
     pub fn normalized_hash(&self, solver: &Solver) -> u64 {
         let mut hasher = DefaultHasher::new();

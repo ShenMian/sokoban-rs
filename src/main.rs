@@ -1,6 +1,3 @@
-// #![feature(test)]
-#![allow(clippy::op_ref)]
-
 mod board;
 mod components;
 mod database;
